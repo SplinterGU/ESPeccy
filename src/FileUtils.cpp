@@ -371,9 +371,17 @@ void FileUtils::DirToFile(string fpath, uint8_t ftype, unsigned long hash, unsig
 
     int bufferSize;
     if (Config::videomode < 2) {
-        bufferSize = item_count > DIR_CACHE_SIZE ? DIR_CACHE_SIZE : item_count;  // Size of buffer to read and sort
+        if (Config::psramsize > 0) {
+            bufferSize = item_count > DIR_CACHE_SIZE ? DIR_CACHE_SIZE : item_count;  // Size of buffer to read and sort
+        } else {
+            bufferSize = item_count > DIR_CACHE_SIZE_NO_PSRAM ? DIR_CACHE_SIZE_NO_PSRAM : item_count;  // Size of buffer to read and sort
+        }
     } else {
-        bufferSize = item_count > DIR_CACHE_SIZE_OVERSCAN ? DIR_CACHE_SIZE_OVERSCAN : item_count;  // Size of buffer to read and sort
+        if (Config::psramsize > 0) {
+            bufferSize = item_count > DIR_CACHE_SIZE_OVERSCAN ? DIR_CACHE_SIZE_OVERSCAN : item_count;  // Size of buffer to read and sort
+        } else {
+            bufferSize = item_count > DIR_CACHE_SIZE_OVERSCAN_NO_PSRAM ? DIR_CACHE_SIZE_OVERSCAN_NO_PSRAM : item_count;  // Size of buffer to read and sort
+        }
     }
     std::vector<std::string> buffer;
 

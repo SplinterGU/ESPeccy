@@ -102,6 +102,18 @@ using namespace std;
 #define ESP_VOLUME_DEFAULT -8
 #define ESP_VOLUME_MAX 0
 #define ESP_VOLUME_MIN -16
+
+
+enum {
+    KBDREAD_MODENORMAL = 0,
+    KBDREAD_MODEFILEBROWSER,
+    KBDREAD_MODEINPUT,
+    KBDREAD_MODEINPUTMULTI,
+    KBDREAD_MODEKBDLAYOUT,
+    KBDREAD_MODEDIALOG,
+    KBDREAD_MODEBIOS
+};
+
 class ESPectrum
 {
 public:
@@ -117,7 +129,7 @@ public:
     // Kbd
     static void processKeyboard();
     static void bootKeyboard();
-    static bool readKbd(fabgl::VirtualKeyItem *Nextkey);
+    static bool readKbd(fabgl::VirtualKeyItem *Nextkey, uint8_t mode = KBDREAD_MODENORMAL);
     static void readKbdJoy();
     static fabgl::PS2Controller PS2Controller;
     static fabgl::VirtualKey JoyVKTranslation[24];

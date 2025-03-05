@@ -130,21 +130,15 @@ private:
 #define SNA_128K_SIZE2 147487
 #define SNA_2A3_SIZE1 131121
 
-#ifdef ESPECTRUM_PSRAM
-
 // Experimental values for PSRAM
 #define DIR_CACHE_SIZE 256
 #define DIR_CACHE_SIZE_OVERSCAN 256
-#define FILENAMELEN 128
-
-#else
 
 // Values for no PSRAM
-#define DIR_CACHE_SIZE 32
-#define DIR_CACHE_SIZE_OVERSCAN 16
-#define FILENAMELEN 128
+#define DIR_CACHE_SIZE_NO_PSRAM 32
+#define DIR_CACHE_SIZE_OVERSCAN_NO_PSRAM 16
 
-#endif
+#define FILENAMELEN 128
 
 #define SDCARD_HOST_MAXFREQ 19000
 

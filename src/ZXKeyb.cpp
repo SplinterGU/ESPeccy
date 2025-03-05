@@ -130,12 +130,6 @@ uint8_t ZXKeyb::getCols() {
 
 }
 
-void ZXKeyb::ZXKbdRead() {
-
-    ZXKbdRead(ZXKDBREAD_MODEINTERACTIVE);
-
-}
-
 void ZXKeyb::ZXKbdRead(uint8_t mode) {
 
     #define REPDEL 140 // As in real ZX Spectrum (700 ms.) if this function is called every 5 ms.
@@ -143,8 +137,8 @@ void ZXKeyb::ZXKbdRead(uint8_t mode) {
 
     static int zxDel = REPDEL;
     static int lastzxK = fabgl::VK_NONE;
-    static bool lastSSstatus = bitRead(ZXcols[7], 1);
-    static bool lastCSstatus = bitRead(ZXcols[0], 0);
+    static bool lastSSstatus = !ZXKBD_SS;
+    static bool lastCSstatus = !ZXKBD_CS;
 
     bool shift_down = false, ctrl_down = false;
 
@@ -152,121 +146,268 @@ void ZXKeyb::ZXKbdRead(uint8_t mode) {
 
     fabgl::VirtualKey injectKey = fabgl::VK_NONE;
 
-    if (mode == ZXKDBREAD_MODEINTERACTIVE && bitRead(ZXcols[7], 1)) { // Not Symbol Shift pressed ?
+    switch(mode) {
+        case KBDREAD_MODENORMAL:
+            // Detect and process physical kbd menu key combinations
+            // CS+SS+<1..0> -> F1..F10 Keys, CS+SS+Q -> F11, CS+SS+W -> F12, CS+SS+S -> Capture screen
+            if (ZXKBD_CS && ZXKBD_SS) {
+                     if (ZXKBD_1) {                                        injectKey = fabgl::VK_F1; }
+                else if (ZXKBD_2) {                                        injectKey = fabgl::VK_F2; }
+                else if (ZXKBD_3) {                                        injectKey = fabgl::VK_F3; }
+                else if (ZXKBD_4) {                                        injectKey = fabgl::VK_F4; }
+                else if (ZXKBD_5) {                                        injectKey = fabgl::VK_F5; }
+                else if (ZXKBD_6) {                                        injectKey = fabgl::VK_F6; }
+                else if (ZXKBD_7) {                                        injectKey = fabgl::VK_F7; }
+                else if (ZXKBD_8) {                                        injectKey = fabgl::VK_F8; }
+                else if (ZXKBD_9) {                                        injectKey = fabgl::VK_F9; }
+                else if (ZXKBD_0) {                                        injectKey = fabgl::VK_F10; }
+                else if (ZXKBD_Q) {                                        injectKey = fabgl::VK_F11; }
+                else if (ZXKBD_W) {                                        injectKey = fabgl::VK_F12; }
+                else if (ZXKBD_P) {                                        injectKey = fabgl::VK_PAUSE; }         // P -> Pause
+                else if (ZXKBD_I) { shift_down = true;                     injectKey = fabgl::VK_F1; }            // I -> INFO
+                else if (ZXKBD_E) { shift_down = true;                     injectKey = fabgl::VK_F6; }            // E -> Eject tape
+                else if (ZXKBD_R) {                     ctrl_down = true;  injectKey = fabgl::VK_F11; }           // R -> Reset to TR-DOS
+                else if (ZXKBD_T) {                     ctrl_down = true;  injectKey = fabgl::VK_F2; }            // T -> Turbo
+                else if (ZXKBD_B) { shift_down = true;                     injectKey = fabgl::VK_PRINTSCREEN; }   // B -> BMP capture
+                else if (ZXKBD_O) {                     ctrl_down = true;  injectKey = fabgl::VK_F9; }            // O -> Poke
+                else if (ZXKBD_Y) { shift_down = true;                     injectKey = fabgl::VK_F3; }            // Y -> Cartridge
+                else if (ZXKBD_U) { shift_down = true;                     injectKey = fabgl::VK_F9; }            // O -> Poke
+                else if (ZXKBD_N) {                     ctrl_down = true;  injectKey = fabgl::VK_F10; }           // N -> NMI
+                else if (ZXKBD_K) {                     ctrl_down = true;  injectKey = fabgl::VK_F1; }            // K -> Help / Kbd layout
+                else if (ZXKBD_S) { shift_down = true;                     injectKey = fabgl::VK_F2; }            // S -> Save snapshot
+                else if (ZXKBD_D) { shift_down = true;                     injectKey = fabgl::VK_F5; }            // D -> Load .SCR
+                else if (ZXKBD_G) {                                        injectKey = fabgl::VK_PRINTSCREEN; }   // G -> Capture SCR
+                else if (ZXKBD_Z) {                     ctrl_down = true;  injectKey = fabgl::VK_F5; }            // Z -> CenterH
+                else if (ZXKBD_X) {                     ctrl_down = true;  injectKey = fabgl::VK_F6; }            // X -> CenterH
+                else if (ZXKBD_C) {                     ctrl_down = true;  injectKey = fabgl::VK_F7; }            // C -> CenterV
+                else if (ZXKBD_V) {                     ctrl_down = true;  injectKey = fabgl::VK_F8; }            // V -> CenterV
+            }
+            break;
 
-        if (!bitRead(ZXcols[0], 0)) { // CS
-                 if (!bitRead(ZXcols[6], 0)) injectKey = fabgl::VK_JOY1C; // CS + ENTER -> SPACE / SELECT
-            else if (!bitRead(ZXcols[4], 0)) injectKey = fabgl::VK_BACKSPACE; // CS + 0 -> BACKSPACE
-            else if (!bitRead(ZXcols[4], 3)) injectKey = fabgl::VK_PAGEUP; // 7 -> PAGEUP
-            else if (!bitRead(ZXcols[4], 4)) injectKey = fabgl::VK_PAGEDOWN; // 6 -> PAGEDOWN
-            else if (!bitRead(ZXcols[3], 4)) { shift_down = true; injectKey = fabgl::VK_LEFT; } // 5 -> VK_LEFT
-            else if (!bitRead(ZXcols[4], 2)) { shift_down = true; injectKey = fabgl::VK_RIGHT; } // 8 -> VK_RIGHT
-            else if (!bitRead(ZXcols[7], 3)) { shift_down = true; injectKey = fabgl::VK_F2; } // N -> NUEVO Con ROM
+        case KBDREAD_MODEFILEBROWSER:
+            if (ZXKBD_CS && !ZXKBD_SS) { // CS + !SS
+                     if (ZXKBD_ENTER)   { injectKey = fabgl::VK_JOY1C; } // CS + ENTER -> SPACE / SELECT
+                else if (ZXKBD_SPACE)   { injectKey = fabgl::VK_ESCAPE; } // BREAK -> ESCAPE
+                else if (ZXKBD_0)       { injectKey = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                else if (ZXKBD_7)       { injectKey = fabgl::VK_UP; } // 7 -> VK_UP
+                else if (ZXKBD_6)       { injectKey = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                else if (ZXKBD_5)       { injectKey = fabgl::VK_LEFT; } // 5 -> VK_LEFT
+                else if (ZXKBD_8)       { injectKey = fabgl::VK_RIGHT; } // 8 -> VK_RIGHT
+            }
+            else
+            if (ZXKBD_CS && ZXKBD_SS) {
+                     if (ZXKBD_7)       { injectKey = fabgl::VK_PAGEUP; } // 7 -> VK_PAGEUP
+                else if (ZXKBD_6)       { injectKey = fabgl::VK_PAGEDOWN; } // 6 -> VK_PAGEDOWN
+                else if (ZXKBD_5)       { shift_down = true; injectKey = fabgl::VK_LEFT; } // 5 -> SS + VK_LEFT
+                else if (ZXKBD_8)       { shift_down = true; injectKey = fabgl::VK_RIGHT; } // 8 -> SS + VK_RIGHT
+                else if (ZXKBD_G)       { injectKey = fabgl::VK_PRINTSCREEN; } // G -> USE THIS SCR
+                else if (ZXKBD_N)       { injectKey = fabgl::VK_F2; } // N -> NUEVO / RENOMBRAR
+                else if (ZXKBD_R)       { shift_down = true; injectKey = fabgl::VK_F2; } // R -> NUEVO Con ROM
+                else if (ZXKBD_M)       { injectKey = fabgl::VK_F6; } // M -> MOVE / MOVER
+                else if (ZXKBD_D)       { injectKey = fabgl::VK_F8; } // D -> DELETE / BORRAR
+                else if (ZXKBD_F)       { injectKey = fabgl::VK_F3; } // F -> FIND / BUSQUEDA
+                else if (ZXKBD_Z)       { ctrl_down = true; injectKey = fabgl::VK_LEFT; } // Z -> CTRL + LEFT
+                else if (ZXKBD_X)       { ctrl_down = true; injectKey = fabgl::VK_RIGHT; } // X -> CTRL + RIGHT
+                else if (ZXKBD_C)       { ctrl_down = true; injectKey = fabgl::VK_UP; } // C -> CTRL + UP
+                else if (ZXKBD_V)       { ctrl_down = true; injectKey = fabgl::VK_DOWN; } // V -> CTRL + DOWN
+            }
+            break;
+
+        case KBDREAD_MODEINPUT:
+        {
+            if (ZXKBD_CS && !ZXKBD_SS) { // CS
+                     if (ZXKBD_7)       { injectKey = fabgl::VK_END; } // 7 -> END
+                else if (ZXKBD_6)       { injectKey = fabgl::VK_HOME; } // 6 -> HOME
+                else if (ZXKBD_5)       { injectKey = fabgl::VK_LEFT; } // 5 -> LEFT
+                else if (ZXKBD_8)       { injectKey = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                else if (ZXKBD_0)       { injectKey = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                else if (ZXKBD_SPACE)   { injectKey = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+            }
+            break;
+        }
+
+        case KBDREAD_MODEINPUTMULTI:
+        {
+            if (ZXKBD_CS && !ZXKBD_SS) { // CS
+                     if (ZXKBD_7)       { injectKey = fabgl::VK_UP; } // 7 -> VK_UP
+                else if (ZXKBD_6)       { injectKey = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                else if (ZXKBD_5)       { injectKey = fabgl::VK_LEFT; } // 5 -> LEFT
+                else if (ZXKBD_8)       { injectKey = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                else if (ZXKBD_0)       { injectKey = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                else if (ZXKBD_SPACE)   { injectKey = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+            }
+            break;
+        }
+
+        case KBDREAD_MODEKBDLAYOUT:
+                 if (ZXKBD_SPACE)       { injectKey = fabgl::VK_ESCAPE; } // SPACE -> ESCAPE
+            else if (ZXKBD_ENTER)       { injectKey = fabgl::VK_ESCAPE; } // RETURN -> ESCAPE
+            else if (ZXKBD_CS && ZXKBD_SS) { // CS + SS
+                if (ZXKBD_K)            { injectKey = fabgl::VK_ESCAPE; }
+            }
+            break;
+
+        case KBDREAD_MODEDIALOG:
+            if (ZXKBD_CS && !ZXKBD_SS) { // CS
+                     if (ZXKBD_5)       { injectKey = fabgl::VK_LEFT; } // 5 -> LEFT
+                else if (ZXKBD_8)       { injectKey = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                else if (ZXKBD_SPACE)   { injectKey = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+            }
+            else if (ZXKBD_CS && ZXKBD_SS) { // CS + SS
+                if (ZXKBD_I)            { injectKey = fabgl::VK_F1; } // For exit from HWInfo
+            }
+            break;
+
+        case KBDREAD_MODEBIOS:
+            if (ZXKBD_CS && !ZXKBD_SS) { // CS
+                     if (ZXKBD_7)       { injectKey = fabgl::VK_UP; } // 7 -> VK_UP
+                else if (ZXKBD_6)       { injectKey = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                else if (ZXKBD_5)       { injectKey = fabgl::VK_LEFT; } // 5 -> LEFT
+                else if (ZXKBD_8)       { injectKey = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                else if (ZXKBD_0)       { injectKey = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                else if (ZXKBD_SPACE)   { injectKey = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+            }
+            else
+            if (!ZXKBD_CS && ZXKBD_SS) { // SS
+                if (ZXKBD_S)            { injectKey = fabgl::VK_F10; }
+            }
+            break;
+
+    }
+
+/*
+    if (mode == ZXKBDREAD_MODEINTERACTIVE && !ZXKBD_SS) { // Not Symbol Shift pressed ?
+
+        if (ZXKBD_CS) { // CS
+                 if (ZXKBD_ENTER) injectKey = fabgl::VK_JOY1C; // CS + ENTER -> SPACE / SELECT
+            else if (ZXKBD_0) injectKey = fabgl::VK_BACKSPACE; // CS + 0 -> BACKSPACE
+            else if (ZXKBD_7) injectKey = fabgl::VK_PAGEUP; // 7 -> PAGEUP
+            else if (ZXKBD_6) injectKey = fabgl::VK_PAGEDOWN; // 6 -> PAGEDOWN
+            else if (ZXKBD_5) { shift_down = true; injectKey = fabgl::VK_LEFT; } // 5 -> VK_LEFT
+            else if (ZXKBD_8) { shift_down = true; injectKey = fabgl::VK_RIGHT; } // 8 -> VK_RIGHT
+            else if (ZXKBD_N) { shift_down = true; injectKey = fabgl::VK_F2; } // N -> NUEVO Con ROM
         }
 
         if (injectKey == fabgl::VK_NONE) {
-                 if (!bitRead(ZXcols[4], 3)) injectKey = fabgl::VK_UP; // 7 -> UP
-            else if (!bitRead(ZXcols[4], 4)) injectKey = fabgl::VK_DOWN; // 6 -> DOWN
-            else if (!bitRead(ZXcols[6], 0)) injectKey = fabgl::VK_RETURN; // ENTER
-            else if (!bitRead(ZXcols[4], 0)) injectKey = fabgl::VK_RETURN; // 0 -> ENTER
-            else if ((!bitRead(ZXcols[7], 0)) || (!bitRead(ZXcols[4], 1))) injectKey = fabgl::VK_ESCAPE; // BREAK -> ESCAPE
-            else if (!bitRead(ZXcols[3], 4)) injectKey = fabgl::VK_LEFT; // 5 -> PGUP
-            else if (!bitRead(ZXcols[4], 2)) injectKey = fabgl::VK_RIGHT; // 8 -> PGDOWN
-            else if (!bitRead(ZXcols[1], 4)) injectKey = fabgl::VK_PRINTSCREEN; // G -> USE THIS SCR
-            else if (!bitRead(ZXcols[5], 0)) injectKey = fabgl::VK_PAUSE; // P -> PAUSE
-            else if (!bitRead(ZXcols[7], 3)) injectKey = fabgl::VK_F2; // N -> NUEVO / RENOMBRAR
-            else if (!bitRead(ZXcols[7], 2)) injectKey = fabgl::VK_F6; // M -> MOVE / MOVER
-            else if (!bitRead(ZXcols[1], 2)) injectKey = fabgl::VK_F8; // D -> DELETE / BORRAR
-            else if (!bitRead(ZXcols[1], 3)) injectKey = fabgl::VK_F3; // F -> FIND / BUSQUEDA
-            else if (!bitRead(ZXcols[0], 1)) { ctrl_down = true; injectKey = fabgl::VK_LEFT; } // Z -> CTRL + LEFT
-            else if (!bitRead(ZXcols[0], 2)) { ctrl_down = true; injectKey = fabgl::VK_RIGHT; } // X -> CTRL + RIGHT
-            else if (!bitRead(ZXcols[0], 3)) { ctrl_down = true; injectKey = fabgl::VK_UP; } // C -> CTRL + UP
-            else if (!bitRead(ZXcols[0], 4)) { ctrl_down = true; injectKey = fabgl::VK_DOWN; } // V -> CTRL + DOWN
+                 if (ZXKBD_7) injectKey = fabgl::VK_UP; // 7 -> UP
+            else if (ZXKBD_6) injectKey = fabgl::VK_DOWN; // 6 -> DOWN
+            else if (ZXKBD_ENTER) injectKey = fabgl::VK_RETURN; // ENTER
+            else if (ZXKBD_0) injectKey = fabgl::VK_RETURN; // 0 -> ENTER
+            else if (ZXKBD_SPACE || ZXKBD_9) injectKey = fabgl::VK_ESCAPE; // BREAK -> ESCAPE
+            else if (ZXKBD_5) injectKey = fabgl::VK_LEFT; // 5 -> PGUP
+            else if (ZXKBD_8) injectKey = fabgl::VK_RIGHT; // 8 -> PGDOWN
+            else if (ZXKBD_G) injectKey = fabgl::VK_PRINTSCREEN; // G -> USE THIS SCR
+            else if (ZXKBD_P) injectKey = fabgl::VK_PAUSE; // P -> PAUSE
+            else if (ZXKBD_N) injectKey = fabgl::VK_F2; // N -> NUEVO / RENOMBRAR
+            else if (ZXKBD_M) injectKey = fabgl::VK_F6; // M -> MOVE / MOVER
+            else if (ZXKBD_D) injectKey = fabgl::VK_F8; // D -> DELETE / BORRAR
+            else if (ZXKBD_F) injectKey = fabgl::VK_F3; // F -> FIND / BUSQUEDA
+            else if (ZXKBD_Z) { ctrl_down = true; injectKey = fabgl::VK_LEFT; } // Z -> CTRL + LEFT
+            else if (ZXKBD_X) { ctrl_down = true; injectKey = fabgl::VK_RIGHT; } // X -> CTRL + RIGHT
+            else if (ZXKBD_C) { ctrl_down = true; injectKey = fabgl::VK_UP; } // C -> CTRL + UP
+            else if (ZXKBD_V) { ctrl_down = true; injectKey = fabgl::VK_DOWN; } // V -> CTRL + DOWN
         }
 
     } else {
 
-        if (mode == ZXKDBREAD_MODEINPUT) {
+        if (mode == ZXKBDREAD_MODEINPUT) {
 
-            bool curSSstatus = bitRead(ZXcols[7], 1); // SS
+            bool curSSstatus = ZXKBD_SS; // SS
             if (lastSSstatus != curSSstatus) {
-                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LCTRL, !curSSstatus, false);
+                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LCTRL, curSSstatus, false);
                 lastSSstatus = curSSstatus;
             }
 
-            bool curCSstatus = bitRead(ZXcols[0], 0); // CS
+            bool curCSstatus = ZXKBD_CS; // CS
             if (lastCSstatus != curCSstatus) {
-                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LSHIFT, !curCSstatus, false);
+                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LSHIFT, curCSstatus, false);
                 lastCSstatus = curCSstatus;
             }
 
-                 if (!bitRead(ZXcols[6], 0) && bitRead(ZXcols[7], 1)) injectKey = fabgl::VK_RETURN; // ENTER + !SS
-            else if (!bitRead(ZXcols[0], 0)) { // CS
-                     if (!bitRead(ZXcols[4], 3)) injectKey = fabgl::VK_END; // 7 -> END
-                else if (!bitRead(ZXcols[4], 4)) injectKey = fabgl::VK_HOME; // 6 -> HOME
-                else if (!bitRead(ZXcols[3], 4)) injectKey = fabgl::VK_LEFT; // 5 -> LEFT
-                else if (!bitRead(ZXcols[4], 2)) injectKey = fabgl::VK_RIGHT; // 8 -> RIGHT
-                else if (!bitRead(ZXcols[4], 0)) injectKey = fabgl::VK_BACKSPACE; // CS + 0 -> BACKSPACE
-                else if (!bitRead(ZXcols[7], 0) && bitRead(ZXcols[7], 1)) injectKey = fabgl::VK_ESCAPE; // CS + SPACE && !SS -> ESCAPE
+                 if (ZXKBD_ENTER && !ZXKBD_SS) injectKey = fabgl::VK_RETURN; // ENTER + !SS
+            else if (ZXKBD_CS) { // CS
+                     if (ZXKBD_7) injectKey = fabgl::VK_END; // 7 -> END
+                else if (ZXKBD_6) injectKey = fabgl::VK_HOME; // 6 -> HOME
+                else if (ZXKBD_5) injectKey = fabgl::VK_LEFT; // 5 -> LEFT
+                else if (ZXKBD_8) injectKey = fabgl::VK_RIGHT; // 8 -> RIGHT
+                else if (ZXKBD_0) injectKey = fabgl::VK_BACKSPACE; // CS + 0 -> BACKSPACE
+                else if (ZXKBD_SPACE && !ZXKBD_SS) injectKey = fabgl::VK_ESCAPE; // CS + SPACE && !SS -> ESCAPE
             }
         }
-        else if (mode == ZXKDBREAD_MODEKBDLAYOUT) {
-                 if (!bitRead(ZXcols[6], 0)) injectKey = fabgl::VK_RETURN; // ENTER
-            else if (!bitRead(ZXcols[0], 0) && !bitRead(ZXcols[7], 0) && bitRead(ZXcols[7], 1)) injectKey = fabgl::VK_ESCAPE; // CS + SPACE && !SS -> ESCAPE
+        else if (mode == ZXKBDREAD_MODEKBDLAYOUT) {
+                 if (ZXKBD_ENTER) injectKey = fabgl::VK_RETURN; // ENTER
+            else if (ZXKBD_CS && ZXKBD_SPACE && !ZXKBD_SS) injectKey = fabgl::VK_ESCAPE; // CS + SPACE && !SS -> ESCAPE
         } else {
-            if (!bitRead(ZXcols[0], 0) && !bitRead(ZXcols[7], 1) && !bitRead(ZXcols[7], 4)) { shift_down = true; injectKey = fabgl::VK_PRINTSCREEN; } // CS + SS + B -> BMP CAPTURE
+            if (ZXKBD_CS && ZXKBD_SS && ZXKBD_B) { shift_down = true; injectKey = fabgl::VK_PRINTSCREEN; } // CS + SS + B -> BMP CAPTURE
         }
+*/
 
         if (injectKey == fabgl::VK_NONE) {
+            ctrl_down = ZXKBD_SS;
+            shift_down = ZXKBD_CS;
 
-                 if (!bitRead(ZXcols[0], 1)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_Z : fabgl::VK_z;
-            else if (!bitRead(ZXcols[0], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_X : fabgl::VK_x;
-            else if (!bitRead(ZXcols[0], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_C : fabgl::VK_c;
-            else if (!bitRead(ZXcols[0], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_V : fabgl::VK_v;
+            bool curSSstatus = ZXKBD_SS; // SS
+            if (lastSSstatus != curSSstatus) {
+                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LCTRL, curSSstatus, false);
+                lastSSstatus = curSSstatus;
+            }
 
-            else if (!bitRead(ZXcols[1], 0)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_A : fabgl::VK_a;
-            else if (!bitRead(ZXcols[1], 1)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_S : fabgl::VK_s;
-            else if (!bitRead(ZXcols[1], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_D : fabgl::VK_d;
-            else if (!bitRead(ZXcols[1], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_F : fabgl::VK_f;
-            else if (!bitRead(ZXcols[1], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_G : fabgl::VK_g;
+            bool curCSstatus = ZXKBD_CS; // CS
+            if (lastCSstatus != curCSstatus) {
+                ESPectrum::PS2Controller.keyboard()->injectVirtualKey(fabgl::VK_LSHIFT, curCSstatus, false);
+                lastCSstatus = curCSstatus;
+            }
 
-            else if (!bitRead(ZXcols[2], 0)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_Q : fabgl::VK_q;
-            else if (!bitRead(ZXcols[2], 1)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_W : fabgl::VK_w;
-            else if (!bitRead(ZXcols[2], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_E : fabgl::VK_e;
-            else if (!bitRead(ZXcols[2], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_R : fabgl::VK_r;
-            else if (!bitRead(ZXcols[2], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_T : fabgl::VK_t;
+                 if (ZXKBD_Z) injectKey = ZXKBD_CS ? fabgl::VK_Z : fabgl::VK_z;
+            else if (ZXKBD_X) injectKey = ZXKBD_CS ? fabgl::VK_X : fabgl::VK_x;
+            else if (ZXKBD_C) injectKey = ZXKBD_CS ? fabgl::VK_C : fabgl::VK_c;
+            else if (ZXKBD_V) injectKey = ZXKBD_CS ? fabgl::VK_V : fabgl::VK_v;
 
-            else if (!bitRead(ZXcols[5], 0)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_P : fabgl::VK_p;
-            else if (!bitRead(ZXcols[5], 1)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_O : fabgl::VK_o;
-            else if (!bitRead(ZXcols[5], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_I : fabgl::VK_i;
-            else if (!bitRead(ZXcols[5], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_U : fabgl::VK_u;
-            else if (!bitRead(ZXcols[5], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_Y : fabgl::VK_y;
+            else if (ZXKBD_A) injectKey = ZXKBD_CS ? fabgl::VK_A : fabgl::VK_a;
+            else if (ZXKBD_S) injectKey = ZXKBD_CS ? fabgl::VK_S : fabgl::VK_s;
+            else if (ZXKBD_D) injectKey = ZXKBD_CS ? fabgl::VK_D : fabgl::VK_d;
+            else if (ZXKBD_F) injectKey = ZXKBD_CS ? fabgl::VK_F : fabgl::VK_f;
+            else if (ZXKBD_G) injectKey = ZXKBD_CS ? fabgl::VK_G : fabgl::VK_g;
 
-            else if (!bitRead(ZXcols[6], 1)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_L : fabgl::VK_l;
-            else if (!bitRead(ZXcols[6], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_K : fabgl::VK_k;
-            else if (!bitRead(ZXcols[6], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_J : fabgl::VK_j;
-            else if (!bitRead(ZXcols[6], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_H : fabgl::VK_h;
+            else if (ZXKBD_Q) injectKey = ZXKBD_CS ? fabgl::VK_Q : fabgl::VK_q;
+            else if (ZXKBD_W) injectKey = ZXKBD_CS ? fabgl::VK_W : fabgl::VK_w;
+            else if (ZXKBD_E) injectKey = ZXKBD_CS ? fabgl::VK_E : fabgl::VK_e;
+            else if (ZXKBD_R) injectKey = ZXKBD_CS ? fabgl::VK_R : fabgl::VK_r;
+            else if (ZXKBD_T) injectKey = ZXKBD_CS ? fabgl::VK_T : fabgl::VK_t;
 
-            else if (!bitRead(ZXcols[7], 0)) injectKey = fabgl::VK_SPACE;
-            else if (!bitRead(ZXcols[7], 2)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_M : fabgl::VK_m;
-            else if (!bitRead(ZXcols[7], 3)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_N : fabgl::VK_n;
-            else if (!bitRead(ZXcols[7], 4)) injectKey = !bitRead(ZXcols[0], 0) ? fabgl::VK_B : fabgl::VK_b;
+            else if (ZXKBD_P) injectKey = ZXKBD_CS ? fabgl::VK_P : fabgl::VK_p;
+            else if (ZXKBD_O) injectKey = ZXKBD_CS ? fabgl::VK_O : fabgl::VK_o;
+            else if (ZXKBD_I) injectKey = ZXKBD_CS ? fabgl::VK_I : fabgl::VK_i;
+            else if (ZXKBD_U) injectKey = ZXKBD_CS ? fabgl::VK_U : fabgl::VK_u;
+            else if (ZXKBD_Y) injectKey = ZXKBD_CS ? fabgl::VK_Y : fabgl::VK_y;
 
-            else if (!bitRead(ZXcols[3], 0)) injectKey = fabgl::VK_1;
-            else if (!bitRead(ZXcols[3], 1)) injectKey = fabgl::VK_2;
-            else if (!bitRead(ZXcols[3], 2)) injectKey = fabgl::VK_3;
-            else if (!bitRead(ZXcols[3], 3)) injectKey = fabgl::VK_4;
-            else if (!bitRead(ZXcols[3], 4)) injectKey = fabgl::VK_5;
+            else if (ZXKBD_ENTER) injectKey = fabgl::VK_RETURN;
+            else if (ZXKBD_L) injectKey = ZXKBD_CS ? fabgl::VK_L : fabgl::VK_l;
+            else if (ZXKBD_K) injectKey = ZXKBD_CS ? fabgl::VK_K : fabgl::VK_k;
+            else if (ZXKBD_J) injectKey = ZXKBD_CS ? fabgl::VK_J : fabgl::VK_j;
+            else if (ZXKBD_H) injectKey = ZXKBD_CS ? fabgl::VK_H : fabgl::VK_h;
 
-            else if (!bitRead(ZXcols[4], 0)) injectKey = fabgl::VK_0;
-            else if (!bitRead(ZXcols[4], 1)) injectKey = fabgl::VK_9;
-            else if (!bitRead(ZXcols[4], 2)) injectKey = fabgl::VK_8;
-            else if (!bitRead(ZXcols[4], 3)) injectKey = fabgl::VK_7;
-            else if (!bitRead(ZXcols[4], 4)) injectKey = fabgl::VK_6;
+            else if (ZXKBD_SPACE) injectKey = fabgl::VK_SPACE;
+            else if (ZXKBD_M) injectKey = ZXKBD_CS ? fabgl::VK_M : fabgl::VK_m;
+            else if (ZXKBD_N) injectKey = ZXKBD_CS ? fabgl::VK_N : fabgl::VK_n;
+            else if (ZXKBD_B) injectKey = ZXKBD_CS ? fabgl::VK_B : fabgl::VK_b;
+
+            else if (ZXKBD_1) injectKey = fabgl::VK_1;
+            else if (ZXKBD_2) injectKey = fabgl::VK_2;
+            else if (ZXKBD_3) injectKey = fabgl::VK_3;
+            else if (ZXKBD_4) injectKey = fabgl::VK_4;
+            else if (ZXKBD_5) injectKey = fabgl::VK_5;
+
+            else if (ZXKBD_0) injectKey = fabgl::VK_0;
+            else if (ZXKBD_9) injectKey = fabgl::VK_9;
+            else if (ZXKBD_8) injectKey = fabgl::VK_8;
+            else if (ZXKBD_7) injectKey = fabgl::VK_7;
+            else if (ZXKBD_6) injectKey = fabgl::VK_6;
 
         }
-
+/*
     }
+*/
 
     if (injectKey != fabgl::VK_NONE) {
         if (zxDel == 0) {

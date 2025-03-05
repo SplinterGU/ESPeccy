@@ -94,7 +94,7 @@ using namespace std;
 #define OSD_H 192
 #define OSD_MARGIN 4
 
-extern Font Font6x8;
+extern Font SystemFont;
 
 uint8_t OSD::cols;                     // Maximum columns
 uint8_t OSD::mf_rows;                  // File menu maximum rows
@@ -237,13 +237,13 @@ void OSD::drawWindow(uint16_t width, uint16_t height, string top, string bottom,
     unsigned short x = scrAlignCenterX(width);
     unsigned short y = scrAlignCenterY(height);
     if (clear) VIDEO::vga.fillRect(x, y, width, height, zxColor(0, 0));
-    VIDEO::vga.rect(x, y, width , height , zxColor(0, 0));
+    VIDEO::vga.rect(x, y, width, height, zxColor(0, 0));
     VIDEO::vga.rect(x + 1, y + 1, width - 2, height - 2, zxColor(7, 0));
 
     if (top != "") {
         VIDEO::vga.rect(x + 3, y + 3, width - 6, 9, zxColor(5, 0));
         VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-        VIDEO::vga.setFont(Font6x8);
+        VIDEO::vga.setFont(SystemFont);
         VIDEO::vga.setCursor(x + 3, y + 4);
         VIDEO::vga.print(top.c_str());
     }
@@ -251,7 +251,7 @@ void OSD::drawWindow(uint16_t width, uint16_t height, string top, string bottom,
     if (bottom != "") {
         VIDEO::vga.rect(x + 3, y + height - 12, width - 6, 9, zxColor(5, 0));
         VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-        VIDEO::vga.setFont(Font6x8);
+        VIDEO::vga.setFont(SystemFont);
         VIDEO::vga.setCursor(x + 3, y + height - 11);
         VIDEO::vga.print(bottom.c_str());
     }
@@ -1118,7 +1118,7 @@ void OSD::drawOSD(bool bottom_info) {
     VIDEO::vga.rect(x, y, OSD_W, OSD_H, zxColor(0, 0));
     VIDEO::vga.rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(7, 0));
     VIDEO::vga.setTextColor(zxColor(0, 0), zxColor(5, 1));
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
     osdHome();
     VIDEO::vga.print(OSD_TITLE);
     osdAt(22, 0);
@@ -1219,12 +1219,12 @@ void OSD::drawKbdLayout(uint8_t layout) {
 
         while (1) {
 
-            if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(ZXKDBREAD_MODEKBDLAYOUT);
+            if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEKBDLAYOUT);
 
             ESPectrum::readKbdJoy();
 
             if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-                if (ESPectrum::readKbd(&Nextkey)) {
+                if (ESPectrum::readKbd(&Nextkey, KBDREAD_MODEKBDLAYOUT)) {
                     if(!Nextkey.down) continue;
                     if (Nextkey.vk == fabgl::VK_F1 ||
                         Nextkey.vk == fabgl::VK_ESCAPE ||
@@ -1247,7 +1247,7 @@ void OSD::drawKbdLayout(uint8_t layout) {
             }
 
             VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-            VIDEO::vga.setFont(Font6x8);
+            VIDEO::vga.setFont(SystemFont);
             VIDEO::vga.setCursor(x + 3, y + height - 11);
 
             string text = " " + RotateLine(bottom[layout], &statusBarScrollCTX, maxW, 125, 25) + " " + vmode + " ";
@@ -1400,7 +1400,7 @@ void OSD::drawStats() {
     }
 
     VIDEO::vga.setTextColor(zxColor(7, 0), zxColor( ESPectrum::ESP_delay, 0));
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
     VIDEO::vga.setCursor(x,y);
     VIDEO::vga.print(stats_lin1);
     VIDEO::vga.setCursor(x,y+8);
@@ -1790,10 +1790,10 @@ void OSD::showCheatDialog() {
 
         while(true) {
             string statusbar;
-            if (ZXKeyb::Exists) {
-                statusbar = Config::lang == 0 ? "N: Open | CS+ENT: Enable/Disable | BRK: Finish & apply" :
-                            Config::lang == 1 ? "N: Abrir | CS+ENT: Habilitar/Deshabilitar | BRK: Finalizar y aplicar" :
-                                                "N: Iniciar | CS+ENT: Habilitar/Desabilitar | BRK: Finalizar e aplicar";
+            if (ZXKeyb::Exists || Config::zxunops2) {
+                statusbar = Config::lang == 0 ? "\x05+\x06+N: Open | \x05+ENT: Enable/Disable | BRK: Finish & apply" :
+                            Config::lang == 1 ? "\x05+\x06+N: Abrir | \x05+ENT: Habilitar/Deshabilitar | BRK: Finalizar y aplicar" :
+                                                "\x05+\x06+N: Iniciar | \x05+ENT: Habilitar/Desabilitar | BRK: Finalizar e aplicar";
             } else {
                 statusbar = Config::lang == 0 ? "F2: Open | SPC: Enable/Disable | ESC: Finish & apply" :
                             Config::lang == 1 ? "F2: Abrir | ESP: Habilitar/Deshabilitar | ESC: Finalizar y aplicar" :
@@ -2157,12 +2157,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 
             while (1) {
 
-                if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+                if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODENORMAL);
 
                 ESPectrum::readKbdJoy();
 
                 if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-                    if (ESPectrum::readKbd(&Nextkey)) {
+                    if (ESPectrum::readKbd(&Nextkey, KBDREAD_MODENORMAL)) {
                         if(!Nextkey.down) continue;
                         if (Nextkey.vk == fabgl::VK_RETURN || Nextkey.vk == fabgl::VK_ESCAPE || Nextkey.vk == fabgl::VK_JOY1A || Nextkey.vk == fabgl::VK_JOY2A || Nextkey.vk == fabgl::VK_JOY1B || Nextkey.vk == fabgl::VK_JOY2B || Nextkey.vk == fabgl::VK_PAUSE) {
                             click();
@@ -2257,10 +2257,10 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                 // Persist Load
                 string menuload = MENU_PERSIST_LOAD[Config::lang] + getStringPersistCatalog();
                 string statusbar;
-                if (ZXKeyb::Exists) {
-                    statusbar = Config::lang == 0 ? "N: Rename | D: Delete" :
-                                Config::lang == 1 ? "N: Renombrar | D: Borrar" :
-                                                    "N: Renomear | D: Excluir";
+                if (ZXKeyb::Exists || Config::zxunops2) {
+                    statusbar = Config::lang == 0 ? "\x05+\x06+N: Rename | \x05+\x06+D: Delete" :
+                                Config::lang == 1 ? "\x05+\x06+N: Renombrar | \x05+\x06+D: Borrar" :
+                                                    "\x05+\x06+N: Renomear | \x05+\x06+D: Excluir";
                 } else {
                     statusbar = Config::lang == 0 ? "F2: Rename | F8: Delete" :
                                 Config::lang == 1 ? "F2: Renombrar | F8: Borrar" :
@@ -2287,10 +2287,10 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
             if ( FileUtils::isSDReady() ) {
                 string menusave = MENU_PERSIST_SAVE[Config::lang] + getStringPersistCatalog();
                 string statusbar;
-                if (ZXKeyb::Exists) {
-                    statusbar = Config::lang == 0 ? "N: Rename | D: Delete" :
-                                Config::lang == 1 ? "N: Renombrar | D: Borrar" :
-                                                    "N: Renomear | D: Excluir";
+                if (ZXKeyb::Exists || Config::zxunops2) {
+                    statusbar = Config::lang == 0 ? "\x05+\x06+N: Rename | \x05+\x06+D: Delete" :
+                                Config::lang == 1 ? "\x05+\x06+N: Renombrar | \x05+\x06+D: Borrar" :
+                                                    "\x05+\x06+N: Renomear | \x05+\x06+D: Excluir";
                 } else {
                     statusbar = Config::lang == 0 ? "F2: Rename | F8: Delete" :
                                 Config::lang == 1 ? "F2: Renombrar | F8: Borrar" :
@@ -2491,7 +2491,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 
             VIDEO::vga.fillRect(x, y - 4, 24 * OSD_FONT_W, 16, zxColor(1, 0));
             VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(1, 0));
-            VIDEO::vga.setFont(Font6x8);
+            VIDEO::vga.setFont(SystemFont);
             VIDEO::vga.setCursor(x + OSD_FONT_W, y + 1);
             VIDEO::vga.print(Config::load_monitor ? "TAP" : "VOL");
             for (int i = 0; i < ESPectrum::aud_volume + 16; i++)
@@ -2625,10 +2625,10 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     while (1) {
                                         string menuload = MENU_PERSIST_LOAD[Config::lang] + getStringPersistCatalog();
                                         string statusbar;
-                                        if (ZXKeyb::Exists) {
-                                            statusbar = Config::lang == 0 ? "N: Rename | D: Delete" :
-                                                        Config::lang == 1 ? "N: Renombrar | D: Borrar" :
-                                                                            "N: Renomear | D: Excluir";
+                                        if (ZXKeyb::Exists || Config::zxunops2) {
+                                            statusbar = Config::lang == 0 ? "\x05+\x06+N: Rename | \x05+\x06+D: Delete" :
+                                                        Config::lang == 1 ? "\x05+\x06+N: Renombrar | \x05+\x06+D: Borrar" :
+                                                                            "\x05+\x06+N: Renomear | \x05+\x06+D: Excluir";
                                         } else {
                                             statusbar = Config::lang == 0 ? "F2: Rename | F8: Delete" :
                                                         Config::lang == 1 ? "F2: Renombrar | F8: Borrar" :
@@ -2656,10 +2656,10 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     while (1) {
                                         string menusave = MENU_PERSIST_SAVE[Config::lang] + getStringPersistCatalog();
                                         string statusbar;
-                                        if (ZXKeyb::Exists) {
-                                            statusbar = Config::lang == 0 ? "N: Rename | D: Delete" :
-                                                        Config::lang == 1 ? "N: Renombrar | D: Borrar" :
-                                                                            "N: Renomear | D: Excluir";
+                                        if (ZXKeyb::Exists || Config::zxunops2) {
+                                            statusbar = Config::lang == 0 ? "\x05+\x06+N: Rename | \x05+\x06+D: Delete" :
+                                                        Config::lang == 1 ? "\x05+\x06+N: Renombrar | \x05+\x06+D: Borrar" :
+                                                                            "\x05+\x06+N: Renomear | \x05+\x06+D: Excluir";
                                         } else {
                                             statusbar = Config::lang == 0 ? "F2: Rename | F8: Delete" :
                                                         Config::lang == 1 ? "F2: Renombrar | F8: Borrar" :
@@ -4643,6 +4643,11 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                         }
                                     }
                                 }
+
+                                menu_curopt = 4;
+                                menu_level = 1;
+                                menu_saverect = false;
+
                             } else if (opt2 == 5) {
 
                                 if ( FileUtils::isSDReady() ) {
@@ -4678,7 +4683,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     }
                                 }
 
-                                menu_curopt = 4;
+                                menu_curopt = 5;
                                 menu_level = 1;
                                 menu_saverect = false;
 
@@ -4775,12 +4780,12 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 
                         VIDEO::vga.fillRect(pos_x + ((osdCol + 1) * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W,OSD_FONT_H, cursorCol );
 
-                        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+                        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODENORMAL);
 
                         ESPectrum::readKbdJoy();
 
                         if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-                            if (ESPectrum::readKbd(&Nextkey)) {
+                            if (ESPectrum::readKbd(&Nextkey, KBDREAD_MODENORMAL)) {
                                 if(!Nextkey.down) continue;
                                 if (Nextkey.vk == fabgl::VK_F1 || Nextkey.vk == fabgl::VK_ESCAPE || Nextkey.vk == fabgl::VK_RETURN || Nextkey.vk == fabgl::VK_JOY1A || Nextkey.vk == fabgl::VK_JOY1B || Nextkey.vk == fabgl::VK_JOY2A || Nextkey.vk == fabgl::VK_JOY2B) break;
                             }
@@ -4817,7 +4822,7 @@ void OSD::errorPanel(string errormsg) {
     VIDEO::vga.fillRect(x, y, OSD_W, OSD_H, zxColor(0, 0));
     VIDEO::vga.rect(x, y, OSD_W, OSD_H, zxColor(7, 0));
     VIDEO::vga.rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(2, 1));
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
     osdHome();
     VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(2, 1));
     VIDEO::vga.print(ERROR_TITLE);
@@ -4881,7 +4886,7 @@ void OSD::osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause) {
     VIDEO::vga.fillRect(x, y, w, h, paper);
     // VIDEO::vga.rect(x - 1, y - 1, w + 2, h + 2, ink);
     VIDEO::vga.setTextColor(ink, paper);
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
     VIDEO::vga.setCursor(x + OSD_FONT_W, y + OSD_FONT_H);
     VIDEO::vga.print(msg.c_str());
 
@@ -5011,12 +5016,12 @@ void OSD::HWInfo() {
     // Wait for key
     while (1) {
 
-        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEDIALOG);
 
         ESPectrum::readKbdJoy();
 
         if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-            ESPectrum::PS2Controller.keyboard()->getNextVirtualKey(&Nextkey);
+            ESPectrum::readKbd(&Nextkey, KBDREAD_MODEDIALOG);
             if(!Nextkey.down) continue;
             if (Nextkey.vk == fabgl::VK_F1 || Nextkey.vk == fabgl::VK_ESCAPE || Nextkey.vk == fabgl::VK_RETURN || Nextkey.vk == fabgl::VK_JOY1A || Nextkey.vk == fabgl::VK_JOY1B || Nextkey.vk == fabgl::VK_JOY2A || Nextkey.vk == fabgl::VK_JOY2B) {
                 click();
@@ -5036,9 +5041,14 @@ void OSD::HWInfo() {
 
 esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
 
+    bool realtape_was_enabled = RealTape_enabled;
+
+    if (realtape_was_enabled) RealTape_pause();
+
     // get the currently running partition
     const esp_partition_t *partition = esp_ota_get_running_partition();
     if (partition == NULL) {
+        if (realtape_was_enabled) RealTape_start();
         return ESP_ERR_NOT_FOUND;
     }
 
@@ -5058,6 +5068,7 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     if (strcmp(partition->label,"esp0")==0) splabel = "esp1"; else splabel= "esp0";
     const esp_partition_t *target = esp_partition_find_first(ESP_PARTITION_TYPE_APP,ESP_PARTITION_SUBTYPE_ANY,splabel.c_str());
     if (target == NULL) {
+        if (realtape_was_enabled) RealTape_start();
         return ESP_ERR_NOT_FOUND;
     }
 
@@ -5066,17 +5077,17 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
 
     // Get firmware size
     fseek(customrom, 0, SEEK_END);
-    long bytesfirmware = ftell(customrom);
+    long bytesrom = ftell(customrom);
     rewind(customrom);
 
-    // printf("Custom ROM lenght: %ld\n", bytesfirmware);
+    // printf("Custom ROM lenght: %ld\n", bytesrom);
 
     string dlgTitle = OSD_ROM[Config::lang];
 
     if (arch == 1) {
 
         // Check rom size
-        if (bytesfirmware > 0x4000) {
+        if (bytesrom > 0x4000) {
             return ESP_ERR_INVALID_SIZE;
         }
 
@@ -5085,7 +5096,7 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     } else if (arch == 2) {
 
         // Check rom size
-        if (bytesfirmware != 0x4000 && bytesfirmware != 0x8000) {
+        if (bytesrom != 0x4000 && bytesrom != 0x8000) {
             return ESP_ERR_INVALID_SIZE;
         }
 
@@ -5094,7 +5105,7 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     } else if (arch == 3) {
 
         // Check rom size
-        if (bytesfirmware != 0x10000) {
+        if (bytesrom != 0x10000) {
             return ESP_ERR_INVALID_SIZE;
         }
 
@@ -5103,7 +5114,7 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     } else if (arch == 4) {
 
         // Check rom size
-        if (bytesfirmware > 0x4000) {
+        if (bytesrom > 0x4000) {
             return ESP_ERR_INVALID_SIZE;
         }
 
@@ -5112,11 +5123,6 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     }
 
     uint8_t data[FWBUFFSIZE] = { 0 };
-
-    // printf("MAGIC -> ");
-    // for(int i=0;i<8;i++)
-    //     printf("%c",magic[i]);
-    // printf("\n");
 
     int32_t sindex = 0;
     int32_t sindextk = 0;
@@ -5127,23 +5133,16 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     uint32_t rom_off_128 = 0;
     uint32_t rom_off_2a3 = 0;
 
-    uint8_t magic[8] = { 0x45, 0x53, 0x50, 0x52, 0x00, 0x34, 0x38, 0x4B }; // MAGIC -> "ESPR_48K" ;
-    uint8_t magictk[8] = { 0x45, 0x53, 0x50, 0x52, 0x00, 0x54, 0x4B, 0x58 }; // MAGIC -> "ESPR_TKX" ;
-    uint8_t magic128[8] = { 0x45, 0x53, 0x50, 0x52, 0x00, 0x31, 0x32, 0x38 }; // MAGIC -> "ESPR_128"
-    uint8_t magic2a3[8] = { 0x45, 0x53, 0x50, 0x52, 0x00, 0x32, 0x53, 0x33 }; // MAGIC -> "ESPR_2A3"
+    uint8_t magic[]    = { 'E', 'S', 'P', 'C', 'Y', '?', '8', 'K' };
+    uint8_t magictk[]  = { 'E', 'S', 'P', 'C', 'Y', '?', 'K', 'X' };
+    uint8_t magic128[] = { 'E', 'S', 'P', 'C', 'Y', '?', '2', '8' };
+    uint8_t magic2a3[] = { 'E', 'S', 'P', 'C', 'Y', '?', 'A', '3' };
 
     // truco sucio para evitar que la busqueda de la custom encuentre match en medio del firmware
-    magic[4] = 0x5F;
-    magictk[4] = 0x5F;
-    magic128[4] = 0x5F;
-    magic2a3[4] = 0x5F;
-
-    // uint8_t magic[8] =	{ 0 }; // MAGIC -> "ESPR_48K" ;
-    // uint8_t magic128[8] = { 0 }; // MAGIC -> "ESPR_128"
-    // for (int n=0; n<8; n++) {
-    //     magic[n] = gb_rom_0_48k_custom[n];
-    //     magic128[n] = gb_rom_0_128k_custom[n];
-    // }
+    magic[5] = '4';
+    magictk[5] = 'T';
+    magic128[5] = '1';
+    magic2a3[5] = '2';
 
     progressDialog(dlgTitle,OSD_ROM_BEGIN[Config::lang],0,0);
 
@@ -5151,65 +5150,41 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         esp_err_t result = esp_partition_read(partition, offset, data, FWBUFFSIZE);
         if (result == ESP_OK) {
             for (int n=0; n < FWBUFFSIZE; n++) {
-                if (sindex < sizeof( magic ) && data[n] == magic[sindex]) {
+                if (rom_off == 0 && sindex < sizeof( magic ) && data[n] == magic[sindex]) {
                     sindex++;
-                    if (sindex == 8) {
-                        rom_off = offset + n - 7;
+                    if (sindex == sizeof(magic)) {
+                        rom_off = offset + n - (sizeof(magic) - 1);
                         // printf("FOUND! OFFSET -> %ld\n",rom_off);
-                        // for (int m = 0; m < 256; m+=16) {
-                        //     for (int j = m; j < m + 16; j++) {
-                        //         printf("%02X ", data[ n + j + 1]);
-                        //     }
-                        //     printf("\n");
-                        // }
                     }
                 } else {
                     sindex = 0;
                 }
 
-                if (sindex128 < sizeof( magic128 ) && data[n] == magic128[sindex128]) {
+                if (rom_off_128 == 0 && sindex128 < sizeof( magic128 ) && data[n] == magic128[sindex128]) {
                     sindex128++;
-                    if (sindex128 == 8) {
-                        rom_off_128 = offset + n - 7;
+                    if (sindex128 == sizeof(magic128)) {
+                        rom_off_128 = offset + n - (sizeof(magic128) - 1);
                         // printf("FOUND! OFFSET 128 -> %ld\n",rom_off_128);
-                        // for (int m = 0; m < 256; m+=16) {
-                        //     for (int j = m; j < m + 16; j++) {
-                        //         printf("%02X ", data[ n + j + 1]);
-                        //     }
-                        //     printf("\n");
-                        // }
                     }
                 } else {
                     sindex128 = 0;
                 }
 
-                if (sindex2a3 < sizeof( magic2a3 ) && data[n] == magic2a3[sindex2a3]) {
+                if (rom_off_2a3 == 0 && sindex2a3 < sizeof( magic2a3 ) && data[n] == magic2a3[sindex2a3]) {
                     sindex2a3++;
-                    if (sindex2a3 == 8) {
-                        rom_off_2a3 = offset + n - 7;
+                    if (sindex2a3 == sizeof(magic2a3)) {
+                        rom_off_2a3 = offset + n - (sizeof(magic2a3) - 1);
                         // printf("FOUND! OFFSET 2A3 -> %ld\n",rom_off_2a3);
-                        // for (int m = 0; m < 256; m+=16) {
-                        //     for (int j = m; j < m + 16; j++) {
-                        //         printf("%02X ", data[ n + j + 1]);
-                        //     }
-                        //     printf("\n");
-                        // }
                     }
                 } else {
                     sindex2a3 = 0;
                 }
 
-                if (data[n] == magictk[sindextk]) {
+                if (rom_off_tk == 0 && sindextk < sizeof( magictk ) && data[n] == magictk[sindextk]) {
                     sindextk++;
-                    if (sindextk == 8) {
-                        rom_off_tk = offset + n - 7;
-                        // printf("FOUND! OFFSET -> %ld\n",rom_off);
-                        // for (int m = 0; m < 256; m+=16) {
-                        //     for (int j = m; j < m + 16; j++) {
-                        //         printf("%02X ", data[ n + j + 1]);
-                        //     }
-                        //     printf("\n");
-                        // }
+                    if (sindextk == sizeof(magictk)) {
+                        rom_off_tk = offset + n - (sizeof(magictk) - 1);
+                        // printf("FOUND! OFFSET TK -> %ld\n",rom_off_tk);
                     }
                 } else {
                     sindextk = 0;
@@ -5218,6 +5193,7 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         } else {
             printf("esp_partition_read failed, err=0x%x.\n", result);
             progressDialog("","",0,2);
+            if (realtape_was_enabled) RealTape_start();
             return result;
         }
     }
@@ -5230,10 +5206,11 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     }
 
     // Erase entire target partition
-    esp_err_t result = esp_partition_erase_range(target, 0, target->size);
+    esp_err_t result = esp_partition_erase_range(target, 0, target->size & ~4095);
     if (result != ESP_OK) {
         printf("esp_partition_erase_range failed, err=0x%x.\n", result);
         progressDialog("","",0,2);
+        if (realtape_was_enabled) RealTape_start();
         return result;
     }
 
@@ -5242,17 +5219,16 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
 
     // printf("Before -> %ld\n",psize);
 
-    rom_off += 8;
-    rom_off_tk += 8;
-    rom_off_128 += 8;
-    rom_off_2a3 += 8;
+    rom_off += sizeof(magic);
+    rom_off_tk += sizeof(magic128);
+    rom_off_128 += sizeof(magic2a3);
+    rom_off_2a3 += sizeof(magictk);
 
-    // FILE *file;
-    // file = fopen("/sd/firmware.out", "wb");
-    // if (file==NULL) {
-    //     printf("FileSNA: Error opening firmware.out for writing");
-    //     return;
-    // }
+    //printf("partition size %ld %ld\n", (long) psize, (long) target->size);
+    //printf("rom_48 %ld %ld\n", (long) rom_off, (long) sindex);
+    //printf("rom_tk %ld %ld\n", (long) rom_off_tk, (long) sindextk);
+    //printf("rom_128 %ld %ld\n", (long) rom_off_128, (long) sindex128);
+    //printf("rom_2a3 %ld %ld\n", (long) rom_off_2a3, (long) sindex2a3);
 
     progressDialog(dlgTitle,OSD_ROM_WRITE[Config::lang],0,1);
 
@@ -5261,15 +5237,15 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
             esp_err_t result = esp_partition_read(partition, i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
 
-                for(int m=i; m < i + FWBUFFSIZE; m++) {
+                for(uint32_t m=i; m < i + FWBUFFSIZE; m++) {
 
-                    if (m >= rom_off && m<(rom_off + 0x4000)) {
+                    if (m >= rom_off && m < rom_off + 0x4000) {
                         data[m - i]=0xff;
-                    } else if (m >= rom_off_tk && m<(rom_off_tk + 0x4000)) {
+                    } else if (m >= rom_off_tk && m < rom_off_tk + 0x4000) {
                         data[m - i]=0xff;
-                    } else if (m >= rom_off_128 && m<(rom_off_128 + 0x8000)) {
+                    } else if (m >= rom_off_128 && m < rom_off_128 + 0x8000) {
                         data[m - i]=0xff;
-                    } else if (m >= rom_off_2a3 && m<(rom_off_2a3 + 0x10000)) {
+                    } else if (m >= rom_off_2a3 && m < rom_off_2a3 + 0x10000) {
                         data[m - i]=0xff;
                     }
 
@@ -5279,16 +5255,15 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
                 esp_err_t result = esp_partition_write(target, i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
-
-                // for (int m=0;m<FWBUFFSIZE;m++)
-                //     writeByteFile(data[m], file);
 
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
 
@@ -5298,47 +5273,12 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
 
     progressDialog("","",25,1);
 
-    // for(uint32_t i=0; i < partition->size; i += FWBUFFSIZE) {
-    //     esp_err_t result = esp_partition_read(target, i, data, FWBUFFSIZE);
-    //     for (int m=0;m<FWBUFFSIZE;m++)
-    //         writeByteFile(data[m], file);
-    // }
-
-    // fclose(file);
-
-    // printf("After -> %ld\n",psize);
-
-    // for(int n=0;n<256;n++) tst[n]=0xFF;
-
-    // for (int i=0; i < 0x4000; i += 256) {
-    //     // for (int n=0;n<256;n++) {
-    //     //     tst[n] = gb_rom_0_plus2_es[i + n];
-    //     // }
-    //     result = esp_partition_write(target, rom_off + i, tst, 256);
-    //     if (result != ESP_OK) {
-    //         printf("esp_partition_write failed, err=0x%x.\n", result);
-    //         return;
-    //     }
-    // }
-
-    // for (int i= 0; i < 0x4000; i += 256) {
-    //     // for (int n=0;n<256;n++) {
-    //     //     tst[n] = gb_rom_1_plus2_es[i + n];
-    //     // }
-    //     result = esp_partition_write(target, rom_off + i + 0x4000, tst, 256);
-    //     if (result != ESP_OK) {
-    //         printf("esp_partition_write failed, err=0x%x.\n", result);
-    //         return;
-    //     }
-    // }
-
-    // esp_partition_write(target,rom_off,&gb_rom_0_48k_rg[8],16384);
-    // esp_partition_write(target,rom_off + 0x4000,&gb_rom_0_48k_rg[8],16384);
 
     result = esp_ota_set_boot_partition(target);
     if (result != ESP_OK) {
         printf("esp_ota_set_boot_partition failed, err=0x%x.\n", result);
         progressDialog("","",0,2);
+        if (realtape_was_enabled) RealTape_start();
         return result;
     }
 
@@ -5349,12 +5289,13 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",50,1);
 
         // Inject new 48K custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE ) {
-            bytesread = fread(data, 1, FWBUFFSIZE , customrom);
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE ) {
+            bytesread = fread(data, 1, FWBUFFSIZE, customrom);
             result = esp_partition_write(target, rom_off + i, data, FWBUFFSIZE);
             if (result != ESP_OK) {
                 printf("esp_partition_write failed, err=0x%x.\n", result);
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5362,37 +5303,40 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",60,1);
 
         // Copy previous TK custom ROM
-        for (int i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_tk + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_tk + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                     printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+            }
+
+            if (result != ESP_OK) {
+                progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
+                return result;
             }
         }
 
         progressDialog("","",70,1);
 
         // Copy previous 128K custom ROM
-        for (int32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_128 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_128 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5400,18 +5344,19 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",80,1);
 
         // Copy previous +2a custom ROM
-        for (int32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_2a3 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_2a3 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5423,12 +5368,13 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",50,1);
 
         // Inject new 128K custom ROM part 1
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
-            bytesread = fread(data, 1, FWBUFFSIZE , customrom);
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+            bytesread = fread(data, 1, FWBUFFSIZE, customrom);
             result = esp_partition_write(target, rom_off_128 + i, data, FWBUFFSIZE);
             if (result != ESP_OK) {
                 printf("esp_partition_write failed, err=0x%x.\n", result);
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5436,19 +5382,20 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",60,1);
 
         // Inject new 128K custom ROM part 2
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
 
-            if (bytesfirmware == 0x4000) {
+            if (bytesrom == 0x4000) {
                 for (int n=0;n<FWBUFFSIZE;n++)
                     data[n] = gb_rom_1_sinclair_128k[i + n];
             } else {
-                bytesread = fread(data, 1, FWBUFFSIZE , customrom);
+                bytesread = fread(data, 1, FWBUFFSIZE, customrom);
             }
 
             result = esp_partition_write(target, rom_off_128 + i + 0x4000, data, FWBUFFSIZE);
             if (result != ESP_OK) {
                 printf("esp_partition_write failed, err=0x%x.\n", result);
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
 
@@ -5457,56 +5404,59 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",70,1);
 
         // Copy previous 48K custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
-                    printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+                printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
+                progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
+                return result;
             }
         }
 
         progressDialog("","",80,1);
 
         // Copy previous TK custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_tk + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_tk + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
-                    printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+                printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
+                progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
+                return result;
             }
         }
 
         progressDialog("","",90,1);
 
         // Copy previous +2a custom ROM
-        for (int32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_2a3 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_2a3 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5518,12 +5468,13 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",50,1);
 
         // Inject new +2a custom ROM
-        for (int32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
-            bytesread = fread(data, 1, FWBUFFSIZE , customrom);
+        for (uint32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
+            bytesread = fread(data, 1, FWBUFFSIZE, customrom);
             result = esp_partition_write(target, rom_off_2a3 + i, data, FWBUFFSIZE);
             if (result != ESP_OK) {
                 printf("esp_partition_write failed, err=0x%x.\n", result);
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5531,56 +5482,59 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",70,1);
 
         // Copy previous 48K custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
-                    printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+                printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
+                progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
+                return result;
             }
         }
 
         progressDialog("","",80,1);
 
         // Copy previous TK custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_tk + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_tk + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
-                    printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+                printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
+                progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
+                return result;
             }
         }
 
         progressDialog("","",90,1);
 
         // Copy previous 128K custom ROM
-        for (int32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_128 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_128 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5592,12 +5546,13 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",50,1);
 
         // Inject new TK custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE ) {
-            bytesread = fread(data, 1, FWBUFFSIZE , customrom);
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE ) {
+            bytesread = fread(data, 1, FWBUFFSIZE, customrom);
             result = esp_partition_write(target, rom_off_tk + i, data, FWBUFFSIZE);
             if (result != ESP_OK) {
                 printf("esp_partition_write failed, err=0x%x.\n", result);
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5605,37 +5560,34 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",60,1);
 
         // Copy previous 48K custom ROM
-        for (int32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x4000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
-                    printf("esp_partition_read failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
+                printf("esp_partition_read failed, err=0x%x.\n", result);
             }
         }
 
         progressDialog("","",70,1);
 
         // Copy previous 128K custom ROM
-        for (int32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x8000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_128 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_128 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5643,18 +5595,19 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
         progressDialog("","",85,1);
 
         // Copy previous +2a custom ROM
-        for (int32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
+        for (uint32_t i=0; i < 0x10000; i += FWBUFFSIZE) {
             esp_err_t result = esp_partition_read(partition, rom_off_2a3 + i, data, FWBUFFSIZE);
             if (result == ESP_OK) {
                 result = esp_partition_write(target, rom_off_2a3 + i, data, FWBUFFSIZE);
                 if (result != ESP_OK) {
                     printf("esp_partition_write failed, err=0x%x.\n", result);
-                    progressDialog("","",0,2);
-                    return result;
                 }
             } else {
                 printf("esp_partition_read failed, err=0x%x.\n", result);
+            }
+            if (result != ESP_OK) {
                 progressDialog("","",0,2);
+                if (realtape_was_enabled) RealTape_start();
                 return result;
             }
         }
@@ -5663,28 +5616,6 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
 
     }
 
-    // for (int i=0; i < 0x4000; i += 256) {
-    //     result = esp_partition_read(target, rom_off + i, tst, 256);
-    //     if (result != ESP_OK) {
-    //         printf("esp_partition_read failed, err=0x%x.\n", result);
-    //         return;
-    //     }
-    //     for (int n=0;n<256;n++) {
-    //                 if (tst[n] != gb_rom_0_plus2_es[i+n]) printf("Dif!\n");
-    //     }
-    // }
-
-    // for (int i=0; i < 0x4000; i += 256) {
-    //     result = esp_partition_read(target, rom_off + i + 0x4000, tst, 256);
-    //     if (result != ESP_OK) {
-    //         printf("esp_partition_read failed, err=0x%x.\n", result);
-    //         return;
-    //     }
-    //     for (int n=0;n<256;n++) {
-    //                 if (tst[n] != gb_rom_1_plus2_es[ i + n]) printf("Dif!\n");
-    //     }
-    // }
-
     progressDialog(dlgTitle,OSD_FIRMW_END[Config::lang],0,1);
 
     delay(1000);
@@ -5692,10 +5623,6 @@ esp_err_t OSD::updateROM(FILE *customrom, uint8_t arch) {
     // Firmware written: reboot
     OSD::esp_hard_reset();
 
-    // // Close progress dialog
-    // progressDialog("","",0,2);
-
-    // return result;
 
 }
 
@@ -5758,7 +5685,7 @@ esp_err_t OSD::updateFirmware(FILE *firmware) {
     rewind(firmware);
 
     while (1) {
-        bytesread = fread(ota_write_data, 1, FWBUFFSIZE , firmware);
+        bytesread = fread(ota_write_data, 1, FWBUFFSIZE, firmware);
         result = esp_ota_write(ota_handle,(const void *) ota_write_data, bytesread);
         if (result != ESP_OK) {
             progressDialog("","",0,2);
@@ -5831,7 +5758,7 @@ void OSD::progressDialog(string title, string msg, int percent, int action, bool
         // printf("SaveRectPos: %04X\n",SaveRectpos << 2);
 
         // Set font
-        VIDEO::vga.setFont(Font6x8);
+        VIDEO::vga.setFont(SystemFont);
 
         // Menu border
         VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
@@ -5909,7 +5836,7 @@ uint8_t OSD::msgDialog(string title, string msg) {
     // printf("SaveRectPos: %04X\n",SaveRectpos << 2);
 
     // Set font
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
 
     // Menu border
     VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
@@ -5959,13 +5886,13 @@ uint8_t OSD::msgDialog(string title, string msg) {
     fabgl::VirtualKeyItem Menukey;
     while (1) {
 
-        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEDIALOG);
 
         ESPectrum::readKbdJoy();
 
         // Process external keyboard
         if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-            if (ESPectrum::readKbd(&Menukey)) {
+            if (ESPectrum::readKbd(&Menukey, KBDREAD_MODEDIALOG)) {
                 if (!Menukey.down) continue;
 
                 if (Menukey.vk == fabgl::VK_LEFT || Menukey.vk == fabgl::VK_JOY1LEFT || Menukey.vk == fabgl::VK_JOY2LEFT) {
@@ -6399,7 +6326,7 @@ void OSD::joyDialog(uint8_t joynum) {
     const unsigned short x = scrAlignCenterX(w) - 3;
 
     // Set font
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
 
     // Menu border
     VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
@@ -6464,14 +6391,13 @@ void OSD::joyDialog(uint8_t joynum) {
             DrawjoyControls(x,y);
         }
 
-        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEINPUTMULTI);
 
         ESPectrum::readKbdJoy();
 
         while (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
-        // if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
 
-            ESPectrum::PS2Controller.keyboard()->getNextVirtualKey(&Nextkey);
+            ESPectrum::readKbd(&Nextkey, KBDREAD_MODEINPUTMULTI);
 
             if(!Nextkey.down) continue;
 
@@ -6860,9 +6786,9 @@ struct dlgObject {
 };
 
 const dlgObject dlg_Objects[5] = {
-    {"Bank",70/6.0,16/8.0,-1,-1, 4, 1, DLG_OBJ_COMBO , {"RAM Bank  ","Banco RAM ","Banco RAM " }},
-    {"Address",70/6.0,32/8.0,-1,-1, 0, 2, DLG_OBJ_INPUT , {"Address   ","Direccion ","Endere\x87o  "}},
-    {"Value",70/6.0,48/8.0,-1,-1, 1, 4, DLG_OBJ_INPUT , {"Value     ","Valor     ","Valor     "}},
+    {"Bank",70/6.0,16/8.0,-1,-1, 4, 1, DLG_OBJ_COMBO, {"RAM Bank  ","Banco RAM ","Banco RAM " }},
+    {"Address",70/6.0,32/8.0,-1,-1, 0, 2, DLG_OBJ_INPUT, {"Address   ","Direccion ","Endere\x87o  "}},
+    {"Value",70/6.0,48/8.0,-1,-1, 1, 4, DLG_OBJ_INPUT, {"Value     ","Valor     ","Valor     "}},
     {"Ok",7/6.0,65/8.0,-1, 4, 2, 0, DLG_OBJ_BUTTON,  {"  Ok  "  ,"  Ok  ","  Ok  "}},
     {"Cancel",52/6.0,65/8.0, 3,-1, 2, 0, DLG_OBJ_BUTTON, {"  Cancel  "," Cancelar "," Cancelar "}}
 };
@@ -6894,7 +6820,7 @@ void OSD::pokeDialog() {
     click();
 
     // Set font
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
 
     // Menu border
     VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
@@ -6953,13 +6879,13 @@ void OSD::pokeDialog() {
 
     while (1) {
 
-        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEINPUTMULTI);
 
         ESPectrum::readKbdJoy();
 
         if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
 
-            ESPectrum::PS2Controller.keyboard()->getNextVirtualKey(&Nextkey);
+            ESPectrum::readKbd(&Nextkey, KBDREAD_MODEINPUTMULTI);
 
             if(!Nextkey.down) continue;
 
@@ -7289,8 +7215,8 @@ void OSD::pokeDialog() {
 
 int OSD::VirtualKey2ASCII(fabgl::VirtualKeyItem Nextkey, bool * mode_E ) {
     int ascii = 0;
-    if ( ( ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LCTRL) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RCTRL) ) &&
-         ( ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LSHIFT) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RSHIFT) )
+    if ( ( Nextkey.CTRL  || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LCTRL) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RCTRL) ) &&
+         ( Nextkey.SHIFT || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LSHIFT) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RSHIFT) )
        ) {
         *mode_E = !*mode_E;
     }
@@ -7338,7 +7264,7 @@ int OSD::VirtualKey2ASCII(fabgl::VirtualKeyItem Nextkey, bool * mode_E ) {
         case fabgl::VK_TILDE:           ascii = '~'; break;     /**< Tilde: ~ */
     }
 
-      if ( ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LCTRL) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RCTRL) ) {
+      if ( Nextkey.CTRL || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_LCTRL) || ESPectrum::PS2Controller.keyboard()->isVKDown(fabgl::VK_RCTRL) ) {
         if ( !*mode_E ) {
             switch (Nextkey.vk) {
                 case fabgl::VK_1        : ascii = '!'; break; /**< Exclamation mark: ! */
@@ -7450,7 +7376,7 @@ string OSD::input(int x, int y, string inputLabel, int maxSize, int maxDisplaySi
     click();
 
     // Set font
-    VIDEO::vga.setFont(Font6x8);
+    VIDEO::vga.setFont(SystemFont);
 
     // Wait for key
     fabgl::VirtualKeyItem Nextkey;
@@ -7469,13 +7395,13 @@ string OSD::input(int x, int y, string inputLabel, int maxSize, int maxDisplaySi
 
     while (1) {
 
-        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(ZXKDBREAD_MODEINPUT);
+        if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEINPUT);
 
         ESPectrum::readKbdJoy();
 
         if (ESPectrum::PS2Controller.keyboard()->virtualKeyAvailable()) {
 
-            ESPectrum::PS2Controller.keyboard()->getNextVirtualKey(&Nextkey);
+            ESPectrum::readKbd(&Nextkey, KBDREAD_MODEINPUT);
 
             if(!Nextkey.down) continue;
 

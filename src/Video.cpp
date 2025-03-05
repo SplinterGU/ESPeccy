@@ -47,7 +47,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma GCC optimize("O3")
 
-extern Font Font6x8;
+extern Font SystemFont;
 
 VGA6Bit VIDEO::vga;
 
@@ -315,7 +315,7 @@ void VIDEO::Init() {
     SaveRect = (uint32_t *) heap_caps_malloc(0x9000, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
 
     // Set font & Codepage
-    vga.setFont(Font6x8);
+    vga.setFont(SystemFont);
     vga.setCodepage(LANGCODEPAGE[Config::lang]);
 
 }

@@ -40,7 +40,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define MEM_PG_SZ 0x4000
 
-#ifdef ESPECTRUM_PSRAM
 #ifdef TIME_MACHINE_ENABLED
 struct slotdata {
     uint8_t RegI;
@@ -67,7 +66,6 @@ struct slotdata {
     bool trdos;
 };
 #endif
-#endif
 class MemESP
 {
 public:
@@ -76,7 +74,6 @@ public:
 
     static uint8_t* ram[8];
 
-    #ifdef ESPECTRUM_PSRAM
     #ifdef TIME_MACHINE_ENABLED
     #define TIME_MACHINE_SLOTS 8
     static uint32_t* timemachine[TIME_MACHINE_SLOTS][8];
@@ -86,7 +83,6 @@ public:
     static uint8_t cur_timemachine;
     static int tm_framecnt;
     static bool tm_loading_slot;
-    #endif
     #endif
 
     static uint8_t* ramCurrent[4];
@@ -106,12 +102,10 @@ public:
     static bool Init();
     static void Reset();
 
-    #ifdef ESPECTRUM_PSRAM
     #ifdef TIME_MACHINE_ENABLED
     static void Tm_Load(uint8_t slot);
     static void Tm_Init();
     static void Tm_DoTimeMachine();
-    #endif
     #endif
 
     static uint8_t readbyte(uint16_t addr);

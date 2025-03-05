@@ -35,42 +35,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef ROMS_H
  #define ROMS_H
 
-// 48K ROMS
-#include "roms/romSinclair48K.h"
-#include "roms/rom48Kspanish.h"
-#include "roms/rom48Kcustom.h"
-
-// 128K ROMS
-#include "roms/romSinclair128K.h"
-#include "roms/rom128Kspanish.h"
-#include "roms/romPlus2.h"
-#include "roms/romPlus2spanish.h"
-#include "roms/romPlus2french.h"
-#include "roms/rom128Kcustom.h"
-
-// +2A/+3 ROMS
-#include "roms/rom+2A+3_4.0.h"
-#include "roms/rom+2A+3_4.0es.h"
-#include "roms/rom+2A+3_4.1.h"
-#include "roms/rom+2A+3_4.1es.h"
-#include "roms/rom+2A+3custom.h"
-
-// Pentagon 128K ROMS
-#include "roms/rompentagon128k.h"
-
-// TK ROMS
-#include "roms/romTK90X_v1.h"
-#include "roms/romTK90X_v2.h"
-#include "roms/romTK90X_v3ES.h"
-#include "roms/romTK90X_v3PT.h"
-#include "roms/romTK90X_v3EN.h"
-#include "roms/romTK95ES.h"
-#include "roms/romTKcustom.h"
-
-// TR-DOS ROM
-#include "roms/trdos.h"
-
-// ZX81+ Paul Farrow's IF2 ROM
-#include "roms/S128_ZX81+_ROM.h"
+    extern const unsigned char gb_rom_0_128k_custom[];
+    extern const unsigned char gb_rom_0_128k_es[];
+    extern const unsigned char gb_rom_1_128k_es[];
+    extern const unsigned char gb_rom_0_2A_3_v40es[];
+    extern const unsigned char gb_rom_1_2A_3_v40es[];
+    extern const unsigned char gb_rom_2_2A_3_v40es[];
+    extern const unsigned char gb_rom_3_2A_3_v40es[];
+    extern const unsigned char gb_rom_0_2A_3_v40[];
+    extern const unsigned char gb_rom_1_2A_3_v40[];
+    extern const unsigned char gb_rom_2_2A_3_v40[];
+    extern const unsigned char gb_rom_3_2A_3_v40[];
+    extern const unsigned char gb_rom_0_2A_3_v41es[];
+    extern const unsigned char gb_rom_1_2A_3_v41es[];
+    extern const unsigned char gb_rom_2_2A_3_v41es[];
+    extern const unsigned char gb_rom_3_2A_3_v41es[];
+    extern const unsigned char gb_rom_0_2A_3_v41[];
+    extern const unsigned char gb_rom_1_2A_3_v41[];
+    extern const unsigned char gb_rom_2_2A_3_v41[];
+    extern const unsigned char gb_rom_3_2A_3_v41[];
+    extern const unsigned char gb_rom_0_2A_3cs[];
+    extern const unsigned char gb_rom_0_48k_custom[];
+    extern const unsigned char gb_rom_0_48k_es[];
+    extern const unsigned char gb_rom_0_pentagon_128k[];
+    extern const unsigned char gb_rom_1_pentagon_128k[];
+    extern const unsigned char gb_rom_0_plus2_fr[];
+    extern const unsigned char gb_rom_1_plus2_fr[];
+    extern const unsigned char gb_rom_0_plus2[];
+    extern const unsigned char gb_rom_1_plus2[];
+    extern const unsigned char gb_rom_0_plus2_es[];
+    extern const unsigned char gb_rom_1_plus2_es[];
+    extern const unsigned char gb_rom_0_sinclair_48k[];
+    extern const unsigned char gb_rom_0_sinclair_128k[];
+    extern const unsigned char gb_rom_1_sinclair_128k[];
+    extern const unsigned char rom_0_TK90X_v1[];
+    extern const unsigned char rom_0_TK90X_v2[];
+    extern const unsigned char rom_0_TK90X_v3en[];
+    extern const unsigned char rom_0_TK90X_v3es[];
+    extern const unsigned char rom_0_TK90X_v3pt[];
+    extern const unsigned char rom_0_TK95ES[];
+    extern const unsigned char rom_0_tk_custom[];
+    extern const unsigned char gb_rom_0_s128_zx81[];
+    extern const unsigned char gb_rom_4_trdos_503[];
+    // extern const unsigned char gb_rom_4_trdos_504t[];
 
 #endif

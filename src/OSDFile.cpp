@@ -198,10 +198,13 @@ reset:
     // Draw shortcut help
     string StatusBar = "";
     if (ftype == DISK_TAPFILE || ftype == DISK_SNAFILE) { // Dirty hack
-        if (ZXKeyb::Exists) {
-            StatusBar += Config::lang == 0 ? "N: New | " :
-                         Config::lang == 1 ? "N: Nuevo | " :
-                                             "N: Novo | ";
+        if (ZXKeyb::Exists || Config::zxunops2) {
+//            StatusBar += Config::lang == 0 ? "\x05+\x06+N: New | " :
+//                         Config::lang == 1 ? "\x05+\x06+N: Nuevo | " :
+//                                             "\x05+\x06+N: Novo | ";
+            StatusBar += Config::lang == 0 ? "\x05+\x06+N: New | " :
+                         Config::lang == 1 ? "\x05+\x06+N: Nuevo | " :
+                                             "\x05+\x06+N: Novo | ";
         } else {
             StatusBar += Config::lang == 0 ? "F2: New | " :
                          Config::lang == 1 ? "F2: Nuevo | " :
@@ -209,10 +212,10 @@ reset:
         }
 
         if (ftype == DISK_SNAFILE) {
-            if (ZXKeyb::Exists) {
-                StatusBar += Config::lang == 0 ? "CS+N: New w/ROM | " :
-                             Config::lang == 1 ? "CS+N: Nuevo c/ROM | " :
-                                                 "CS+N: Novo c/ROM | ";
+            if (ZXKeyb::Exists || Config::zxunops2) {
+                StatusBar += Config::lang == 0 ? "\x05+\x06+R: New w/ROM | " :
+                             Config::lang == 1 ? "\x05+\x06+R: Nuevo c/ROM | " :
+                                                 "\x05+\x06+R: Novo c/ROM | ";
             } else {
                 StatusBar += Config::lang == 0 ? "S+F2: New w/ROM | " :
                              Config::lang == 1 ? "S+F2: Nuevo c/ROM | " :
@@ -222,10 +225,10 @@ reset:
 
     }
 
-    if (ZXKeyb::Exists) {
-        StatusBar += Config::lang == 0 ? "F: Search | D: Delete" :
-                     Config::lang == 1 ? "F: Buscar | D: Borrar" :
-                                         "F: Procurar | D: Excluir" ;
+    if (ZXKeyb::Exists || Config::zxunops2) {
+        StatusBar += Config::lang == 0 ? "\x05+\x06+F: Search | \x05+\x06+D: Delete" :
+                     Config::lang == 1 ? "\x05+\x06+F: Buscar | \x05+\x06+D: Borrar" :
+                                         "\x05+\x06+F: Procurar | \x05+\x06+D: Excluir" ;
     } else {
         StatusBar += Config::lang == 0 ? "F3: Search | F8: Delete" :
                      Config::lang == 1 ? "F3: Buscar | F8: Borrar" :
@@ -234,10 +237,10 @@ reset:
 
     if ( thumb_enabled && !is_scr ) {
         if ( ftype == DISK_TAPFILE ) {
-            if (ZXKeyb::Exists) {
-                StatusBar += Config::lang == 0 ? " | CS+\x1B\x1A: Change SCR | Z/X/C/V: SCR offset" :
-                             Config::lang == 1 ? " | CS+\x1B\x1A: Cambiar SCR | Z/X/C/V: Centrar SCR" :
-                                                 " | CS+\x1B\x1A: Cambiar SCR | Z/X/C/V: Centralizar SCR";
+            if (ZXKeyb::Exists || Config::zxunops2) {
+                StatusBar += Config::lang == 0 ? " | \x05+\x06+\x1B\x1A: Change SCR | \x05+\x06+Z/X/C/V: SCR offset" :
+                             Config::lang == 1 ? " | \x05+\x06+\x1B\x1A: Cambiar SCR | \x05+\x06+Z/X/C/V: Centrar SCR" :
+                                                 " | \x05+\x06+\x1B\x1A: Cambiar SCR | \x05+\x06+Z/X/C/V: Centralizar SCR";
             } else {
                 StatusBar += Config::lang == 0 ? " | S+\x1B\x1A: Change SCR | CTRL+\x1B\x19\x18\x1A: SCR offset" :
                              Config::lang == 1 ? " | S+\x1B\x1A: Cambiar SCR | CTRL+\x1B\x19\x18\x1A: Centrar SCR" :
@@ -245,10 +248,10 @@ reset:
             }
         }
 
-        if (ZXKeyb::Exists) {
-            StatusBar += Config::lang == 0 ? " | G: Save SCR" :
-                         Config::lang == 1 ? " | G: Guarda SCR" :
-                                             " | G: Salvar SCR";
+        if (ZXKeyb::Exists || Config::zxunops2) {
+            StatusBar += Config::lang == 0 ? " | \x05+\x06+G: Save SCR" :
+                         Config::lang == 1 ? " | \x05+\x06+G: Guarda SCR" :
+                                             " | \x05+\x06+G: Salvar SCR";
         } else {
             StatusBar += Config::lang == 0 ? " | PtrScr: Save SCR" :
                          Config::lang == 1 ? " | PtrScr: Guarda SCR" :
@@ -425,7 +428,7 @@ reset:
 
         while (1) {
 
-            if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
+            if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEFILEBROWSER);
 
             ESPectrum::readKbdJoy();
 
@@ -455,7 +458,7 @@ reset:
                     VIDEO::vga.print(std::string(12,' ').c_str());
                 }
 
-                if (ESPectrum::readKbd(&Menukey)) {
+                if (ESPectrum::readKbd(&Menukey, KBDREAD_MODEFILEBROWSER)) {
 
                     if (!Menukey.down) continue;
 

@@ -196,8 +196,6 @@ int ESPectrum::ESPtestvar2 = 0;
 
 void ShowStartMsg() {
 
-    fabgl::VirtualKeyItem Nextkey;
-
     VIDEO::vga.clear(zxColor(7,0));
 
     OSD::drawOSD(false);
@@ -324,29 +322,27 @@ string ESPectrum::getHardwareInfo() {
 // BOOT KEYBOARD
 //=======================================================================================
 void ESPectrum::bootKeyboard() {
-    int i = 0;
 
     // printf("Boot kbd!\n");
 
-    for (; i < 200; i++) {
+    for (int i = 0; i < 200; i++) {
 
         if (ZXKeyb::Exists) {
-
             // Process physical keyboard
             ZXKeyb::process();
 
             // Detect and process physical kbd menu key combinations
-            if (!bitRead(ZXKeyb::ZXcols[3], 1)) { // 2
+            if (ZXKBD_2) { // 2
                 runBios = 1;
 
             } else
-            if (!bitRead(ZXKeyb::ZXcols[3], 2)) { // 3
+            if (ZXKBD_3) { // 3
                 runBios = 3;
             }
 
         }
 
-	if (ps2kbd) {
+	   if (ps2kbd) {
             auto Kbd = PS2Controller.keyboard();
             fabgl::VirtualKeyItem NextKey;
 
@@ -359,9 +355,12 @@ void ESPectrum::bootKeyboard() {
                     // Check keyboard status
                     switch (NextKey.vk) {
                         case fabgl::VK_F2:
+                        case fabgl::VK_2:
                             runBios = 1;
                             break;
+
                         case fabgl::VK_F3:
+                        case fabgl::VK_3:
                             runBios = 3;
                             break;
                     }
@@ -404,11 +403,14 @@ void ESPectrum::showBIOS() {
     #define SET_CURSOR(col,row) VIDEO::vga.setCursor(base_col + (col) * OSD_FONT_W, base_row + (row) * OSD_FONT_H)
 
     // Opciones del menú
-    const char* menuOptions[] = {"Main", "Advanced", "Config", "Exit"};
+    const char* menuOptions[] = {"Main", "Video", "Keyboard", "Config", "Exit"};
     const int menuCount = sizeof(menuOptions)/sizeof(menuOptions[0]);
 
-    const char* menuAdvanced[] = {"Resolution", "Frequency", "Scanlines"};
-    const int menuAdvancedCount = sizeof(menuAdvanced) / sizeof(menuAdvanced[0]);
+    const char* menuVideo[] = {"Resolution", "Frequency", "Scanlines"};
+    const int menuVideoCount = sizeof(menuVideo) / sizeof(menuVideo[0]);
+
+    const char* menuKeyboard[] = {"ZXUnoPS2 (.ZXPure)"};
+    const int menuKeyboardCount = sizeof(menuKeyboard) / sizeof(menuKeyboard[0]);
 
     const char* menuConfig[] = {"Backup Settings", "Restore Settings", "Reset Settings"};
     const int menuConfigCount = sizeof(menuConfig) / sizeof(menuConfig[0]);
@@ -422,13 +424,10 @@ void ESPectrum::showBIOS() {
     const char* menuOptionsFrequency[] = {"60Hz (VGA)", "50Hz (VGA)", "15kHz (CRT)"};
     //const int menuOptionsFrequencyCount = sizeof(menuOptionsFrequency) / sizeof(menuOptionsFrequency[0]);
 
-    const char* menuOptionsScanlines[] = {"No", "Yes"};
-    //const int menuOptionsScanlinesCount = sizeof(menuOptionsScanlines) / sizeof(menuOptionsScanlines[0]);
+    const char* menuYesNo[] = {"No", "Yes"};
+    //const int menuYesNoCount = sizeof(menuYesNo) / sizeof(menuYesNo[0]);
 
     int selectedOption = 0;
-    int selectedAdvancedOption = 0;
-    int selectedConfigOption = 0;
-    int selectedExitOption = 0;
 
     // Renderizar el menú inicial
     auto renderMenu = [&](int highlight) {
@@ -496,12 +495,12 @@ void ESPectrum::showBIOS() {
         VIDEO::vga.print("\x1A \x1B Select Screen\n");
         VIDEO::vga.print("\x18 \x19 Select Item\n");
         VIDEO::vga.print("Enter: Select/Chg.\n");
-        if ( ZXKeyb::Exists ) {
-            VIDEO::vga.print("SS+S: Save & Exit\n");
+        if (ZXKeyb::Exists || Config::zxunops2) {
+            VIDEO::vga.print("\x06+S: Save & Exit\n");
             VIDEO::vga.print("BREAK: Exit\n");
         } else {
             VIDEO::vga.print("F10: Save & Exit\n");
-            VIDEO::vga.print("ESC: Exit\n");
+            VIDEO::vga.print("ESC: Exit  \n");
         }
 
     };
@@ -609,7 +608,7 @@ void ESPectrum::showBIOS() {
             ZXKeyb::ZXKbdRead();
             while (Kbd->virtualKeyAvailable()) {
                 fabgl::VirtualKeyItem NextKey;
-                if (Kbd->getNextVirtualKey(&NextKey) && NextKey.down) {
+                if (readKbd(&NextKey, KBDREAD_MODEBIOS) && NextKey.down) {
                     switch (NextKey.vk) {
                         case fabgl::VK_LEFT:
                         case fabgl::VK_RIGHT:
@@ -728,7 +727,7 @@ void ESPectrum::showBIOS() {
 
         ZXKeyb::ZXKbdRead();
         while (Kbd->virtualKeyAvailable()) {
-            bool r = Kbd->getNextVirtualKey(&NextKey);
+            bool r = readKbd(&NextKey, KBDREAD_MODEBIOS);
             if (r && NextKey.down) mainMenuNav([&showHardwareInfo](){showHardwareInfo();}, [&showHardwareInfo](){showHardwareInfo();});
         }
 
@@ -740,34 +739,33 @@ void ESPectrum::showBIOS() {
                     screen_clear();
                     showHardwareInfo();
                     break;
-                case 1: // Acción para ADVANCED
+                case 1: // Acción para Video
                 {
-                    selectedAdvancedOption = 0;
+                    int selectedVideoOption = 0;
 
-                    auto renderAdvancedOptions = [&]() {
-                        const char *valuesAvanced[3] = { menuOptionsResolution[Config::aspect_16_9], menuOptionsFrequency[Config::videomode], menuOptionsScanlines[Config::scanlines] };
-                        renderOptions(menuAdvanced, valuesAvanced, menuAdvancedCount, selectedAdvancedOption);
+                    auto renderVideoOptions = [&]() {
+                        const char *valuesAvanced[] = { menuOptionsResolution[Config::aspect_16_9], menuOptionsFrequency[Config::videomode], menuYesNo[Config::scanlines] };
+                        renderOptions(menuVideo, valuesAvanced, menuVideoCount, selectedVideoOption);
                     };
 
-                    // Renderizar menú avanzado
+                    // Renderizar menú video
                     screen_clear();
-                    renderAdvancedOptions();
+                    renderVideoOptions();
 
-                    // Lógica para el menú avanzado
-                    bool exitAdvancedMenu = false;
-                    while (!exitAdvancedMenu) {
+                    // Lógica para el menú video
+                    while (true) {
                         ZXKeyb::ZXKbdRead();
                         while (Kbd->virtualKeyAvailable()) {
-                            bool r = Kbd->getNextVirtualKey(&NextKey);
+                            bool r = readKbd(&NextKey, KBDREAD_MODEBIOS);
                             if (r && NextKey.down) {
 
-                                mainMenuNav([&renderAdvancedOptions](){renderAdvancedOptions();}, [&renderAdvancedOptions](){renderAdvancedOptions();});
-                                optionsNav(selectedAdvancedOption, menuAdvancedCount, [&renderAdvancedOptions](){renderAdvancedOptions();});
+                                mainMenuNav([&renderVideoOptions](){renderVideoOptions();}, [&renderVideoOptions](){renderVideoOptions();});
+                                optionsNav(selectedVideoOption, menuVideoCount, [&renderVideoOptions](){renderVideoOptions();});
 
                                 switch (NextKey.vk) {
                                     case fabgl::VK_RETURN:
                                     case fabgl::VK_SPACE:
-                                        switch (selectedAdvancedOption) {
+                                        switch (selectedVideoOption) {
                                             case 0: // Acción para RESOLUTION
                                                 Config::aspect_16_9 = (Config::aspect_16_9 + 1) % 2;
                                                 break;
@@ -780,7 +778,7 @@ void ESPectrum::showBIOS() {
                                         }
 
                                         screen_clear();
-                                        renderAdvancedOptions();
+                                        renderVideoOptions();
                                         break;
                                 }
                             }
@@ -795,12 +793,63 @@ void ESPectrum::showBIOS() {
                     if (exit_to_main) break;
 
                     screen_clear();
-                    renderAdvancedOptions();
+                    renderVideoOptions();
                     break;
                 }
-                case 2: // Acción para CONFIG
+                case 2: // Acción para Keyboard
                 {
-                    selectedConfigOption = 0;
+                    int selectedKeyboardOption = 0;
+
+                    auto renderKeyboardOptions = [&]() {
+                        const char *valuesKeyboard[] = { menuYesNo[Config::zxunops2] };
+                        renderOptions(menuKeyboard, valuesKeyboard, menuKeyboardCount, selectedKeyboardOption);
+                    };
+
+                    // Renderizar menú keyboard
+                    screen_clear();
+                    renderKeyboardOptions();
+
+                    // Lógica para el menú keyboard
+                    while (true) {
+                        ZXKeyb::ZXKbdRead();
+                        while (Kbd->virtualKeyAvailable()) {
+                            bool r = readKbd(&NextKey, KBDREAD_MODEBIOS);
+                            if (r && NextKey.down) {
+
+                                mainMenuNav([&renderKeyboardOptions](){renderKeyboardOptions();}, [&renderKeyboardOptions](){renderKeyboardOptions();});
+                                optionsNav(selectedKeyboardOption, menuKeyboardCount, [&renderKeyboardOptions](){renderKeyboardOptions();});
+
+                                switch (NextKey.vk) {
+                                    case fabgl::VK_RETURN:
+                                    case fabgl::VK_SPACE:
+                                        switch (selectedKeyboardOption) {
+                                            case 0: // Acción para ZXUnoPS2
+                                                Config::zxunops2 = !Config::zxunops2;
+                                                break;
+                                        }
+
+                                        screen_clear();
+                                        renderKeyboardOptions();
+                                        break;
+                                }
+                            }
+                        }
+
+                        if (exit_to_main) break;
+
+                        vTaskDelay(100 / portTICK_PERIOD_MS);
+
+                    }
+
+                    if (exit_to_main) break;
+
+                    screen_clear();
+                    renderKeyboardOptions();
+                    break;
+                }
+                case 3: // Acción para CONFIG
+                {
+                    int selectedConfigOption = 0;
                     // Renderizar menú de visualización
                     screen_clear();
                     renderOptions(menuConfig, NULL, menuConfigCount, selectedConfigOption);
@@ -810,11 +859,10 @@ void ESPectrum::showBIOS() {
                         if ( !FileUtils::SDReady ) FileUtils::initFileSystem();
                     };
 
-                    bool exitConfigMenu = false;
-                    while (!exitConfigMenu) {
+                    while (true) {
                         ZXKeyb::ZXKbdRead();
                         while (Kbd->virtualKeyAvailable()) {
-                            bool r = Kbd->getNextVirtualKey(&NextKey);
+                            bool r = readKbd(&NextKey, KBDREAD_MODEBIOS);
                             if (r && NextKey.down) {
 
                                 mainMenuNav([&renderOptions, &menuConfig, &menuConfigCount, &selectedConfigOption](){renderOptions(menuConfig, NULL, menuConfigCount, selectedConfigOption);},
@@ -879,18 +927,17 @@ void ESPectrum::showBIOS() {
                     renderOptions(menuConfig, NULL, menuConfigCount, selectedConfigOption);
                     break;
                 }
-                case 3:
+                case 4:
                 {
-                    selectedExitOption = 0;
+                    int selectedExitOption = 0;
                     // Renderizar menú de visualización
                     screen_clear();
                     renderOptions(menuExit, NULL, menuExitCount, selectedExitOption);
 
-                    bool exitConfigMenu = false;
-                    while (!exitConfigMenu) {
+                    while (true) {
                         ZXKeyb::ZXKbdRead();
                         while (Kbd->virtualKeyAvailable()) {
-                            bool r = Kbd->getNextVirtualKey(&NextKey);
+                            bool r = readKbd(&NextKey, KBDREAD_MODEBIOS);
                             if (r && NextKey.down) {
 
                                 mainMenuNav([&renderOptions, &menuExit, &menuExitCount, &selectedExitOption](){renderOptions(menuExit, NULL, menuExitCount, selectedExitOption);},
@@ -1258,14 +1305,7 @@ void ESPectrum::setup()
     // AUDIO
     //=======================================================================================
 
-    #ifdef ESPECTRUM_PSRAM
-    // overSamplebuf = (uint32_t *) heap_caps_calloc(ESP_AUDIO_SAMPLES_PENTAGON << 2, sizeof(uint32_t), MALLOC_CAP_8BIT);
     overSamplebuf = (uint32_t *) heap_caps_calloc(ESP_AUDIO_SAMPLES_PENTAGON /*<< 2*/, sizeof(uint32_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    // overSamplebuf = (uint32_t *) heap_caps_calloc(ESP_AUDIO_SAMPLES_PENTAGON, sizeof(uint32_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    #else
-    // overSamplebuf = (uint32_t *) heap_caps_malloc(ESP_AUDIO_SAMPLES_PENTAGON << 2, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    overSamplebuf = (uint32_t *) heap_caps_calloc(ESP_AUDIO_SAMPLES_PENTAGON /*<< 2*/, sizeof(uint32_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    #endif
 
     // overSamplebuf = (uint32_t *) heap_caps_calloc(ESP_AUDIO_SAMPLES_PENTAGON, sizeof(uint32_t), MALLOC_CAP_8BIT);
     if (overSamplebuf == NULL) printf("Can't allocate oversamplebuffer\n");
@@ -1454,6 +1494,7 @@ void ESPectrum::setup()
 //=======================================================================================
 // RESET
 //=======================================================================================
+
 void ESPectrum::reset()
 {
     // Load romset
@@ -1610,19 +1651,197 @@ void ESPectrum::reset()
 //=======================================================================================
 // KEYBOARD / KEMPSTON
 //=======================================================================================
-IRAM_ATTR bool ESPectrum::readKbd(fabgl::VirtualKeyItem *Nextkey) {
+IRAM_ATTR bool ESPectrum::readKbd(fabgl::VirtualKeyItem *NextKey, uint8_t mode) {
 
-    bool r = PS2Controller.keyboard()->getNextVirtualKey(Nextkey);
+    bool r = PS2Controller.keyboard()->getNextVirtualKey(NextKey);
     // Global keys
-    if (Nextkey->down) {
-        if (Nextkey->vk == fabgl::VK_PRINTSCREEN) { // Capture framebuffer to BMP file in SD Card (thx @dcrespo3d!)
-            if (Nextkey->SHIFT) {
-                CaptureToBmp();
-                r = false;
-            }
+    if (NextKey->down) {
 
-        } else
-        if (Nextkey->vk == fabgl::VK_SCROLLLOCK) { // Change CursorAsJoy setting
+        if (ps2kbd) {
+
+            // Start ZXUNOPS2
+            if (Config::zxunops2) {
+                fabgl::VirtualKeyItem akey;
+                akey.vk = fabgl::VK_NONE;
+                akey.CTRL = false;
+                akey.SHIFT = false;
+
+                switch(mode) {
+                    case KBDREAD_MODENORMAL:
+                        // Detect and process physical kbd menu key combinations
+                        // CS+SS+<1..0> -> F1..F10 Keys, CS+SS+Q -> F11, CS+SS+W -> F12, CS+SS+S -> Capture screen
+                        if (NextKey->SHIFT && NextKey->CTRL) {
+                                 if (NextKey->vk == fabgl::VK_1)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F1; }
+                            else if (NextKey->vk == fabgl::VK_2)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F2; }
+                            else if (NextKey->vk == fabgl::VK_3)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F3; }
+                            else if (NextKey->vk == fabgl::VK_4)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F4; }
+                            else if (NextKey->vk == fabgl::VK_5)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F5; }
+                            else if (NextKey->vk == fabgl::VK_6)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F6; }
+                            else if (NextKey->vk == fabgl::VK_7)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F7; }
+                            else if (NextKey->vk == fabgl::VK_8)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F8; }
+                            else if (NextKey->vk == fabgl::VK_9)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F9; }
+                            else if (NextKey->vk == fabgl::VK_0)                               { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F10; }
+                            else if (NextKey->vk == fabgl::VK_Q || NextKey->vk == fabgl::VK_q) { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F11; }
+                            else if (NextKey->vk == fabgl::VK_W || NextKey->vk == fabgl::VK_w) { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_F12; }
+                            else if (NextKey->vk == fabgl::VK_P || NextKey->vk == fabgl::VK_p) { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_PAUSE; }         // P -> Pause
+                            else if (NextKey->vk == fabgl::VK_I || NextKey->vk == fabgl::VK_i) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F1; }            // I -> INFO
+                            else if (NextKey->vk == fabgl::VK_E || NextKey->vk == fabgl::VK_e) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F6; }            // E -> Eject tape
+                            else if (NextKey->vk == fabgl::VK_R || NextKey->vk == fabgl::VK_r) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F11; }           // R -> Reset to TR-DOS
+                            else if (NextKey->vk == fabgl::VK_T || NextKey->vk == fabgl::VK_t) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F2; }            // T -> Turbo
+                            else if (NextKey->vk == fabgl::VK_B || NextKey->vk == fabgl::VK_b) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_PRINTSCREEN; }   // B -> BMP capture
+                            else if (NextKey->vk == fabgl::VK_O || NextKey->vk == fabgl::VK_o) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F9; }            // O -> Poke
+                            else if (NextKey->vk == fabgl::VK_Y || NextKey->vk == fabgl::VK_y) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F3; }            // Y -> Cartridge
+                            else if (NextKey->vk == fabgl::VK_U || NextKey->vk == fabgl::VK_u) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F9; }            // O -> Poke
+                            else if (NextKey->vk == fabgl::VK_N || NextKey->vk == fabgl::VK_n) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F10; }           // N -> NMI
+                            else if (NextKey->vk == fabgl::VK_K || NextKey->vk == fabgl::VK_k) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F1; }            // K -> Help / Kbd layout
+                            else if (NextKey->vk == fabgl::VK_S || NextKey->vk == fabgl::VK_s) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F2; }            // S -> Save snapshot
+                            else if (NextKey->vk == fabgl::VK_D || NextKey->vk == fabgl::VK_d) { akey.SHIFT = true;  akey.CTRL = false; akey.vk = fabgl::VK_F5; }            // D -> Load .SCR
+                            else if (NextKey->vk == fabgl::VK_G || NextKey->vk == fabgl::VK_g) { akey.SHIFT = false; akey.CTRL = false; akey.vk = fabgl::VK_PRINTSCREEN; }   // G -> Capture SCR
+                            else if (NextKey->vk == fabgl::VK_Z || NextKey->vk == fabgl::VK_z) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F5; }            // Z -> CenterH
+                            else if (NextKey->vk == fabgl::VK_X || NextKey->vk == fabgl::VK_x) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F6; }            // X -> CenterH
+                            else if (NextKey->vk == fabgl::VK_C || NextKey->vk == fabgl::VK_c) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F7; }            // C -> CenterV
+                            else if (NextKey->vk == fabgl::VK_V || NextKey->vk == fabgl::VK_v) { akey.SHIFT = false; akey.CTRL = true;  akey.vk = fabgl::VK_F8; }            // V -> CenterV
+                        }
+                        break;
+
+                    case KBDREAD_MODEFILEBROWSER:
+                        if (NextKey->SHIFT && !NextKey->CTRL) { // CS + !SS
+                                 if (NextKey->vk == fabgl::VK_RETURN)                               { akey.vk = fabgl::VK_JOY1C; } // CS + ENTER -> SPACE / SELECT
+                            else if (NextKey->vk == fabgl::VK_SPACE)                                { akey.vk = fabgl::VK_ESCAPE; } // BREAK -> ESCAPE
+                            else if (NextKey->vk == fabgl::VK_RIGHTPAREN)                           { akey.vk = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                            else if (NextKey->vk == fabgl::VK_AMPERSAND)                            { akey.vk = fabgl::VK_UP; } // 7 -> VK_UP
+                            else if (NextKey->vk == fabgl::VK_CARET)                                { akey.vk = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                            else if (NextKey->vk == fabgl::VK_PERCENT)                              { akey.vk = fabgl::VK_LEFT; } // 5 -> VK_LEFT
+                            else if (NextKey->vk == fabgl::VK_ASTERISK)                             { akey.vk = fabgl::VK_RIGHT; } // 8 -> VK_RIGHT
+                            // invalid shift keys for filebrowser
+                            else if (NextKey->vk == fabgl::VK_EXCLAIM || // 1
+                                     NextKey->vk == fabgl::VK_AT || // 2
+                                     NextKey->vk == fabgl::VK_HASH || // 3
+                                     NextKey->vk == fabgl::VK_DOLLAR || // 4
+                                     NextKey->vk == fabgl::VK_LEFTPAREN // 9
+                                    )
+                                    NextKey->vk = fabgl::VK_NONE;
+                        }
+                        else
+                        if (NextKey->SHIFT && NextKey->CTRL) {
+                                 if (NextKey->vk == fabgl::VK_7)                                    { akey.vk = fabgl::VK_PAGEUP; } // 7 -> VK_PAGEUP
+                            else if (NextKey->vk == fabgl::VK_6)                                    { akey.vk = fabgl::VK_PAGEDOWN; } // 6 -> VK_PAGEDOWN
+                            else if (NextKey->vk == fabgl::VK_5)                                    { akey.SHIFT = true; akey.vk = fabgl::VK_LEFT; } // 5 -> SS + VK_LEFT
+                            else if (NextKey->vk == fabgl::VK_8)                                    { akey.SHIFT = true; akey.vk = fabgl::VK_RIGHT; } // 8 -> SS + VK_RIGHT
+                            else if (NextKey->vk == fabgl::VK_G || NextKey->vk == fabgl::VK_g)      { akey.vk = fabgl::VK_PRINTSCREEN; } // G -> USE THIS SCR
+                            else if (NextKey->vk == fabgl::VK_N || NextKey->vk == fabgl::VK_n)      { akey.vk = fabgl::VK_F2; } // N -> NUEVO / RENOMBRAR
+                            else if (NextKey->vk == fabgl::VK_R || NextKey->vk == fabgl::VK_r)      { akey.SHIFT = true; akey.vk = fabgl::VK_F2; } // R -> NUEVO Con ROM
+                            else if (NextKey->vk == fabgl::VK_M || NextKey->vk == fabgl::VK_m)      { akey.vk = fabgl::VK_F6; } // M -> MOVE / MOVER
+                            else if (NextKey->vk == fabgl::VK_D || NextKey->vk == fabgl::VK_d)      { akey.vk = fabgl::VK_F8; } // D -> DELETE / BORRAR
+                            else if (NextKey->vk == fabgl::VK_F || NextKey->vk == fabgl::VK_f)      { akey.vk = fabgl::VK_F3; } // F -> FIND / BUSQUEDA
+                            else if (NextKey->vk == fabgl::VK_Z || NextKey->vk == fabgl::VK_z)      { akey.CTRL = true; akey.vk = fabgl::VK_LEFT; } // Z -> CTRL + LEFT
+                            else if (NextKey->vk == fabgl::VK_X || NextKey->vk == fabgl::VK_x)      { akey.CTRL = true; akey.vk = fabgl::VK_RIGHT; } // X -> CTRL + RIGHT
+                            else if (NextKey->vk == fabgl::VK_C || NextKey->vk == fabgl::VK_c)      { akey.CTRL = true; akey.vk = fabgl::VK_UP; } // C -> CTRL + UP
+                            else if (NextKey->vk == fabgl::VK_V || NextKey->vk == fabgl::VK_v)      { akey.CTRL = true; akey.vk = fabgl::VK_DOWN; } // V -> CTRL + DOWN
+                        }
+                        break;
+
+                    case KBDREAD_MODEINPUT:
+                        //akey.CTRL = NextKey->CTRL;
+                        //akey.SHIFT = NextKey->SHIFT;
+
+                        if (NextKey->SHIFT && !NextKey->CTRL) { // CS
+                                 if (NextKey->vk == fabgl::VK_AMPERSAND)                { akey.vk = fabgl::VK_END; } // 7 -> END
+                            else if (NextKey->vk == fabgl::VK_CARET)                    { akey.vk = fabgl::VK_HOME; } // 6 -> HOME
+                            else if (NextKey->vk == fabgl::VK_PERCENT)                  { akey.vk = fabgl::VK_LEFT; } // 5 -> LEFT
+                            else if (NextKey->vk == fabgl::VK_ASTERISK)                 { akey.vk = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                            else if (NextKey->vk == fabgl::VK_RIGHTPAREN)               { akey.vk = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                            else if (NextKey->vk == fabgl::VK_SPACE)                    { akey.vk = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+                            // invalid shift keys for input
+                            else if (NextKey->vk == fabgl::VK_EXCLAIM ||
+                                     NextKey->vk == fabgl::VK_AT ||
+                                     NextKey->vk == fabgl::VK_HASH ||
+                                     NextKey->vk == fabgl::VK_DOLLAR ||
+                                     NextKey->vk == fabgl::VK_LEFTPAREN
+                                    )
+                                    NextKey->vk = fabgl::VK_NONE;
+                        }
+                        break;
+
+                    case KBDREAD_MODEINPUTMULTI:
+                        if (NextKey->SHIFT && !NextKey->CTRL) { // CS
+                                 if (NextKey->vk == fabgl::VK_AMPERSAND)                { akey.vk = fabgl::VK_UP; } // 7 -> VK_UP
+                            else if (NextKey->vk == fabgl::VK_CARET)                    { akey.vk = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                            else if (NextKey->vk == fabgl::VK_PERCENT)                  { akey.vk = fabgl::VK_LEFT; } // 5 -> LEFT
+                            else if (NextKey->vk == fabgl::VK_ASTERISK)                 { akey.vk = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                            else if (NextKey->vk == fabgl::VK_RIGHTPAREN)               { akey.vk = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                            else if (NextKey->vk == fabgl::VK_SPACE)                    { akey.vk = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+                            // invalid shift keys for input
+                            else if (NextKey->vk == fabgl::VK_EXCLAIM ||
+                                     NextKey->vk == fabgl::VK_AT ||
+                                     NextKey->vk == fabgl::VK_HASH ||
+                                     NextKey->vk == fabgl::VK_DOLLAR ||
+                                     NextKey->vk == fabgl::VK_LEFTPAREN
+                                    )
+                                    NextKey->vk = fabgl::VK_NONE;
+                        }
+                        break;
+
+                    case KBDREAD_MODEKBDLAYOUT:
+                             if (NextKey->vk == fabgl::VK_SPACE)                            { akey.vk = fabgl::VK_ESCAPE; } // SPACE -> ESCAPE
+                        else if (NextKey->vk == fabgl::VK_RETURN)                           { akey.vk = fabgl::VK_ESCAPE; } // RETURN -> ESCAPE
+                        else if (NextKey->SHIFT && NextKey->CTRL) { // CS + SS
+                            if (NextKey->vk == fabgl::VK_K || NextKey->vk == fabgl::VK_k)   { akey.vk = fabgl::VK_ESCAPE; }
+                        }
+                        break;
+
+                    case KBDREAD_MODEDIALOG:
+                        if (NextKey->SHIFT && !NextKey->CTRL) { // CS
+                                 if (NextKey->vk == fabgl::VK_PERCENT)                  { akey.vk = fabgl::VK_LEFT; } // 5 -> LEFT
+                            else if (NextKey->vk == fabgl::VK_ASTERISK)                 { akey.vk = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                            else if (NextKey->vk == fabgl::VK_SPACE)                    { akey.vk = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+                        }
+                        else if (NextKey->SHIFT && NextKey->CTRL) { // CS + SS
+                            if (NextKey->vk == fabgl::VK_I || NextKey->vk == fabgl::VK_i)   { akey.vk = fabgl::VK_F1; } // For exit from HWInfo
+                        }
+                        break;
+
+                }
+
+                if (akey.vk != fabgl::VK_NONE) {
+                    NextKey->vk = akey.vk;
+                    NextKey->CTRL = akey.CTRL;
+                    NextKey->SHIFT = akey.SHIFT;
+                }
+
+            }
+            // End ZXUNOPS2
+
+            if (mode == KBDREAD_MODEBIOS) {
+                if (NextKey->SHIFT && !NextKey->CTRL) { // CS
+                         if (NextKey->vk == fabgl::VK_AMPERSAND)                { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_UP; } // 7 -> VK_UP
+                    else if (NextKey->vk == fabgl::VK_CARET)                    { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_DOWN; } // 6 -> VK_DOWN
+                    else if (NextKey->vk == fabgl::VK_PERCENT)                  { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_LEFT; } // 5 -> LEFT
+                    else if (NextKey->vk == fabgl::VK_ASTERISK)                 { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_RIGHT; } // 8 -> RIGHT
+                    else if (NextKey->vk == fabgl::VK_RIGHTPAREN)               { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_BACKSPACE; } // CS + 0 -> BACKSPACE
+                    else if (NextKey->vk == fabgl::VK_SPACE)                    { NextKey->SHIFT = false; NextKey->vk = fabgl::VK_ESCAPE; } // CS + SPACE && !SS -> ESCAPE
+                    // invalid shift keys for input
+                    else if (NextKey->vk == fabgl::VK_EXCLAIM ||
+                             NextKey->vk == fabgl::VK_AT ||
+                             NextKey->vk == fabgl::VK_HASH ||
+                             NextKey->vk == fabgl::VK_DOLLAR ||
+                             NextKey->vk == fabgl::VK_LEFTPAREN
+                            )
+                            NextKey->vk = fabgl::VK_NONE;
+                }
+                else
+                if (!NextKey->SHIFT && NextKey->CTRL) { // SS
+                    if (NextKey->vk == fabgl::VK_S || NextKey->vk == fabgl::VK_s) { NextKey->CTRL = false; NextKey->vk = fabgl::VK_F10; }
+                }
+            }
+        }
+
+        if (NextKey->SHIFT && !NextKey->CTRL && NextKey->vk == fabgl::VK_PRINTSCREEN) { // Capture framebuffer to BMP file in SD Card (thx @dcrespo3d!)
+            CaptureToBmp();
+            r = false;
+        }
+
+        if (NextKey->vk == fabgl::VK_SCROLLLOCK) { // Change CursorAsJoy setting
             Config::CursorAsJoy = !Config::CursorAsJoy;
             if(ps2kbd)
                 PS2Controller.keyboard()->setLEDs(false,false,Config::CursorAsJoy);
@@ -1631,6 +1850,7 @@ IRAM_ATTR bool ESPectrum::readKbd(fabgl::VirtualKeyItem *Nextkey) {
             Config::save("CursorAsJoy");
             r = false;
         }
+
     }
 
     return r;
@@ -1687,30 +1907,6 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
 
     bool r = false;
 
-    // while (Mouse->availableStatus()) {
-
-    //     mstat = Mouse->getNextStatus();
-
-    //     printf("%d %d %d %d % d %d\n",mstat.X,mstat.Y,mstat.buttons.left,mstat.buttons.middle,mstat.buttons.right,mstat.wheelDelta);
-
-    // }
-
-    // MouseDelta delta;
-
-    // while (Mouse->deltaAvailable()) {
-
-    //      if (Mouse->getNextDelta(&delta)) {
-
-    //         ESPectrum::mouseX = (ESPectrum::mouseX + delta.deltaX) & 0xff;
-    //         ESPectrum::mouseY = (ESPectrum::mouseY + delta.deltaY) & 0xff;
-    //         ESPectrum::mouseButtonL = delta.buttons.left;
-    //         ESPectrum::mouseButtonR = delta.buttons.right;
-
-    //      } else break;
-
-    // }
-
-
     ESPectrum::sync_realtape = false;
 
     readKbdJoy();
@@ -1724,13 +1920,20 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
         bool j[10] = { true, true, true, true, true, true, true, true, true, true };
         bool jShift = true;
 
-//        readKbdJoy();
-
         while (Kbd->virtualKeyAvailable()) {
 
             r = readKbd(&NextKey);
 
             if (r) {
+
+                if (!NextKey.SHIFT && !NextKey.CTRL && NextKey.vk == fabgl::VK_PRINTSCREEN) {
+                    if (Tape::tapeSaveName=="none") {
+                        OSD::osdCenteredMsg(OSD_TAPE_SELECT_ERR[Config::lang], LEVEL_WARN);
+                    } else {
+                        OSD::saveSCR(Tape::tapeSaveName, (uint32_t *)(MemESP::videoLatch ? MemESP::ram[7] : MemESP::ram[5]));
+                    }
+                    continue;
+                }
 
                 KeytoESP = NextKey.vk;
                 Kdown = NextKey.down;
@@ -1745,7 +1948,7 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
 
                     int64_t osd_start = esp_timer_get_time();
 
-                    OSD::do_OSD(KeytoESP, Kbd->isVKDown(fabgl::VK_LCTRL) || Kbd->isVKDown(fabgl::VK_RCTRL), Kbd->isVKDown(fabgl::VK_LSHIFT) || Kbd->isVKDown(fabgl::VK_RSHIFT));
+                    OSD::do_OSD(KeytoESP, NextKey.CTRL, NextKey.SHIFT);
 
                     // sync real tape is needed
                     if (ESPectrum::sync_realtape && RealTape_enabled) {
@@ -1855,7 +2058,7 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
 
                 }
 
-                jShift = !(Kbd->isVKDown(fabgl::VK_LSHIFT) || Kbd->isVKDown(fabgl::VK_RSHIFT) || NextKey.SHIFT);
+                jShift = !NextKey.SHIFT;
 
                 if (Config::CursorAsJoy) {
 
@@ -2162,8 +2365,6 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
                                 &   (!Kbd->isVKDown(fabgl::VK_ESCAPE)) // Break
                 );
                 bitWrite(PS2cols[7], 1, (!NextKey.CTRL)
-                                    &   (!Kbd->isVKDown(fabgl::VK_LCTRL)) // SYMBOL SHIFT
-                                    &   (!Kbd->isVKDown(fabgl::VK_RCTRL))
                                     &   (!Kbd->isVKDown(fabgl::VK_COMMA)) // Comma
                                     &   (!Kbd->isVKDown(fabgl::VK_PERIOD)) // Period
                                     &   (!Kbd->isVKDown(fabgl::VK_SEMICOLON)) // Semicolon
@@ -2193,15 +2394,15 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
             //ZXKeyb::process();
 
         if (Config::realtape_gpio_num == KM_COL_0) {
-            if (!bitRead(ZXKeyb::ZXcols[7], 1)) { // SS
-                if (!bitRead(ZXKeyb::ZXcols[0], 0) ) { // CS
-                    if (!bitRead(ZXKeyb::ZXcols[6], 3)) { // j
+            if (ZXKBD_SS) { // SS
+                if (ZXKBD_CS) { // CS
+                    if (ZXKBD_J) { // j
                         // enabled REAL TAPE LOAD mode
                         OSD::osdCenteredMsg("REAL TAPE LOAD ENABLED", LEVEL_INFO, 1000);
                         RealTape_start();
                     }
                 } else {
-                    if (RealTape_enabled && !bitRead(ZXKeyb::ZXcols[1], 1)) { // s
+                    if (RealTape_enabled && ZXKBD_S) { // s
                         // disable REAL TAPE LOAD mode (STOP LOADING)
                         OSD::osdCenteredMsg("REAL TAPE LOAD DISABLED", LEVEL_INFO, 1000);
                         RealTape_pause();
@@ -2212,113 +2413,113 @@ IRAM_ATTR void ESPectrum::processKeyboard() {
 
         // Detect and process physical kbd menu key combinations
         // CS+SS+<1..0> -> F1..F10 Keys, CS+SS+Q -> F11, CS+SS+W -> F12, CS+SS+S -> Capture screen
-        if ((!RealTape_enabled || Config::realtape_gpio_num != KM_COL_0) && (!bitRead(ZXKeyb::ZXcols[0],0)) && (!bitRead(ZXKeyb::ZXcols[7],1))) {
+        if ((!RealTape_enabled || Config::realtape_gpio_num != KM_COL_0) && ZXKBD_CS && ZXKBD_SS) {
 
             zxDelay = 15;
 
             int64_t osd_start = esp_timer_get_time();
 
-            if (!bitRead(ZXKeyb::ZXcols[3],0)) {
+            if (ZXKBD_1) {
                 OSD::do_OSD(fabgl::VK_F1,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[3],1)) {
+            if (ZXKBD_2) {
                 OSD::do_OSD(fabgl::VK_F2,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[3],2)) {
+            if (ZXKBD_3) {
                 OSD::do_OSD(fabgl::VK_F3,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[3],3)) {
+            if (ZXKBD_4) {
                 OSD::do_OSD(fabgl::VK_F4,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[3],4)) {
+            if (ZXKBD_5) {
                 OSD::do_OSD(fabgl::VK_F5,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[4],4)) {
+            if (ZXKBD_6) {
                 OSD::do_OSD(fabgl::VK_F6,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[4],3)) {
+            if (ZXKBD_7) {
                 OSD::do_OSD(fabgl::VK_F7,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[4],2)) {
+            if (ZXKBD_8) {
                 OSD::do_OSD(fabgl::VK_F8,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[4],1)) {
+            if (ZXKBD_9) {
                 OSD::do_OSD(fabgl::VK_F9,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[4],0)) {
+            if (ZXKBD_0) {
                 OSD::do_OSD(fabgl::VK_F10,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[2],0)) {
+            if (ZXKBD_Q) {
                 OSD::do_OSD(fabgl::VK_F11,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[2],1)) {
+            if (ZXKBD_W) {
                 OSD::do_OSD(fabgl::VK_F12,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[5],0)) { // P -> Pause
+            if (ZXKBD_P) { // P -> Pause
                 OSD::do_OSD(fabgl::VK_PAUSE,0,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[5],2)) { // I -> Info
+            if (ZXKBD_I) { // I -> Info
                 OSD::do_OSD(fabgl::VK_F1,0,true);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[2],2)) { // E -> Eject tape
+            if (ZXKBD_E) { // E -> Eject tape
                 OSD::do_OSD(fabgl::VK_F6,0,true);
             } else
-            // if (!bitRead(ZXKeyb::ZXcols[5],3)) { // U -> Uart test
+            // if (ZXKBD_U) { // U -> Uart test
             //     OSD::do_OSD(fabgl::VK_F5,0,true);
             // } else
-            if (!bitRead(ZXKeyb::ZXcols[2],3)) { // R -> Reset to TR-DOS
+            if (ZXKBD_R) { // R -> Reset to TR-DOS
                 OSD::do_OSD(fabgl::VK_F11,true,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[2],4)) { // T -> Turbo
+            if (ZXKBD_T) { // T -> Turbo
                 OSD::do_OSD(fabgl::VK_F2,true,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[7],4)) { // B -> BMP capture
+            if (ZXKBD_B) { // B -> BMP capture
                 CaptureToBmp();
             } else
-            if (!bitRead(ZXKeyb::ZXcols[5],1)) { // O -> Poke
+            if (ZXKBD_O) { // O -> Poke
                 OSD::pokeDialog();
             } else
-            if (!bitRead(ZXKeyb::ZXcols[5],4)) { // Y -> Cartridge
+            if (ZXKBD_Y) { // Y -> Cartridge
                 OSD::do_OSD(fabgl::VK_F3,0,true);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[5],3)) { // U -> Cheats
+            if (ZXKBD_U) { // U -> Cheats
                 OSD::do_OSD(fabgl::VK_F9,0,true);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[7],3)) { // N -> NMI
+            if (ZXKBD_N) { // N -> NMI
                 Z80::triggerNMI();
             } else
-            if (!bitRead(ZXKeyb::ZXcols[6],2)) { // K -> Help / Kbd layout
+            if (ZXKBD_K) { // K -> Help / Kbd layout
                 OSD::do_OSD(fabgl::VK_F1,true,0);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[1],1)) { // S -> Save snapshot
+            if (ZXKBD_S) { // S -> Save snapshot
                 OSD::do_OSD(fabgl::VK_F2,0,true);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[1],2)) { // D -> Load .SCR
+            if (ZXKBD_D) { // D -> Load .SCR
                 OSD::do_OSD(fabgl::VK_F5,0,true);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[1],4)) { // G -> Capture SCR
+            if (ZXKBD_G) { // G -> Capture SCR
                 if (Tape::tapeSaveName=="none") {
                     OSD::osdCenteredMsg(OSD_TAPE_SELECT_ERR[Config::lang], LEVEL_WARN);
                 } else {
                     OSD::saveSCR(Tape::tapeSaveName, (uint32_t *)(MemESP::videoLatch ? MemESP::ram[7] : MemESP::ram[5]));
                 }
             } else
-            if (!bitRead(ZXKeyb::ZXcols[0],1)) { // Z -> CenterH
+            if (ZXKBD_Z) { // Z -> CenterH
                 if (Config::CenterH > -16) Config::CenterH--;
                 Config::save("CenterH");
                 OSD::osdCenteredMsg("Horiz. center: " + to_string(Config::CenterH), LEVEL_INFO, 375);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[0],2)) { // X -> CenterH
+            if (ZXKBD_X) { // X -> CenterH
                 if (Config::CenterH < 16) Config::CenterH++;
                 Config::save("CenterH");
                 OSD::osdCenteredMsg("Horiz. center: " + to_string(Config::CenterH), LEVEL_INFO, 375);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[0],3)) { // C -> CenterV
+            if (ZXKBD_C) { // C -> CenterV
                 if (Config::CenterV > -16) Config::CenterV--;
                 Config::save("CenterV");
                 OSD::osdCenteredMsg("Vert. center: " + to_string(Config::CenterV), LEVEL_INFO, 375);
             } else
-            if (!bitRead(ZXKeyb::ZXcols[0],4)) { // V -> CenterV
+            if (ZXKBD_V) { // V -> CenterV
                 if (Config::CenterV < 16) Config::CenterV++;
                 Config::save("CenterV");
                 OSD::osdCenteredMsg("Vert. center: " + to_string(Config::CenterV), LEVEL_INFO, 375);
@@ -2481,8 +2682,10 @@ IRAM_ATTR void ESPectrum::audioTask(void *unused) {
             switch (aud_active_sources) {
             case 0:
                 // Beeper only
-                for (int i = 0; i < samplesPerFrame; i++)
-                    audioBuffer[i] = (overSamplebuf[i] / audioSampleDivider);
+                for (int i = 0; i < samplesPerFrame; i++) {
+                    int beeper = overSamplebuf[i] / audioSampleDivider;
+                    audioBuffer[i] = beeper > 255 ? 255 : beeper;
+                }
                 break;
             case 1:
                 // Beeper + Covox
@@ -2693,11 +2896,9 @@ IRAM_ATTR void ESPectrum::loop() {
         // Flashing flag change
         if (!(VIDEO::flash_ctr++ & 0x0f)) VIDEO::flashing ^= 0x80;
 
-        #ifdef ESPECTRUM_PSRAM
         #ifdef TIME_MACHINE_ENABLED
         // Time machine
         if (Config::TimeMachine) MemESP::Tm_DoTimeMachine();
-        #endif
         #endif
 
         elapsed = esp_timer_get_time() - ts_start;

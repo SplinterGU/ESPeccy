@@ -2,9 +2,6 @@
 
 ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
 
-Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
-https://github.com/SplinterGU/ESPeccy
-
 This project is a fork of ESPectrum.
 ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
 https://github.com/EremusOne/ZX-ESPectrum-IDF
@@ -16,6 +13,9 @@ Based on previous work:
   https://github.com/rampa069/ZX-ESPectrum
 - Original project by Pete Todd
   https://github.com/retrogubbins/paseVGA
+
+Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
+https://github.com/SplinterGU/ESPeccy
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -32,9 +32,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 */
 
-#ifndef COMMIT_INFO_H
-#define COMMIT_INFO_H
+// 48K ROMS
+#include "roms/romSinclair48K.h"
+#include "roms/rom48Kspanish.h"
+#include "roms/rom48Kcustom.h"
 
-const char* COMMIT_DATE = "2503051732";  // Formato YYmmddHHMM
+// 128K ROMS
+#include "roms/romSinclair128K.h"
+#include "roms/rom128Kspanish.h"
+#include "roms/romPlus2.h"
+#include "roms/romPlus2spanish.h"
+#include "roms/romPlus2french.h"
+#include "roms/rom128Kcustom.h"
 
-#endif // COMMIT_INFO_H
+// +2A/+3 ROMS
+#include "roms/rom+2A+3_4.0.h"
+#include "roms/rom+2A+3_4.0es.h"
+#include "roms/rom+2A+3_4.1.h"
+#include "roms/rom+2A+3_4.1es.h"
+#include "roms/rom+2A+3custom.h"
+
+// Pentagon 128K ROMS
+#include "roms/rompentagon128k.h"
+
+// TK ROMS
+#include "roms/romTK90X_v1.h"
+#include "roms/romTK90X_v2.h"
+#include "roms/romTK90X_v3ES.h"
+#include "roms/romTK90X_v3PT.h"
+#include "roms/romTK90X_v3EN.h"
+#include "roms/romTK95ES.h"
+#include "roms/romTKcustom.h"
+
+// TR-DOS ROM
+#include "roms/trdos.h"
+
+// ZX81+ Paul Farrow's IF2 ROM
+#include "roms/S128_ZX81+_ROM.h"
+
+// END

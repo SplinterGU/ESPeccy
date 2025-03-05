@@ -58,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //   6: ula <= 8'hF8;
 //   7: ula <= 8'hFF;
 // and adjusted for BEEPER_MAX_VOLUME = 97
-//uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
+uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
 uint8_t Ports::port[128];
 uint8_t Ports::port254 = 0;
 uint8_t Ports::LastOutTo1FFD = 0;
@@ -443,12 +443,18 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
 
         if (ESPectrum::ESP_delay) { // Disable beeper on turbo mode
 
-            if (Config::load_monitor)
+            if (Config::load_monitor) {
                 Audiobit = Tape::tapeEarBit ? 255 : 0; // For load tape monitor
+            }
             else
+            {
                 // Beeper Audio
-                //Audiobit = speaker_values[((data >> 2) & 0x04 ) | (Tape::tapeEarBit << 1) | ((data >> 3) & 0x01)];
-                Audiobit = ((data & 0x10) << 1) | ((data & 0x08) << 3) | ((Tape::tapeEarBit & 1) << 4);
+#if 0
+                Audiobit = speaker_values[((data >> 2) & 0x04) | (Tape::tapeEarBit << 1) | ((data >> 3) & 0x01)];
+#else
+                Audiobit = speaker_values[((data >> 2) & 0x06) | (Tape::tapeEarBit & 0x1)];
+#endif
+            }
 
             if (Audiobit != ESPectrum::lastaudioBit) {
                 ESPectrum::BeeperGetSample();
@@ -661,10 +667,8 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
 
             if (MemESP::bankLatch != (data & 0x7)) {
                 MemESP::bankLatch = data & 0x7;
-                #ifdef ESPECTRUM_PSRAM
                 #ifdef TIME_MACHINE_ENABLED
                 MemESP::tm_bank_chg[MemESP::bankLatch] = true; // Bank selected. Mark for time machine
-                #endif
                 #endif
                 MemESP::ramCurrent[3] = MemESP::ram[MemESP::bankLatch];
                 MemESP::ramContended[3] = Z80Ops::isPentagon ? false : (MemESP::bankLatch & 0x01 ? true: false);
@@ -676,10 +680,8 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
 
             if (MemESP::videoLatch != bitRead(data, 3)) {
                 MemESP::videoLatch = bitRead(data, 3);
-                #ifdef ESPECTRUM_PSRAM
                 #ifdef TIME_MACHINE_ENABLED
                 MemESP::tm_bank_chg[MemESP::videoLatch ? 7 : 5] = true; // Bank selected. Mark for time machine
-                #endif
                 #endif
                 VIDEO::grmem = MemESP::videoLatch ? MemESP::ram[7] : MemESP::ram[5];
             }
@@ -700,12 +702,10 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             MemESP::romLatch = (bitRead(LastOutTo1FFD, 2) << 1) | bitRead(data, 4);
             MemESP::romInUse = MemESP::romLatch & 0x3;
 
-            #ifdef ESPECTRUM_PSRAM
             #ifdef TIME_MACHINE
             if (MemESP::bankLatch != (data & 0x7)) {
                 MemESP::tm_bank_chg[(data & 0x7)] = true; // Bank selected. Mark for time machine
             }
-            #endif
             #endif
 
             MemESP::bankLatch = data & 0x7;
@@ -721,12 +721,10 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
 
             }
 
-            #ifdef ESPECTRUM_PSRAM
             #ifdef TIME_MACHINE
             if (MemESP::videoLatch != bitRead(data, 3)) {
                 MemESP::tm_bank_chg[bitRead(data, 3) ? 7 : 5] = true; // Bank selected. Mark for time machine
             }
-            #endif
             #endif
 
             MemESP::videoLatch = bitRead(data, 3);

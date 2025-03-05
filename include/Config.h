@@ -170,6 +170,8 @@ public:
 
     static uint32_t psramsize;
 
+    static bool     zxunops2;
+
 };
 
 #endif // Config.h
