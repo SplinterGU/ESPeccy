@@ -1,10 +1,10 @@
 /*
 	Author: bitluni 2019
-	License: 
+	License:
 	Creative Commons Attribution ShareAlike 4.0
 	https://creativecommons.org/licenses/by-sa/4.0/
-	
-	For further details check out: 
+
+	For further details check out:
 		https://youtube.com/bitlunislab
 		https://github.com/bitluni
 		http://bitluni.net
@@ -32,7 +32,7 @@ class VGA6Bit : public VGA, public GraphicsR2G2B2S2Swapped
 			pinMap[i + 4] = bluePins[i];
 		}
 		pinMap[6] = hsyncPin;
-		pinMap[7] = vsyncPin;			
+		pinMap[7] = vsyncPin;
 		return VGA::init(mode, pinMap, 8, clockPin);
 	}
 
@@ -43,7 +43,7 @@ class VGA6Bit : public VGA, public GraphicsR2G2B2S2Swapped
 		vsyncBit = vsyncBitI ^ 0x80;
 		SBits = hsyncBitI | vsyncBitI;
 	}
-		
+
 	virtual long syncBits(bool hSync, bool vSync) {
 		return ((hSync ? hsyncBit : hsyncBitI) | (vSync ? vsyncBit : vsyncBitI)) * 0x1010101;
 	}
@@ -62,7 +62,7 @@ class VGA6Bit : public VGA, public GraphicsR2G2B2S2Swapped
 
   protected:
 
-	bool useInterrupt()	{ 
+	bool useInterrupt()	{
 		return VGA6Bit_useinterrupt;
 	};
 

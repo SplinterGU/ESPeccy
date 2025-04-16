@@ -202,7 +202,7 @@ void OSD::menuAt(short int row, short int col) {
         col = cols - 2 - col;
     if (row < 0)
         row = virtual_rows - 2 - row;
-    VIDEO::vga.setCursor(x + 1 + (col * OSD_FONT_W), y + 1 + (row * OSD_FONT_H));
+    VIDEO::setCursor(x + 1 + (col * OSD_FONT_W), y + 1 + (row * OSD_FONT_H));
 }
 
 void OSD::menuPrintRow(uint8_t virtual_row_num, uint8_t line_type) {
@@ -210,28 +210,28 @@ void OSD::menuPrintRow(uint8_t virtual_row_num, uint8_t line_type) {
 }
 
 void OSD::statusbarDraw(const string& statusbar) {
-    VIDEO::vga.setCursor(x + 1, y + 1 + (virtual_rows * OSD_FONT_H));
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+    VIDEO::setCursor(x + 1, y + 1 + (virtual_rows * OSD_FONT_H));
+    VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
     string text = " " + RotateLine(statusbar, &statusBarScrollCTX, cols - 2, 125, 25) + " ";
-    VIDEO::vga.print(text.c_str());
+    VIDEO::print(text.c_str());
 }
 
 // Draw the complete menu
 void OSD::WindowDraw() {
 
     // Set font
-    VIDEO::vga.setFont(SystemFont);
+    VIDEO::setFont(SystemFont);
 
     if (menu_level == 0) SaveRectpos = 0;
 
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(0, 0));
 
     // Title Background
     for (uint8_t i = 0; i < OSD_FONT_H; ++i) {
-        VIDEO::vga.line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(0, 0));
+        VIDEO::line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(0, 0));
     }
 
     // Title
@@ -243,7 +243,7 @@ void OSD::WindowDraw() {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; ++i) {
-            VIDEO::vga.line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
         }
         rb_paint_x += 5;
     }
@@ -470,7 +470,7 @@ short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb
     int rmax = scrW == 320 ? 52 : 55;
     if ( x + cols * OSD_FONT_W > rmax * OSD_FONT_W ) x = ( rmax - cols ) * OSD_FONT_W;
 
-    if ( y + h > VIDEO::vga.yres - OSD_FONT_H * 2 ) y = VIDEO::vga.yres - h - OSD_FONT_H * 2;
+    if ( y + h > VIDEO::yres() - OSD_FONT_H * 2 ) y = VIDEO::yres() - h - OSD_FONT_H * 2;
 
     WindowDraw(); // Draw menu outline
 
@@ -620,14 +620,14 @@ unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy,
     h = (virtual_rows * OSD_FONT_H) + 2;
 
     // Set font
-    VIDEO::vga.setFont(SystemFont);
+    VIDEO::setFont(SystemFont);
 
     if (menu_saverect && menu_level == 0) SaveRectpos = 0;
 
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(0, 0));
 
     // Title
     PrintRow(0, IS_TITLE);
@@ -780,7 +780,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
 
     // Scrollbar Background (don't worry about update or scroll)
     for (uint8_t i = h - OSD_FONT_H - 1; i < h - 2; ++i) {
-        VIDEO::vga.line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(5, 0));
+        VIDEO::line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(5, 0));
     }
 
     if (!use_current_menu_state) {
@@ -919,7 +919,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
                         retPreview = OSD::renderScreen(x + w - 128 - 1, y + 1 + OSD_FONT_H, _fname.c_str(), 0);
 
                         // fix issue render overlap (antialiasing issue)
-                        VIDEO::vga.line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(5, 0));
+                        VIDEO::line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(5, 0));
 
                     } else {
                         retPreview = RENDER_PREVIEW_ERROR;
@@ -928,27 +928,27 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
                     if (retPreview == RENDER_PREVIEW_ERROR) {
                         // Clean Preview Area
                         for (uint8_t i = 0; i < 192 / 2; ++i) {
-                            VIDEO::vga.line(x + w - 128 - 1,
-                                            y + i + OSD_FONT_H + 1,
-                                            x + w - 2,
-                                            y + i + OSD_FONT_H + 1,
-                                            zxColor(7, 0));
+                            VIDEO::line(x + w - 128 - 1,
+                                        y + i + OSD_FONT_H + 1,
+                                        x + w - 2,
+                                        y + i + OSD_FONT_H + 1,
+                                        zxColor(7, 0));
                         }
 
-                        VIDEO::vga.line(x + w - 1 - 128, y + OSD_FONT_H + 1              ,
-                                        x + w - 2      , y + OSD_FONT_H + 1 + 192 / 2 - 1,
-                                        zxColor(2, 0));
-                        VIDEO::vga.line(x + w - 1 - 128, y + OSD_FONT_H + 1 + 192 / 2 - 1,
-                                        x + w - 2      , y + OSD_FONT_H + 1              ,
-                                        zxColor(2, 0));
+                        VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1              ,
+                                    x + w - 2      , y + OSD_FONT_H + 1 + 192 / 2 - 1,
+                                    zxColor(2, 0));
+                        VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1 + 192 / 2 - 1,
+                                    x + w - 2      , y + OSD_FONT_H + 1              ,
+                                    zxColor(2, 0));
 
                         #if 0
                         string no_preview_txt = Config::lang == 0 ? "NO PREVIEW AVAILABLE" :
                                                 Config::lang == 1 ? "SIN VISTA PREVIA" :
                                                                     "TELA N\x8EO DISPON\x8BVEL";
                         menuAt(2+((h/OSD_FONT_H)-2)/2, ( w / OSD_FONT_W ) + 1 + cols/2 - no_preview_txt.length()/2);
-                        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
-                        VIDEO::vga.print(no_preview_txt.c_str());
+                        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
+                        VIDEO::print(no_preview_txt.c_str());
                         #endif
                     }
                 }
@@ -1005,11 +1005,11 @@ void OSD::menuScrollBar(unsigned short br) {
         // Top handle
         menuAt(1, -1);
         if (br > 1) {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("+");
+            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::print("+");
         } else {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("-");
+            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::print("-");
         }
 
         // Complete bar
@@ -1017,7 +1017,7 @@ void OSD::menuScrollBar(unsigned short br) {
         unsigned short holder_y = y + (OSD_FONT_H * 2);
         unsigned short holder_h = OSD_FONT_H * (virtual_rows - 3);
         unsigned short holder_w = OSD_FONT_W;
-        VIDEO::vga.fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(7, 0));
+        VIDEO::fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(7, 0));
         holder_y++;
 
         // Scroll bar
@@ -1032,16 +1032,16 @@ void OSD::menuScrollBar(unsigned short br) {
             bar_y--;
         }
 
-        VIDEO::vga.fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(0, 0));
+        VIDEO::fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(0, 0));
 
         // Bottom handle
         menuAt(-1, -1);
         if ((br + virtual_rows - 1) < real_rows) {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("+");
+            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::print("+");
         } else {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("-");
+            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::print("-");
         }
     }
 }
@@ -1055,23 +1055,23 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
 
     switch (line_type) {
     case IS_TITLE:
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
         margin = 2;
         break;
     case IS_FOCUSED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(5, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(6, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(6, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED_FOCUSED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(4, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(4, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     default:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
     }
 
@@ -1095,24 +1095,24 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
 
     menuAt(virtual_row_num, 0);
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
     if ((!is_menu || virtual_row_num == 0) && line.substr(0,7) == "ESPeccy") {
-        VIDEO::vga.setTextColor(zxColor(16,0), zxColor(0, 0));
-        VIDEO::vga.print("ESP");
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(0, 0));
-        VIDEO::vga.print(("eccy " + Config::arch).c_str());
+        VIDEO::setTextColor(zxColor(16,0), zxColor(0, 0));
+        VIDEO::print("ESP");
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::print(("eccy " + Config::arch).c_str());
         for (uint8_t i = line.length(); i < (cols - margin); ++i)
-            VIDEO::vga.print(" ");
+            VIDEO::print(" ");
     } else {
         if (line.length() < cols - margin) {
-            VIDEO::vga.print((line + string(cols - margin - line.length(), ' ')).c_str());
+            VIDEO::print((line + string(cols - margin - line.length(), ' ')).c_str());
         } else {
-            VIDEO::vga.print(line.substr(0, cols - margin).c_str());
+            VIDEO::print(line.substr(0, cols - margin).c_str());
         }
     }
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
 }
 

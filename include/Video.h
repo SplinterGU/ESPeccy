@@ -82,8 +82,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define TS_BORDER_352x272_PENTAGON 9003  // START OF BORDER PENTAGON
 
 // Colors for 6 bit mode
-//                  //  BBGGRR 
-#define BLACK       0b00000000 
+//                  //  BBGGRR
+#define BLACK       0b00000000
 #define BLUE        0b00100000
 #define RED         0b00000010
 #define MAGENTA     0b00100010
@@ -111,108 +111,283 @@ const int bluPins[] = {BLU_PINS_6B};
 
 class VIDEO
 {
-public:
+    public:
 
-  // Initialize video
-  static void Init();
-    
-  // Reset video
-  static void Reset();
+        // Initialize video
+        static void Init();
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Video draw functions
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////
-  static void EndFrame();
-  static void Blank(unsigned int statestoadd, bool contended);
-  static void Blank_Opcode(bool contended);
-  static void Blank_Snow(unsigned int statestoadd, bool contended);
-  static void Blank_Snow_Opcode(bool contended);
-  // 48 / 128
-  static void MainScreen_Blank(unsigned int statestoadd, bool contended);
-  static void MainScreen_Blank_2A3(unsigned int statestoadd, bool contended);
-  static void MainScreen_Blank_Opcode(bool contended);
-  static void MainScreen_Blank_Opcode_2A3(bool contended);
-  static void MainScreen(unsigned int statestoadd, bool contended);
-  static void MainScreen_2A3(unsigned int statestoadd, bool contended);
-  static void MainScreen_OSD(unsigned int statestoadd, bool contended);
-  static void MainScreen_OSD_2A3(unsigned int statestoadd, bool contended);
-  static void MainScreen_Opcode(bool contended);
-  static void MainScreen_Blank_Snow(unsigned int statestoadd, bool contended);
-  static void MainScreen_Blank_Snow_Opcode(bool contended);
-  static void MainScreen_Snow(unsigned int statestoadd, bool contended);
-  static void MainScreen_Snow_Opcode(bool contended);
-  
-  static void TopBorder_Blank();
-  static void TopBorder();
-  static void MiddleBorder();
-  static void BottomBorder();
-  static void BottomBorder_OSD();
-  static void Border_Blank();
+        // Reset video
+        static void Reset();
 
-  static void TopBorder_Blank_Pentagon();
-  static void TopBorder_Pentagon();
-  static void MiddleBorder_Pentagon();
-  static void BottomBorder_Pentagon();
-  static void BottomBorder_OSD_Pentagon();  
-  
-  static void (*Draw)(unsigned int, bool);
-  static void (*Draw_Opcode)(bool);
-  static void (*Draw_OSD169)(unsigned int, bool);
-  static void (*Draw_OSD43)();
-  
-  static void (*DrawBorder)();
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Video draw functions
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////
+        static void EndFrame();
+        static void Blank(unsigned int statestoadd, bool contended);
+        static void Blank_Opcode(bool contended);
+        static void Blank_Snow(unsigned int statestoadd, bool contended);
+        static void Blank_Snow_Opcode(bool contended);
+        // 48 / 128
+        static void MainScreen_Blank(unsigned int statestoadd, bool contended);
+        static void MainScreen_Blank_2A3(unsigned int statestoadd, bool contended);
+        static void MainScreen_Blank_Opcode(bool contended);
+        static void MainScreen_Blank_Opcode_2A3(bool contended);
+        static void MainScreen(unsigned int statestoadd, bool contended);
+        static void MainScreen_2A3(unsigned int statestoadd, bool contended);
+        static void MainScreen_OSD(unsigned int statestoadd, bool contended);
+        static void MainScreen_OSD_2A3(unsigned int statestoadd, bool contended);
+        static void MainScreen_Opcode(bool contended);
+        static void MainScreen_Blank_Snow(unsigned int statestoadd, bool contended);
+        static void MainScreen_Blank_Snow_Opcode(bool contended);
+        static void MainScreen_Snow(unsigned int statestoadd, bool contended);
+        static void MainScreen_Snow_Opcode(bool contended);
 
-  static void vgataskinit(void *unused);
+        static void TopBorder_Blank();
+        static void TopBorder();
+        static void MiddleBorder();
+        static void BottomBorder();
+        static void BottomBorder_OSD();
+        static void Border_Blank();
 
-  static uint8_t* grmem;
+        static void TopBorder_Blank_Pentagon();
+        static void TopBorder_Pentagon();
+        static void MiddleBorder_Pentagon();
+        static void BottomBorder_Pentagon();
+        static void BottomBorder_OSD_Pentagon();
 
-  static uint16_t spectrum_colors[NUM_SPECTRUM_COLORS];
+        static void (*Draw)(unsigned int, bool);
+        static void (*Draw_Opcode)(bool);
+        static void (*Draw_OSD169)(unsigned int, bool);
+        static void (*Draw_OSD43)();
 
-  static uint16_t offBmp[SPEC_H];
-  static uint16_t offAtt[SPEC_H];
+        static void (*DrawBorder)();
 
-  static VGA6Bit vga;
+        static void vgataskinit(void *unused);
 
-  static uint8_t borderColor;
-  static uint32_t border32[8];
-  static uint32_t brd;
-  static bool brdChange;
-  static bool brdnextframe;
-  static uint32_t lastBrdTstate;
-  static uint8_t brdnextline;
-  static uint8_t brdlin_osdstart;
-  static uint8_t brdlin_osdend;
+        static uint8_t* grmem;  // ZX screen memory
 
-  static uint8_t tStatesPerLine;
-  static int tStatesScreen;
-  static int tStatesBorder;  
+        static uint16_t spectrum_colors[NUM_SPECTRUM_COLORS];
 
-  static uint8_t flashing;
-  static uint8_t flash_ctr;
+        // precalculate ULA SWAP values
+        static const uint16_t offBmp[];
+        static const uint16_t offAtt[];
 
-  static uint8_t att1;
-  static uint8_t bmp1;
-  static uint8_t att2;
-  static uint8_t bmp2;
-  
-  static uint8_t dispUpdCycle;
-  static bool snow_att;
-  static bool dbl_att;
-  static uint8_t lastbmp;
-  static uint8_t lastatt;    
-  static uint8_t snowpage;
-  static uint8_t snowR;
-  static bool snow_toggle;
-  
-  static uint8_t OSD;
+        static VGA6Bit vga;
 
-  static uint32_t* SaveRect;
+        static uint8_t borderColor;
+        static uint32_t border32[8];
+        static uint32_t brd;
+        static bool brdChange;
+        static bool brdnextframe;
+        static uint32_t lastBrdTstate;
+        static uint8_t brdnextline;
+        static uint8_t brdlin_osdstart;
+        static uint8_t brdlin_osdend;
 
-  static TaskHandle_t videoTaskHandle;
+        static uint8_t tStatesPerLine;
+        static int tStatesScreen;
+        static int tStatesBorder;
 
-  static int VsyncFinetune[2];
+        static uint8_t flashing;
+        static uint8_t flash_ctr;
 
-  static uint32_t framecnt; // Frames elapsed
+        static uint8_t att1;
+        static uint8_t bmp1;
+        static uint8_t att2;
+        static uint8_t bmp2;
+
+        static uint8_t dispUpdCycle;
+        static bool snow_att;
+        static bool dbl_att;
+        static uint8_t lastbmp;
+        static uint8_t lastatt;
+        static uint8_t snowpage;
+        static uint8_t snowR;
+        static bool snow_toggle;
+
+        static uint8_t OSD;
+
+        static uint32_t* SaveRect;
+
+        static TaskHandle_t videoTaskHandle;
+
+        static int VsyncFinetune[2];
+
+        static uint32_t framecnt; // Frames elapsed
+
+
+        static int CenterH;
+        static int CenterV;
+
+
+        // -------------------
+        // Basic functions
+        // -------------------
+
+        using Color = unsigned char;
+
+        static Graphics<unsigned char>* gfx;
+
+        static inline int &xres() {
+            return gfx->xres;
+        };
+
+        static inline int &yres() {
+            return gfx->yres;
+        };
+
+        static inline Color ** &frameBuffer() {
+            return gfx->frameBuffer;
+        };
+
+        static void dotFast(int x, int y, Color color) {
+            gfx->dotFast(x, y, color);
+        };
+
+        static void setResolution(int xres, int yres) {
+            gfx->setResolution(xres, yres);
+        };
+
+        static void setTextColor(long front, long back = 0) {
+            gfx->setTextColor(front, back);
+        };
+
+        static void setFont(Font &font) {
+            gfx->setFont(font);
+        };
+
+        static void setCodepage(int cp) {
+            gfx->setCodepage(cp);
+        };
+
+        static void setCursor(int x, int y) {
+            gfx->setCursor(x,  y);
+        };
+
+        static void drawChar(int x, int y, int ch) {
+            gfx->drawChar(x, y, ch);
+        }
+
+        static void print(const char ch) {
+            gfx->print(ch);
+        }
+
+        static void print(const char* str) {
+            gfx->print(str);
+        }
+
+        static void print(long number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(unsigned long number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(int number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(unsigned int number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(short number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(unsigned short number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(unsigned char number, int base = 10, int minCharacters = 1) {
+            gfx->print(number, base, minCharacters);
+        }
+
+        static void print(double number, int fractionalDigits = 2, int minCharacters = 1) {
+            gfx->print(number, fractionalDigits, minCharacters);
+        }
+
+        static void println() {
+            gfx->println();
+        }
+
+        static void println(const char ch) {
+            gfx->println(ch);
+        }
+
+        static void println(const char* str) {
+            gfx->println(str);
+        }
+
+        static void println(long number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(unsigned long number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(int number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(unsigned int number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(short number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(unsigned short number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(unsigned char number, int base = 10, int minCharacters = 1) {
+            gfx->println(number, base, minCharacters);
+        }
+
+        static void println(double number, int fractionalDigits = 2, int minCharacters = 1) {
+            gfx->println(number, fractionalDigits, minCharacters);
+        }
+
+        static void clear(Color color = 0) {
+            gfx->clear(color);
+        }
+
+        static void xLine(int x0, int x1, int y, Color color) {
+            gfx->xLine(x0, x1, y, color);
+        }
+
+        static void line(int x1, int y1, int x2, int y2, Color color) {
+            gfx->line(x1, y1, x2, y2, color);
+        }
+
+        static void fillRect(int x, int y, int w, int h, Color color) {
+            gfx->fillRect(x, y, w, h, color);
+        }
+
+        static void rect(int x, int y, int w, int h, Color color) {
+            gfx->rect(x, y, w, h, color);
+        }
+
+        static void circle(int x, int y, int r, Color color) {
+            gfx->circle(x, y, r, color);
+        }
+
+        static void fillCircle(int x, int y, int r, Color color) {
+            gfx->fillCircle(x, y, r, color);
+        }
+
+/*
+vga.CenterH
+vga.CenterV
+vga.init
+vga.SBits
+vga.VGA6Bit_useinterrupt
+*/
+
 
 };
 

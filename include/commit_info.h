@@ -35,6 +35,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef COMMIT_INFO_H
 #define COMMIT_INFO_H
 
-const char* COMMIT_DATE = "2504101621";  // Formato YYmmddHHMM
+const char* COMMIT_DATE = "2504152347";  // Formato YYmmddHHMM
 
 #endif // COMMIT_INFO_H

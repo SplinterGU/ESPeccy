@@ -61,17 +61,17 @@ void BIOS::run() {
     auto Kbd = ESPeccy::PS2Controller.keyboard();
     fabgl::VirtualKeyItem NextKey;
 
-    VIDEO::vga.clear(zxColor(7, 0));
+    VIDEO::clear(zxColor(7, 0));
 
     int base_row = OSD_FONT_H * 4;
     int base_col = OSD_FONT_W * 4;
     int total_rows = OSD::scrH / OSD_FONT_H - 8;
     int total_cols = OSD::scrW / OSD_FONT_W - 8;
 
-    #define PRINT_FILLED_CENTERED(text)  VIDEO::vga.print(string((total_cols - strlen(text)) / 2, ' ').c_str()); VIDEO::vga.print(text); VIDEO::vga.print(string(total_cols - strlen(text) - (total_cols - strlen(text)) / 2, ' ').c_str())
-    #define PRINT_FILLED_ROW(text)  VIDEO::vga.print(text); VIDEO::vga.print(string(total_cols - strlen(text), ' ').c_str())
-    #define PRINT_FILLED_ROW_ALIGN_RIGHT(text)  VIDEO::vga.print(string(total_cols - strlen(text), ' ').c_str()); VIDEO::vga.print(text)
-    #define SET_CURSOR(col,row) VIDEO::vga.setCursor(base_col + (col) * OSD_FONT_W, base_row + (row) * OSD_FONT_H)
+    #define PRINT_FILLED_CENTERED(text)  VIDEO::print(string((total_cols - strlen(text)) / 2, ' ').c_str()); VIDEO::print(text); VIDEO::print(string(total_cols - strlen(text) - (total_cols - strlen(text)) / 2, ' ').c_str())
+    #define PRINT_FILLED_ROW(text)  VIDEO::print(text); VIDEO::print(string(total_cols - strlen(text), ' ').c_str())
+    #define PRINT_FILLED_ROW_ALIGN_RIGHT(text)  VIDEO::print(string(total_cols - strlen(text), ' ').c_str()); VIDEO::print(text)
+    #define SET_CURSOR(col,row) VIDEO::setCursor(base_col + (col) * OSD_FONT_W, base_row + (row) * OSD_FONT_H)
 
     // Opciones del menú
     const char* menuOptions[] = {"Main", "Video", "Keyboard", "Config", "Update", "Exit"};
@@ -120,40 +120,40 @@ void BIOS::run() {
         int len = 0;
         int limit = ZXKeyb::Exists ? menuCount : menuCountLily;
         for (int i = 0; i < limit; ++i) {
-            VIDEO::vga.setTextColor(i == highlight ? zxColor(1, 1) : zxColor(7, 1), i == highlight ? zxColor(7, 1) : zxColor(1, 0));
-            VIDEO::vga.print(" ");
-            VIDEO::vga.print(ZXKeyb::Exists ? menuOptions[i] : menuOptionsLily[i]);
-            VIDEO::vga.print(" ");
+            VIDEO::setTextColor(i == highlight ? zxColor(1, 1) : zxColor(7, 1), i == highlight ? zxColor(7, 1) : zxColor(1, 0));
+            VIDEO::print(" ");
+            VIDEO::print(ZXKeyb::Exists ? menuOptions[i] : menuOptionsLily[i]);
+            VIDEO::print(" ");
             len += strlen(ZXKeyb::Exists ? menuOptions[i] : menuOptionsLily[i]) + 2;
         }
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
-        VIDEO::vga.print(string(total_cols - len, ' ').c_str());
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+        VIDEO::print(string(total_cols - len, ' ').c_str());
     };
 
     auto renderOptions = [&](const char *options[], const char *values[], const int optionsCount, int highlight) {
         SET_CURSOR(1, 3); // Ajustar la posición para el submenú
         for (int i = 0; i < optionsCount; ++i) {
             // Color del texto, resaltado para el elemento seleccionado
-            VIDEO::vga.setTextColor(i == highlight ? zxColor(7, 1) : zxColor(1, 0),
+            VIDEO::setTextColor(i == highlight ? zxColor(7, 1) : zxColor(1, 0),
                                     i == highlight ? zxColor(0, 0) : zxColor(7, 0));
 
             // Imprimir el nombre de la opción
-            VIDEO::vga.print(" ");
-            VIDEO::vga.print(options[i]);
+            VIDEO::print(" ");
+            VIDEO::print(options[i]);
 
             // Calcular espacios en blanco para alinear valores
             int padding = total_cols - 19 /* Help Column */ - 2 - strlen(options[i]) -
                           (values && values[i] ? strlen(values[i]) : 0) - 2; // espacio antes del valor si existe
 
             // Añadir los espacios para alineación
-            VIDEO::vga.print(string(padding, ' ').c_str());
+            VIDEO::print(string(padding, ' ').c_str());
 
             // Si hay valores, imprimir el valor alineado a la derecha
             if (values && values[i]) {
-                VIDEO::vga.print(values[i]);
+                VIDEO::print(values[i]);
             }
 
-            VIDEO::vga.print(" \n");
+            VIDEO::print(" \n");
         }
     };
 
@@ -161,32 +161,32 @@ void BIOS::run() {
         int color = zxColor(7, 0);
         for (int y = base_row + OSD_FONT_H * 3; y < base_row + ( total_rows - 2 ) * OSD_FONT_H - OSD_FONT_H / 2; y++)
             for (int x = base_col + OSD_FONT_W - OSD_FONT_W / 2; x < base_col + ( total_cols - ( fullwidth ? 0 : 20 )) * OSD_FONT_W + OSD_FONT_W / 2; x++)
-                VIDEO::vga.dotFast(x, y, color);
+                VIDEO::dotFast(x, y, color);
 
         const int top = base_row + OSD_FONT_H * 2 + OSD_FONT_H / 2;
         const int buttom = base_row + ( total_rows - 1 ) * OSD_FONT_H - OSD_FONT_H / 2;
         const int left = base_col + OSD_FONT_W / 2;
         const int right = base_col + ( total_cols - 1 ) * OSD_FONT_W + OSD_FONT_W / 2;
 
-        VIDEO::vga.line(  left,    top, right,    top, zxColor(1, 0));
-        VIDEO::vga.line(  left, buttom, right, buttom, zxColor(1, 0));
-        VIDEO::vga.line(  left,    top,  left, buttom, zxColor(1, 0));
-        VIDEO::vga.line( right,    top, right, buttom, zxColor(1, 0));
+        VIDEO::line(  left,    top, right,    top, zxColor(1, 0));
+        VIDEO::line(  left, buttom, right, buttom, zxColor(1, 0));
+        VIDEO::line(  left,    top,  left, buttom, zxColor(1, 0));
+        VIDEO::line( right,    top, right, buttom, zxColor(1, 0));
 
-        VIDEO::vga.line( right - 19 * OSD_FONT_W, top                    , right - 19 * OSD_FONT_W, buttom                 , zxColor(1, 0));
-        VIDEO::vga.line( right - 19 * OSD_FONT_W, buttom - 6 * OSD_FONT_H, right                  , buttom - 6 * OSD_FONT_H, zxColor(1, 0));
+        VIDEO::line( right - 19 * OSD_FONT_W, top                    , right - 19 * OSD_FONT_W, buttom                 , zxColor(1, 0));
+        VIDEO::line( right - 19 * OSD_FONT_W, buttom - 6 * OSD_FONT_H, right                  , buttom - 6 * OSD_FONT_H, zxColor(1, 0));
 
         SET_CURSOR(total_cols - 19, total_rows - 7);
-        VIDEO::vga.setTextColor(zxColor(1, 0), zxColor(7, 0));
-        VIDEO::vga.print("\x1A \x1B Select Screen\n");
-        VIDEO::vga.print("\x18 \x19 Select Item\n");
-        VIDEO::vga.print("Enter: Select/Chg.\n");
+        VIDEO::setTextColor(zxColor(1, 0), zxColor(7, 0));
+        VIDEO::print("\x1A \x1B Select Screen\n");
+        VIDEO::print("\x18 \x19 Select Item\n");
+        VIDEO::print("Enter: Select/Chg.\n");
         if (ZXKeyb::Exists || Config::zxunops2) {
-            VIDEO::vga.print("\x06+S: Save & Exit\n");
-            VIDEO::vga.print("BREAK: Exit\n");
+            VIDEO::print("\x06+S: Save & Exit\n");
+            VIDEO::print("BREAK: Exit\n");
         } else {
-            VIDEO::vga.print("F10: Save & Exit\n");
-            VIDEO::vga.print("ESC: Exit  \n");
+            VIDEO::print("F10: Save & Exit\n");
+            VIDEO::print("ESC: Exit  \n");
         }
 
     };
@@ -229,28 +229,28 @@ void BIOS::run() {
         // Limpiar el área del diálogo
         for (int y = base_row + top * OSD_FONT_H; y < base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2; y++) {
             for (int x = base_col + left * OSD_FONT_W - OSD_FONT_W / 2; x < base_col + right * OSD_FONT_W + OSD_FONT_W / 2; x++) {
-                VIDEO::vga.dotFast(x, y, zxColor(7, 0));
+                VIDEO::dotFast(x, y, zxColor(7, 0));
             }
         }
 
         // Dibujar el borde del diálogo
-        VIDEO::vga.line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, zxColor(1, 0));
-        VIDEO::vga.line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
-        VIDEO::vga.line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
-        VIDEO::vga.line(base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
+        VIDEO::line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, zxColor(1, 0));
+        VIDEO::line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
+        VIDEO::line(base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col +  left * OSD_FONT_W - OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
+        VIDEO::line(base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row +    top * OSD_FONT_H + OSD_FONT_H / 2, base_col + right * OSD_FONT_W + OSD_FONT_W / 2, base_row + bottom * OSD_FONT_H - OSD_FONT_H / 2, zxColor(1, 0));
 
-        VIDEO::vga.fillRect(base_col + left * OSD_FONT_W, base_row + ( top + 1 ) * OSD_FONT_H, dialog_width * OSD_FONT_W, dialog_height * OSD_FONT_H, zxColor(1,0));
+        VIDEO::fillRect(base_col + left * OSD_FONT_W, base_row + ( top + 1 ) * OSD_FONT_H, dialog_width * OSD_FONT_W, dialog_height * OSD_FONT_H, zxColor(1,0));
 
         // Mostrar el título en la primera línea dentro del cuadro
         SET_CURSOR(left + dialog_width / 2 - strlen(title) / 2, top);
-        VIDEO::vga.setTextColor(zxColor(1, 0), zxColor(7, 0));
-        VIDEO::vga.print(title);
+        VIDEO::setTextColor(zxColor(1, 0), zxColor(7, 0));
+        VIDEO::print(title);
 
         if ( message_height > 0 ) {
             // Mostrar el mensaje en la tercera línea
             SET_CURSOR(left + 1, top + 2);
-            VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
-            VIDEO::vga.print(message);
+            VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+            VIDEO::print(message);
         } else {
             // Mostrar el mensaje en la tercera línea
             SET_CURSOR(left + 1, top + 2);
@@ -260,8 +260,8 @@ void BIOS::run() {
             while(*p) {
                 if (*p == '\n') {
                     SET_CURSOR(left + dialog_width / 2 - (p - pi) / 2, top + 2 + current_line); // +2 por la línea del título y el margen superior
-                    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
-                    for(; pi < p - 1; ++pi) VIDEO::vga.print(*pi);
+                    VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+                    for(; pi < p - 1; ++pi) VIDEO::print(*pi);
                     ++current_line;
                 }
                 ++p;
@@ -269,8 +269,8 @@ void BIOS::run() {
 
             if (pi < p) {
                 SET_CURSOR(left + dialog_width / 2 - (p - pi) / 2, top + 2 + current_line); // +2 por la línea del título y el margen superior
-                VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
-                for(; pi < p; ++pi) VIDEO::vga.print(*pi);
+                VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+                for(; pi < p; ++pi) VIDEO::print(*pi);
             }
         }
 
@@ -279,15 +279,15 @@ void BIOS::run() {
         int selectedButton = 0; // 0 = OK, 1 = Cancel
         auto renderButtons = [&](int type = BIOS_DLG_ALERT) {
             SET_CURSOR(left + dialog_width / 2 - ( ( type == BIOS_DLG_CONFIRM ) ? 11 : 5 ), top + 4 + message_height);
-            VIDEO::vga.setTextColor(selectedButton == 0 ? zxColor(1, 1) : zxColor(7, 0), selectedButton == 0 ? zxColor(7, 1) : zxColor(1, 0));
-            VIDEO::vga.print("[   OK   ]");
+            VIDEO::setTextColor(selectedButton == 0 ? zxColor(1, 1) : zxColor(7, 0), selectedButton == 0 ? zxColor(7, 1) : zxColor(1, 0));
+            VIDEO::print("[   OK   ]");
 
             if ( type == BIOS_DLG_CONFIRM ) {
-                VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
-                VIDEO::vga.print("  ");
+                VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+                VIDEO::print("  ");
 
-                VIDEO::vga.setTextColor(selectedButton == 1 ? zxColor(1, 1) : zxColor(7, 0), selectedButton == 1 ? zxColor(7, 1) : zxColor(1, 0));
-                VIDEO::vga.print("[ CANCEL ]");
+                VIDEO::setTextColor(selectedButton == 1 ? zxColor(1, 1) : zxColor(7, 0), selectedButton == 1 ? zxColor(7, 1) : zxColor(1, 0));
+                VIDEO::print("[ CANCEL ]");
             }
         };
 
@@ -330,9 +330,9 @@ void BIOS::run() {
 
         // Mostrar información de chip
         SET_CURSOR(1, 3);
-        VIDEO::vga.setTextColor(zxColor(1, 0), zxColor(7, 0));
+        VIDEO::setTextColor(zxColor(1, 0), zxColor(7, 0));
 
-        VIDEO::vga.print(ESPeccy::getHardwareInfo().c_str());
+        VIDEO::print(ESPeccy::getHardwareInfo().c_str());
     };
 
     // Iniciar el menú
@@ -340,9 +340,9 @@ void BIOS::run() {
     showHardwareInfo();
 
     // Special position
-    //VIDEO::vga.setCursor(base_col, base_row - 1); // 0, 0 - 1px
+    //VIDEO::setCursor(base_col, base_row - 1); // 0, 0 - 1px
     SET_CURSOR(0,0);
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 1));
+    VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 1));
     PRINT_FILLED_CENTERED("ESPeccy Bios Setup Utility");
 
     SET_CURSOR(0, total_rows - 1);
@@ -353,7 +353,7 @@ void BIOS::run() {
                     + std::string(1, commitDate[4]) + commitDate[5] + " "
                     + std::string(1, commitDate[6]) + commitDate[7] + ":"
                     + std::string(1, commitDate[8]) + commitDate[9] + " ";
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
+    VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
     PRINT_FILLED_ROW_ALIGN_RIGHT(footer.c_str());
 
     // Lógica de navegación del menú
@@ -849,5 +849,5 @@ void BIOS::run() {
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
-    VIDEO::vga.clear(zxColor(7, 0));
+    VIDEO::clear(zxColor(7, 0));
 }

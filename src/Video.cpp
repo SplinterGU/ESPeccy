@@ -49,6 +49,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern Font SystemFont;
 
+Graphics<unsigned char>* VIDEO::gfx = nullptr;
+
 VGA6Bit VIDEO::vga;
 
 uint16_t VIDEO::spectrum_colors[NUM_SPECTRUM_COLORS] = {
@@ -66,8 +68,61 @@ uint8_t VIDEO::tStatesPerLine;
 int VIDEO::tStatesScreen;
 int VIDEO::tStatesBorder;
 uint8_t* VIDEO::grmem;
-uint16_t VIDEO::offBmp[SPEC_H];
-uint16_t VIDEO::offAtt[SPEC_H];
+
+// precalculate ULA SWAP values
+const uint16_t VIDEO::offBmp[SPEC_H] = {
+    0x0000, 0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600, 0x0700,
+    0x0020, 0x0120, 0x0220, 0x0320, 0x0420, 0x0520, 0x0620, 0x0720,
+    0x0040, 0x0140, 0x0240, 0x0340, 0x0440, 0x0540, 0x0640, 0x0740,
+    0x0060, 0x0160, 0x0260, 0x0360, 0x0460, 0x0560, 0x0660, 0x0760,
+    0x0080, 0x0180, 0x0280, 0x0380, 0x0480, 0x0580, 0x0680, 0x0780,
+    0x00a0, 0x01a0, 0x02a0, 0x03a0, 0x04a0, 0x05a0, 0x06a0, 0x07a0,
+    0x00c0, 0x01c0, 0x02c0, 0x03c0, 0x04c0, 0x05c0, 0x06c0, 0x07c0,
+    0x00e0, 0x01e0, 0x02e0, 0x03e0, 0x04e0, 0x05e0, 0x06e0, 0x07e0,
+    0x0800, 0x0900, 0x0a00, 0x0b00, 0x0c00, 0x0d00, 0x0e00, 0x0f00,
+    0x0820, 0x0920, 0x0a20, 0x0b20, 0x0c20, 0x0d20, 0x0e20, 0x0f20,
+    0x0840, 0x0940, 0x0a40, 0x0b40, 0x0c40, 0x0d40, 0x0e40, 0x0f40,
+    0x0860, 0x0960, 0x0a60, 0x0b60, 0x0c60, 0x0d60, 0x0e60, 0x0f60,
+    0x0880, 0x0980, 0x0a80, 0x0b80, 0x0c80, 0x0d80, 0x0e80, 0x0f80,
+    0x08a0, 0x09a0, 0x0aa0, 0x0ba0, 0x0ca0, 0x0da0, 0x0ea0, 0x0fa0,
+    0x08c0, 0x09c0, 0x0ac0, 0x0bc0, 0x0cc0, 0x0dc0, 0x0ec0, 0x0fc0,
+    0x08e0, 0x09e0, 0x0ae0, 0x0be0, 0x0ce0, 0x0de0, 0x0ee0, 0x0fe0,
+    0x1000, 0x1100, 0x1200, 0x1300, 0x1400, 0x1500, 0x1600, 0x1700,
+    0x1020, 0x1120, 0x1220, 0x1320, 0x1420, 0x1520, 0x1620, 0x1720,
+    0x1040, 0x1140, 0x1240, 0x1340, 0x1440, 0x1540, 0x1640, 0x1740,
+    0x1060, 0x1160, 0x1260, 0x1360, 0x1460, 0x1560, 0x1660, 0x1760,
+    0x1080, 0x1180, 0x1280, 0x1380, 0x1480, 0x1580, 0x1680, 0x1780,
+    0x10a0, 0x11a0, 0x12a0, 0x13a0, 0x14a0, 0x15a0, 0x16a0, 0x17a0,
+    0x10c0, 0x11c0, 0x12c0, 0x13c0, 0x14c0, 0x15c0, 0x16c0, 0x17c0,
+    0x10e0, 0x11e0, 0x12e0, 0x13e0, 0x14e0, 0x15e0, 0x16e0, 0x17e0
+};
+const uint16_t VIDEO::offAtt[SPEC_H] = {
+    0x1800, 0x1800, 0x1800, 0x1800, 0x1800, 0x1800, 0x1800, 0x1800,
+    0x1820, 0x1820, 0x1820, 0x1820, 0x1820, 0x1820, 0x1820, 0x1820,
+    0x1840, 0x1840, 0x1840, 0x1840, 0x1840, 0x1840, 0x1840, 0x1840,
+    0x1860, 0x1860, 0x1860, 0x1860, 0x1860, 0x1860, 0x1860, 0x1860,
+    0x1880, 0x1880, 0x1880, 0x1880, 0x1880, 0x1880, 0x1880, 0x1880,
+    0x18a0, 0x18a0, 0x18a0, 0x18a0, 0x18a0, 0x18a0, 0x18a0, 0x18a0,
+    0x18c0, 0x18c0, 0x18c0, 0x18c0, 0x18c0, 0x18c0, 0x18c0, 0x18c0,
+    0x18e0, 0x18e0, 0x18e0, 0x18e0, 0x18e0, 0x18e0, 0x18e0, 0x18e0,
+    0x1900, 0x1900, 0x1900, 0x1900, 0x1900, 0x1900, 0x1900, 0x1900,
+    0x1920, 0x1920, 0x1920, 0x1920, 0x1920, 0x1920, 0x1920, 0x1920,
+    0x1940, 0x1940, 0x1940, 0x1940, 0x1940, 0x1940, 0x1940, 0x1940,
+    0x1960, 0x1960, 0x1960, 0x1960, 0x1960, 0x1960, 0x1960, 0x1960,
+    0x1980, 0x1980, 0x1980, 0x1980, 0x1980, 0x1980, 0x1980, 0x1980,
+    0x19a0, 0x19a0, 0x19a0, 0x19a0, 0x19a0, 0x19a0, 0x19a0, 0x19a0,
+    0x19c0, 0x19c0, 0x19c0, 0x19c0, 0x19c0, 0x19c0, 0x19c0, 0x19c0,
+    0x19e0, 0x19e0, 0x19e0, 0x19e0, 0x19e0, 0x19e0, 0x19e0, 0x19e0,
+    0x1a00, 0x1a00, 0x1a00, 0x1a00, 0x1a00, 0x1a00, 0x1a00, 0x1a00,
+    0x1a20, 0x1a20, 0x1a20, 0x1a20, 0x1a20, 0x1a20, 0x1a20, 0x1a20,
+    0x1a40, 0x1a40, 0x1a40, 0x1a40, 0x1a40, 0x1a40, 0x1a40, 0x1a40,
+    0x1a60, 0x1a60, 0x1a60, 0x1a60, 0x1a60, 0x1a60, 0x1a60, 0x1a60,
+    0x1a80, 0x1a80, 0x1a80, 0x1a80, 0x1a80, 0x1a80, 0x1a80, 0x1a80,
+    0x1aa0, 0x1aa0, 0x1aa0, 0x1aa0, 0x1aa0, 0x1aa0, 0x1aa0, 0x1aa0,
+    0x1ac0, 0x1ac0, 0x1ac0, 0x1ac0, 0x1ac0, 0x1ac0, 0x1ac0, 0x1ac0,
+    0x1ae0, 0x1ae0, 0x1ae0, 0x1ae0, 0x1ae0, 0x1ae0, 0x1ae0, 0x1ae0
+};
+
 uint32_t* VIDEO::SaveRect;
 int VIDEO::VsyncFinetune[2];
 uint32_t VIDEO::framecnt = 0;
@@ -188,15 +243,6 @@ uint8_t VIDEO::brdlin_osdend;
 bool VIDEO::brdChange = false;
 bool VIDEO::brdnextframe = true;
 
-// Precalc ULA_SWAP
-#define ULA_SWAP(y) ((y & 0xC0) | ((y & 0x38) >> 3) | ((y & 0x07) << 3))
-void precalcULASWAP() {
-    for (int i = 0; i < SPEC_H; i++) {
-        VIDEO::offBmp[i] = ULA_SWAP(i) << 5;
-        VIDEO::offAtt[i] = ((i >> 3) << 5) + 0x1800;
-    }
-}
-
 void precalcborder32() {
     for (int i = 0; i < 8; i++) {
         uint8_t border = zxColor(i,0);
@@ -276,6 +322,8 @@ TaskHandle_t VIDEO::videoTaskHandle;
 
 void VIDEO::Init() {
 
+    gfx = &vga;
+
     if (Config::videomode) {
 
         // xTaskCreatePinnedToCore(&VIDEO::vgataskinit, "videoTask", 1024, NULL, configMAX_PRIORITIES - 2, &videoTaskHandle, 1);
@@ -308,12 +356,14 @@ void VIDEO::Init() {
     for (int n = 0; n < 16; n++)
         AluByte[n] = (unsigned int *)AluBytes[bitRead(VIDEO::vga.SBits,7)][n];
 
-    precalcULASWAP();   // precalculate ULA SWAP values
+    //precalcULASWAP();   // precalculate ULA SWAP values
 
     precalcborder32();  // Precalc border 32 bits values
 
+    printf("offBmp[1] %04x\n", offBmp[1]);
+
 #if 1
-    SaveRect = (uint32_t *) heap_caps_malloc(0x9000, /*MALLOC_CAP_INTERNAL |*/ MALLOC_CAP_32BIT);
+    SaveRect = (uint32_t *) heap_caps_malloc(0x9000, MALLOC_CAP_32BIT);
 #else
     SaveRect = (uint32_t *) heap_caps_malloc(0x9000, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
 #endif
@@ -322,8 +372,8 @@ void VIDEO::Init() {
     }
 
     // Set font & Codepage
-    vga.setFont(SystemFont);
-    vga.setCodepage(LANGCODEPAGE[Config::lang]);
+    setFont(SystemFont);
+    setCodepage(LANGCODEPAGE[Config::lang]);
 
 }
 
@@ -493,7 +543,7 @@ IRAM_ATTR void VIDEO::MainScreen_Blank(unsigned int statestoadd, bool contended)
 
         if (brdChange) DrawBorder(); // Needed to avoid tearing in demos like Gabba (Pentagon)
 
-        lineptr32 = (uint32_t *)(vga.frameBuffer[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
+        lineptr32 = (uint32_t *)(VIDEO::frameBuffer()[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
 
         coldraw_cnt = 0;
 
@@ -523,7 +573,7 @@ IRAM_ATTR void VIDEO::MainScreen_Blank_2A3(unsigned int statestoadd, bool conten
 
         if (brdChange) DrawBorder(); // Needed to avoid tearing in demos like Gabba (Pentagon)
 
-        lineptr32 = (uint32_t *)(vga.frameBuffer[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
+        lineptr32 = (uint32_t *)(VIDEO::frameBuffer()[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
 
         coldraw_cnt = 0;
 
@@ -556,7 +606,7 @@ IRAM_ATTR void VIDEO::MainScreen_Blank_Snow(unsigned int statestoadd, bool conte
 
         if (brdChange) DrawBorder();
 
-        lineptr32 = (uint32_t *)(vga.frameBuffer[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
+        lineptr32 = (uint32_t *)(VIDEO::frameBuffer()[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13 : 8);
 
         coldraw_cnt = 0;
 
@@ -593,7 +643,7 @@ IRAM_ATTR void VIDEO::MainScreen_Blank_Snow_Opcode(bool contended) {
 
         if (brdChange) DrawBorder();
 
-        lineptr32 = (uint32_t *)(vga.frameBuffer[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13: 8);
+        lineptr32 = (uint32_t *)(VIDEO::frameBuffer()[linedraw_cnt]) + (Config::videomode == 2 ? 12 : is169 ? 13: 8);
 
         coldraw_cnt = 0;
 
@@ -1048,27 +1098,6 @@ IRAM_ATTR void VIDEO::EndFrame() {
 // Border Drawing
 //----------------------------------------------------------------------------------------------------------------
 
-// IRAM_ATTR void VIDEO::DrawBorderFast() {
-
-//     uint8_t border = zxColor(borderColor,0);
-
-//     int i = 0;
-
-//     // Top border
-//     for (; i < lin_end; i++) memset((uint32_t *)(vga.frameBuffer[i]),border, vga.xres);
-
-//     // Paper border
-//     int brdsize = (vga.xres - SPEC_W) >> 1;
-//     for (; i < lin_end2; i++) {
-//         memset((uint32_t *)(vga.frameBuffer[i]), border, brdsize);
-//         memset((uint32_t *)(vga.frameBuffer[i] + vga.xres - brdsize), border, brdsize);
-//     }
-
-//     // Bottom border
-//     for (; i < OSD::scrH; i++) memset((uint32_t *)(vga.frameBuffer[i]),border, vga.xres);
-
-// }
-
 static int brdcol_cnt = 0;
 static int brdlin_cnt = 0;
 
@@ -1077,7 +1106,7 @@ IRAM_ATTR void VIDEO::TopBorder_Blank() {
     if (CPU::tstates >= tStatesBorder) {
         brdcol_cnt = 0;
         brdlin_cnt = 0;
-        brdptr32 = (uint32_t *)(vga.frameBuffer[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
+        brdptr32 = (uint32_t *)(VIDEO::frameBuffer()[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
         DrawBorder = &TopBorder;
         DrawBorder();
     }
@@ -1097,7 +1126,7 @@ IRAM_ATTR void VIDEO::TopBorder() {
 
         if (brdcol_cnt == (Config::videomode == 2 || is169 ? 44 : 40)) {
             brdlin_cnt++;
-            brdptr32 = (uint32_t *)(vga.frameBuffer[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
+            brdptr32 = (uint32_t *)(VIDEO::frameBuffer()[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
             brdcol_cnt = 0;
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == lin_end) {
@@ -1128,7 +1157,7 @@ IRAM_ATTR void VIDEO::MiddleBorder() {
             brdcol_cnt += 32;
         } else if (brdcol_cnt == (Config::videomode == 2 || is169 ? 44 : 40)) {
             brdlin_cnt++;
-            brdptr32 = (uint32_t *)(vga.frameBuffer[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
+            brdptr32 = (uint32_t *)(VIDEO::frameBuffer()[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
             brdcol_cnt = 0;
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == lin_end2) {
@@ -1155,7 +1184,7 @@ IRAM_ATTR void VIDEO::BottomBorder() {
 
         if (brdcol_cnt == (Config::videomode == 2 || is169 ? 44 : 40)) {
             brdlin_cnt++;
-            brdptr32 = (uint32_t *)(vga.frameBuffer[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
+            brdptr32 = (uint32_t *)(VIDEO::frameBuffer()[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
             brdcol_cnt = 0;
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == OSD::scrH) {
@@ -1188,7 +1217,7 @@ IRAM_ATTR void VIDEO::BottomBorder_OSD() {
 
         if (brdcol_cnt == (Config::videomode == 2 || is169 ? 44 : 40)) {
             brdlin_cnt++;
-            brdptr32 = (uint32_t *)(vga.frameBuffer[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
+            brdptr32 = (uint32_t *)(VIDEO::frameBuffer()[brdlin_cnt]) + (Config::videomode == 2 ? 0 : (is169 ? 1 : 0));
             brdcol_cnt = 0;
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == OSD::scrH) {
@@ -1217,7 +1246,7 @@ IRAM_ATTR void VIDEO::TopBorder_Blank_Pentagon() {
         brdcol_end1 = Config::videomode == 2 ? 24 : (is169 ? 26 : 16);
 
         brdlin_cnt = 0;
-        brdptr16 = (uint16_t *)(vga.frameBuffer[brdlin_cnt]);
+        brdptr16 = (uint16_t *)(VIDEO::frameBuffer()[brdlin_cnt]);
         DrawBorder = &TopBorder_Pentagon;
         DrawBorder();
     }
@@ -1236,7 +1265,7 @@ IRAM_ATTR void VIDEO::TopBorder_Pentagon() {
 
         if (brdcol_cnt == brdcol_end) {
             brdlin_cnt++;
-            brdptr16 = (uint16_t *)(vga.frameBuffer[brdlin_cnt]);
+            brdptr16 = (uint16_t *)(VIDEO::frameBuffer()[brdlin_cnt]);
             brdcol_cnt = Config::videomode == 2 ? 0 : (is169 ? 2 : 0);
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == lin_end) {
@@ -1265,7 +1294,7 @@ IRAM_ATTR void VIDEO::MiddleBorder_Pentagon() {
             brdcol_cnt = Config::videomode == 2 ? 152 : (is169 ? 154 : 144);
         } else if (brdcol_cnt == brdcol_end) {
             brdlin_cnt++;
-            brdptr16 = (uint16_t *)(vga.frameBuffer[brdlin_cnt]);
+            brdptr16 = (uint16_t *)(VIDEO::frameBuffer()[brdlin_cnt]);
             brdcol_cnt = Config::videomode == 2 ? 0 : (is169 ? 2 : 0);
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == lin_end2) {
@@ -1291,7 +1320,7 @@ IRAM_ATTR void VIDEO::BottomBorder_Pentagon() {
 
         if (brdcol_cnt == brdcol_end) {
             brdlin_cnt++;
-            brdptr16 = (uint16_t *)(vga.frameBuffer[brdlin_cnt]);
+            brdptr16 = (uint16_t *)(VIDEO::frameBuffer()[brdlin_cnt]);
             brdcol_cnt = Config::videomode == 2 ? 0 : (is169 ? 2 : 0);
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == OSD::scrH) {
@@ -1319,7 +1348,7 @@ IRAM_ATTR void VIDEO::BottomBorder_OSD_Pentagon() {
 
         if (brdcol_cnt == brdcol_end) {
             brdlin_cnt++;
-            brdptr16 = (uint16_t *)(vga.frameBuffer[brdlin_cnt]);
+            brdptr16 = (uint16_t *)(VIDEO::frameBuffer()[brdlin_cnt]);
             brdcol_cnt = 0;
             lastBrdTstate += brdnextline;
             if (brdlin_cnt == OSD::scrH) {

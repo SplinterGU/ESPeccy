@@ -83,13 +83,13 @@ void OSD::fd_StatusbarDraw(const string& statusbar, bool fdMode) {
     // Print status bar
 //    menuAt(mf_rows, 0);
     menuAt(h/OSD_FONT_H-1,0);
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+    VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
 
     if (fdMode) {
-        VIDEO::vga.print((" " + std::string(cols - 2, ' ') + " ").c_str());
+        VIDEO::print((" " + std::string(cols - 2, ' ') + " ").c_str());
     } else {
         string text = " " + RotateLine(statusbar, &statusBarScrollCTX, cols - 12 - 2, 125, 25) + " ";
-        VIDEO::vga.print(text.c_str());
+        VIDEO::print(text.c_str());
     }
 }
 
@@ -155,9 +155,9 @@ void OSD::fd_Redraw(string title, string fdir, uint8_t ftype) {
             menuScrollBar(FileUtils::fileTypes[ftype].begin_row - 1);
         } else {
             for (; row < mf_rows; row++) {
-                VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 1));
+                VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
                 menuAt(row, 0);
-                VIDEO::vga.print(std::string(cols, ' ').c_str());
+                VIDEO::print(std::string(cols, ' ').c_str());
             }
         }
 
@@ -180,25 +180,25 @@ void OSD::fd_PrintRow(uint8_t virtual_row_num, uint8_t line_type) {
 
     switch (line_type) {
     case IS_TITLE:
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
         margin = 2;
         break;
     case IS_INFO:
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_FOCUSED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(5, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     default:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
         margin = (real_rows > virtual_rows ? 3 : 2);
     }
 
     menuAt(virtual_row_num, 0);
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
     const string extra_line = isDir ? " <DIR>" : "";
     size_t extra_margin = extra_line.length();
@@ -223,9 +223,9 @@ void OSD::fd_PrintRow(uint8_t virtual_row_num, uint8_t line_type) {
         }
     }
 
-    VIDEO::vga.print(line.c_str());
+    VIDEO::print(line.c_str());
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
 }
 
@@ -410,16 +410,16 @@ reset:
     // Draw blank rows
     uint8_t row = 2;
     for (; row < mf_rows; row++) {
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 1));
+        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
         menuAt(row, 0);
-        VIDEO::vga.print(std::string(cols, ' ').c_str());
+        VIDEO::print(std::string(cols, ' ').c_str());
     }
 
     if (thumb_enabled) {
         for (int r = row; r < h/OSD_FONT_H-1; r++) {
-            VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
+            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
             menuAt(r, 0);
-            VIDEO::vga.print(std::string(cols, ' ').c_str());
+            VIDEO::print(std::string(cols, ' ').c_str());
         }
     }
 
@@ -513,8 +513,8 @@ reset:
             // Clean Status Bar
             menuAt(h/OSD_FONT_H-1,0);
             //menuAt(row, 0);
-            VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-            VIDEO::vga.print(std::string(cols, ' ').c_str());
+            VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+            VIDEO::print(std::string(cols, ' ').c_str());
 
             // Recalc items number
             long prevpos = ftell(dirfile);
@@ -574,8 +574,8 @@ reset:
         // First clean statusbar
         menuAt(h/OSD_FONT_H-1,0);
         //menuAt(row, 0);
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-        VIDEO::vga.print(std::string(cols, ' ').c_str());
+        VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+        VIDEO::print(std::string(cols, ' ').c_str());
 
         bool mode_E = false;
 
@@ -643,7 +643,7 @@ reset:
                 ResetRowScrollContext(fdRowScrollCTX);
 
                 // Print elements
-                VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+                VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
 
                 unsigned int elem = FileUtils::fileTypes[ftype].fdMode ? fdSearchElements : elements;
                 if (elem) {
@@ -653,12 +653,12 @@ reset:
                     char elements_txt[13];
                     int nitem = (FileUtils::fileTypes[ftype].begin_row + FileUtils::fileTypes[ftype].focus ) - (4 + ndirs) + (fdir.length() == 1);
                     snprintf(elements_txt, sizeof(elements_txt), "%d/%d ", nitem > 0 ? nitem : 0 , elem);
-                    VIDEO::vga.print(std::string(12 - strlen(elements_txt), ' ').c_str());
-                    VIDEO::vga.print(elements_txt);
+                    VIDEO::print(std::string(12 - strlen(elements_txt), ' ').c_str());
+                    VIDEO::print(elements_txt);
                 } else {
                     //menuAt(mf_rows, cols - 12);
                     menuAt(h/OSD_FONT_H-1, cols - 12);
-                    VIDEO::vga.print(std::string(12,' ').c_str());
+                    VIDEO::print(std::string(12,' ').c_str());
                 }
 
                 if (ESPeccy::readKbd(&Menukey, KBDREAD_MODEFILEBROWSER)) {
@@ -789,11 +789,11 @@ reset:
                         // status bard position & color
                         //menuAt(mf_rows, 0);
                         menuAt(h/OSD_FONT_H-1, 0);
-                        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+                        VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
 
                         if (FileUtils::fileTypes[ftype].fdMode) {
                             // Clean status bar
-                            VIDEO::vga.print(std::string(cols, ' ').c_str());
+                            VIDEO::print(std::string(cols, ' ').c_str());
                             fdCursorFlash = 63;
                             fdSearchRefresh = FileUtils::fileTypes[ftype].fileSearch != "";
 
@@ -834,11 +834,11 @@ reset:
                             OSD::saveSCR((FileUtils::MountPoint+fdir+lastFile).c_str(), (uint32_t *) VIDEO::SaveRect);
                             screen_offset = 0;
                             screen_number = 0;
-                            VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
+                            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/4);
-                            VIDEO::vga.print(" ");
+                            VIDEO::print(" ");
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols*3/4);
-                            VIDEO::vga.print(" ");
+                            VIDEO::print(" ");
                         }
                     } else if (Menukey.vk == fabgl::VK_F8) {
                         click();
@@ -1013,30 +1013,30 @@ reset:
 
                         if (retPreview == RENDER_PREVIEW_ERROR) {
                             for (int r = row; r < h/OSD_FONT_H-1; r++) {
-                                VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
+                                VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
                                 menuAt(r, 0);
-                                VIDEO::vga.print(std::string(cols, ' ').c_str());
+                                VIDEO::print(std::string(cols, ' ').c_str());
                             }
                             string no_preview_txt = Config::lang == 0 ? "NO PREVIEW AVAILABLE" :
                                                     Config::lang == 1 ? "SIN VISTA PREVIA" :
                                                                         "TELA N\x8EO DISPON\x8BVEL";
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/2 - no_preview_txt.length()/2);
-                            VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
-                            VIDEO::vga.print(no_preview_txt.c_str());
+                            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
+                            VIDEO::print(no_preview_txt.c_str());
                             scr_loaded = false;
                         } else if (retPreview == RENDER_PREVIEW_OK) {
-                            VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
+                            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/2-(128/OSD_FONT_W)/2-3);
-                            VIDEO::vga.print((screen_number > 0)?"<":" ");
+                            VIDEO::print((screen_number > 0)?"<":" ");
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/2+(128/OSD_FONT_W)/2+2);
-                            VIDEO::vga.print(" ");
+                            VIDEO::print(" ");
                             scr_loaded = true;
                         } else if (retPreview == RENDER_PREVIEW_OK_MORE) {
-                            VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
+                            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/2-(128/OSD_FONT_W)/2-3);
-                            VIDEO::vga.print((screen_number > 0)?"<":" ");
+                            VIDEO::print((screen_number > 0)?"<":" ");
                             menuAt(row+((h/OSD_FONT_H)-row)/2, cols/2+(128/OSD_FONT_W)/2+2);
-                            VIDEO::vga.print(">");
+                            VIDEO::print(">");
                             scr_loaded = true;
                         } else if (retPreview == RENDER_PREVIEW_REQUEST_NO_FOUND) {
                             if (screen_number > 0) screen_number--;
@@ -1052,20 +1052,20 @@ reset:
                 if ((++fdCursorFlash & 0xf) == 0) {
                     //menuAt(mf_rows, 1);
                     menuAt(h/OSD_FONT_H-1, 1);
-                    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-                    VIDEO::vga.print(Config::lang == 0 ? "Find: " :
-                                     Config::lang == 1 ? "B\xA3sq: " :
-                                                         "Proc:"
-                                    );
-                    VIDEO::vga.print( FileUtils::fileTypes[ftype].fileSearch.size() > MAXSEARCHLEN ? FileUtils::fileTypes[ftype].fileSearch.substr( FileUtils::fileTypes[ftype].fileSearch.size() - MAXSEARCHLEN).c_str() : FileUtils::fileTypes[ftype].fileSearch.c_str());
+                    VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+                    VIDEO::print(Config::lang == 0 ? "Find: " :
+                                 Config::lang == 1 ? "B\xA3sq: " :
+                                                     "Proc:"
+                                );
+                    VIDEO::print( FileUtils::fileTypes[ftype].fileSearch.size() > MAXSEARCHLEN ? FileUtils::fileTypes[ftype].fileSearch.substr( FileUtils::fileTypes[ftype].fileSearch.size() - MAXSEARCHLEN).c_str() : FileUtils::fileTypes[ftype].fileSearch.c_str());
 
                     if (fdCursorFlash > 63) {
-                        VIDEO::vga.setTextColor(zxColor(5, 0), zxColor(7, 1));
+                        VIDEO::setTextColor(zxColor(5, 0), zxColor(7, 1));
                         if (fdCursorFlash == 128) fdCursorFlash = 0;
                     }
-                    VIDEO::vga.print(mode_E?"E":"L");
-                    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
-                    VIDEO::vga.print(std::string(FileUtils::fileTypes[ftype].fileSearch.size() > MAXSEARCHLEN ? MAXSEARCHLEN : MAXSEARCHLEN - FileUtils::fileTypes[ftype].fileSearch.size(), ' ').c_str());
+                    VIDEO::print(mode_E?"E":"L");
+                    VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+                    VIDEO::print(std::string(FileUtils::fileTypes[ftype].fileSearch.size() > MAXSEARCHLEN ? MAXSEARCHLEN : MAXSEARCHLEN - FileUtils::fileTypes[ftype].fileSearch.size(), ' ').c_str());
                 }
 
                 if (fdSearchRefresh) {

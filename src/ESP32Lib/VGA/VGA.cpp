@@ -1,10 +1,10 @@
 /*
 	Author: bitluni 2019
-	License: 
+	License:
 	Creative Commons Attribution ShareAlike 4.0
 	https://creativecommons.org/licenses/by-sa/4.0/
-	
-	For further details check out: 
+
+	For further details check out:
 		https://youtube.com/bitlunislab
 		https://github.com/bitluni
 		http://bitluni.net
@@ -14,12 +14,11 @@
 VGA::VGA(const int i2sIndex) : I2S(i2sIndex) {}
 
 bool VGA::init(int mode, const int *pinMap, const int bitCount, const int clockPin) {
-	
+
 	this->mode = mode;
-	int xres = vidmodes[mode][vmodeproperties::hRes];
-	int yres = vidmodes[mode][vmodeproperties::vRes] / vidmodes[mode][vmodeproperties::vDiv];
+
 	initSyncBits();
-	propagateResolution(xres, yres);
+	propagateResolution(vidmodes[mode][vmodeproperties::hRes], vidmodes[mode][vmodeproperties::vRes] / vidmodes[mode][vmodeproperties::vDiv]);
 	allocateLineBuffers();
 	initParallelOutputMode(pinMap, mode, bitCount, clockPin);
 
@@ -29,7 +28,7 @@ bool VGA::init(int mode, const int *pinMap, const int bitCount, const int clockP
 
 }
 
-void VGA::allocateLineBuffers() {} 
+void VGA::allocateLineBuffers() {}
 
 // ///////////////////////////////////////////////////
 // OLD FUNCTION
@@ -101,7 +100,7 @@ void VGA::allocateLineBuffers(void **frameBuffer) {
 	int inactiveSamples = (vidmodes[mode][vmodeproperties::hFront] + vidmodes[mode][vmodeproperties::hSync] + vidmodes[mode][vmodeproperties::hBack] + 3) & 0xfffffffc;
 	void *inactiveBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples, true);
 	void *vSyncBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples + vidmodes[mode][vmodeproperties::hRes], true);
-	void *blankBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples + vidmodes[mode][vmodeproperties::hRes], true);	
+	void *blankBuffer = DMABufferDescriptor::allocateBuffer(inactiveSamples + vidmodes[mode][vmodeproperties::hRes], true);
 
 	for (int i = 0; i < inactiveSamples; i++) {
 		if (i >= (vidmodes[mode][vmodeproperties::hFront] - CenterH) && i < (vidmodes[mode][vmodeproperties::hFront] - CenterH + vidmodes[mode][vmodeproperties::hSync])) {
@@ -114,15 +113,15 @@ void VGA::allocateLineBuffers(void **frameBuffer) {
 	for (int i = 0; i < inactiveSamples; i++) {
 		if (i >= (vidmodes[mode][vmodeproperties::hFront] - CenterH) && i < (vidmodes[mode][vmodeproperties::hFront] - CenterH + vidmodes[mode][vmodeproperties::hSync])) {
 			((unsigned char *)vSyncBuffer)[i ^ 2] = hsyncBit | vsyncBit;
-			((unsigned char *)blankBuffer)[i ^ 2] = hsyncBit | vsyncBitI;			
+			((unsigned char *)blankBuffer)[i ^ 2] = hsyncBit | vsyncBitI;
 		} else {
 			((unsigned char *)vSyncBuffer)[i ^ 2] = hsyncBitI | vsyncBit;
-			((unsigned char *)blankBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;			
+			((unsigned char *)blankBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;
 		}
 	}
 	for (int i = inactiveSamples; i < (inactiveSamples + vidmodes[mode][vmodeproperties::hRes]); i++)	{
 		((unsigned char *)vSyncBuffer)[i ^ 2] = hsyncBitI | vsyncBit;
-		((unsigned char *)blankBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;		
+		((unsigned char *)blankBuffer)[i ^ 2] = hsyncBitI | vsyncBitI;
 	}
 
 	// Allocate descriptors for all scanlines and populate .next value

@@ -56,7 +56,7 @@ void CaptureToBmp()
     };
 
     // framebuffer size
-    int w = VIDEO::vga.xres;
+    int w = VIDEO::xres();
     int h = OSD::scrH;
 
     // number of uint32_t words
@@ -142,7 +142,7 @@ void CaptureToBmp()
 
     // process every scanline in reverse order (BMP is topdown)
     for (int y = h - 1; y >= 0; y--) {
-        uint32_t* src = (uint32_t*)VIDEO::vga.frameBuffer[y];
+        uint32_t* src = (uint32_t*)VIDEO::frameBuffer()[y];
         uint32_t* dst = linebuf;
         // process every uint32 in scanline
         for (int i = 0; i < count; i++) {

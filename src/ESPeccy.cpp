@@ -199,11 +199,11 @@ int ESPeccy::ESPtestvar2 = 0;
 
 void ShowStartMsg() {
 
-    VIDEO::vga.clear(zxColor(7,0));
+    VIDEO::clear(zxColor(7,0));
 
     OSD::drawOSD(false);
 
-    VIDEO::vga.fillRect(OSD::osdInsideX(), OSD::osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(0, 0));
+    VIDEO::fillRect(OSD::osdInsideX(), OSD::osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(0, 0));
 
     // Decode Logo in EBF8 format
     int logo_w = (ESPeccy_logo[5] << 8) + ESPeccy_logo[4]; // Get Width
@@ -214,7 +214,7 @@ void ShowStartMsg() {
     OSD::drawCompressedBMP(pos_x, pos_y, ESPeccy_logo);
 
     OSD::osdAt(7, 1);
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(1, 0));
+    VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
 
     char nextChar;
     const char *text = StartMsg[Config::lang];
@@ -229,12 +229,12 @@ void ShowStartMsg() {
                 char back = text[++i];
                 int foreint = (fore >= 'A') ? (fore - 'A' + 10) : (fore - '0');
                 int backint = (back >= 'A') ? (back - 'A' + 10) : (back - '0');
-                VIDEO::vga.setTextColor(zxColor(foreint & 0x7, foreint >> 3), zxColor(backint & 0x7, backint >> 3));
+                VIDEO::setTextColor(zxColor(foreint & 0x7, foreint >> 3), zxColor(backint & 0x7, backint >> 3));
                 continue;
             }
-            VIDEO::vga.print((const char)nextChar);
+            VIDEO::print((const char)nextChar);
         } else {
-            VIDEO::vga.print("\n");
+            VIDEO::print("\n");
         }
     }
 
@@ -243,8 +243,8 @@ void ShowStartMsg() {
     for (int i=START_MSG_DURATION; i >= 0 && !quit; i--) {
         OSD::osdAt(20, 1);
         sprintf(msg,STARTMSG_CLOSE[Config::lang],i);
-        VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(1, 0));
-        VIDEO::vga.print(msg);
+        VIDEO::setTextColor(zxColor(7, 0), zxColor(1, 0));
+        VIDEO::print(msg);
 
         for (int j = 0; j < 200; j++) {
             if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead(KBDREAD_MODEDIALOG);
@@ -264,7 +264,7 @@ void ShowStartMsg() {
         }
     }
 
-    VIDEO::vga.clear(zxColor(7,0));
+    VIDEO::clear(zxColor(7,0));
 
     // Disable StartMsg
     Config::StartMsg = false;
