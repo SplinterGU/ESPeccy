@@ -1,0 +1,40 @@
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
+
+Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
+https://github.com/SplinterGU/ESPeccy
+
+This project is based on previous work from the following contributors:
+
+1. **ESPectrum** - Original project for the ESP32
+   - Authors: Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
+   - Repository: https://github.com/EremusOne/ZX-ESPectrum-IDF
+   - Description: ESPectrum is an emulator of the Sinclair ZX Spectrum, ported to the Espressif ESP32 platform.
+
+2. **ZX-ESPectrum-Wiimote** - Support for Wiimote input
+   - Author: David Crespo [dcrespo3d]
+   - Repository: https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+   - Description: A project that enabled interaction with the ZX Spectrum emulator through Wiimote controllers.
+
+3. **ZX-ESPectrum** - Original ZX Spectrum emulator for ESP32
+   - Authors: Ramón Martinez and Jorge Fuertes
+   - Repository: https://github.com/rampa069/ZX-ESPectrum
+   - Description: Another iteration of a ZX Spectrum emulator, contributing to the ESP32 ecosystem.
+
+4. **paseVGA** - VGA output for ZX Spectrum emulation
+   - Author: Pete Todd
+   - Repository: https://github.com/retrogubbins/paseVGA
+   - Description: This project contributed to the VGA output functionality for ZX Spectrum emulators.
+
+---
+
+### Contributions:
+
+ESPeccy is a project that extends and builds upon the work of the above-mentioned projects, adding numerous new features and improvements.
+
+This project is released under the **GNU General Public License (GPL) v3 or later**. Please see the LICENSE file for more details.
+
+If you have contributed to this project in any way and are not listed here, please contact us so we can update this file accordingly.
+
+For more details on the development of ESPeccy and related projects, visit the repository:
+
+https://github.com/SplinterGU/ESPeccy

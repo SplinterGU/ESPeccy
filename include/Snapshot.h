@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +28,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #ifndef SNAPSHOT_H
 #define SNAPSHOT_H

@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +28,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #pragma once
 
@@ -57,7 +56,7 @@ const unsigned char STATUS_WRITEPROTECT = 64;
 const unsigned char SYSTEM_INTRQ = 128;
 const unsigned char SYSTEM_DRQ = 64;
 
-enum class WDCommandType { 
+enum class WDCommandType {
     WD_IDLE,
     WD_RESTORE,
     WD_SEEK,
@@ -137,31 +136,31 @@ class WD1793 {
         void EnterIdle();
         void EjectDisks();
         void EjectDisk(unsigned char UnitNum);
-        bool InsertDisk(unsigned char UnitNum,  string Filename); 
+        bool InsertDisk(unsigned char UnitNum,  string Filename);
         void SCLtoTRD(unsigned char* track0, unsigned char UnitNum);
         bool DiskInserted(unsigned char UnitNum);
         void SetDRQ();
         void ClearDRQ();
         void SetINTRQ();
         void ExecuteCommand(unsigned char wdCmd);
-        
+
         #ifdef LOW_RAM
         void ReadRawOneSectorData(unsigned char UnitNum,  unsigned char C,  unsigned char H,  unsigned char S);
-        void WriteRawOneSectorData(unsigned char UnitNum,  unsigned char C,  unsigned char H,  unsigned char S);        
+        void WriteRawOneSectorData(unsigned char UnitNum,  unsigned char C,  unsigned char H,  unsigned char S);
         #else
         void ReadRawSectorData(unsigned char UnitNum,  unsigned char C,  unsigned char H,  unsigned char S,  unsigned char Count);
         void WriteRawSectorData(unsigned char UnitNum,  unsigned char C,  unsigned char H,  unsigned char S,  unsigned char Count);
         #endif
 
-        unsigned char ReadSystemReg(); 
-        unsigned char ReadStatusReg(); 
-        unsigned char ReadTrackReg(); 
-        unsigned char ReadSectorReg(); 
-        unsigned char ReadDataReg(); 
+        unsigned char ReadSystemReg();
+        unsigned char ReadStatusReg();
+        unsigned char ReadTrackReg();
+        unsigned char ReadSectorReg();
+        unsigned char ReadDataReg();
         void WriteSystemReg(unsigned char newData);
         void WriteCommandReg(unsigned char wdCmd);
-        void WriteTrackReg(unsigned char newTrack); 
-        void WriteSectorReg(unsigned char newSector); 
-        void WriteDataReg(unsigned char newData); 
+        void WriteTrackReg(unsigned char newTrack);
+        void WriteSectorReg(unsigned char newSector);
+        void WriteDataReg(unsigned char newData);
 
 };

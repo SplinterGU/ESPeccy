@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,11 +28,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
 
+
 #include "AySound.h"
-#include "hardconfig.h"
 #include "ESPeccy.h"
 
 // #pragma GCC optimize("O3")
@@ -43,7 +41,7 @@ int AySound::table[32];                 /**< table of volumes for chip */
 ayemu_chip_t AySound::type;             /**< general chip type (\b AYEMU_AY or \b AYEMU_YM) */
 int AySound::ChipFreq;                  /**< chip emulator frequency */
 // int AySound::eq[6];                     /**< volumes for channels.
-                                        // Array contains 6 elements: 
+                                        // Array contains 6 elements:
                                         // A left, A right, B left, B right, C left and C right;
                                         // range -100...100 */
 ayemu_regdata_t AySound::ayregs;        /**< parsed registers data */
@@ -59,7 +57,7 @@ int AySound::bit_a;                     /**< state of channel A generator */
 int AySound::bit_b;                     /**< state of channel B generator */
 int AySound::bit_c;                     /**< state of channel C generator */
 int AySound::bit_n;                     /**< current generator state */
-int AySound::period_n;                  // Noise period 
+int AySound::period_n;                  // Noise period
 int AySound::cnt_a;                     /**< back counter of A */
 int AySound::cnt_b;                     /**< back counter of B */
 int AySound::cnt_c;                     /**< back counter of C */
@@ -134,7 +132,7 @@ static const uint8_t Envelope [16][128] = {
 
 // Borrowed from SoftSpectrum48 source code:
 // Values according to: http://forum.tslabs.info/viewtopic.php?f=6&t=539
-// AmplitudeFactors = { 0.0f, 0.01f, 0.014f, 0.021f, 0.031f, 0.046f, 0.064f, 
+// AmplitudeFactors = { 0.0f, 0.01f, 0.014f, 0.021f, 0.031f, 0.046f, 0.064f,
 // 0.107f, 0.127f, 0.205f, 0.292f, 0.373f, 0.493f, 0.635f, 0.806f, 1.0f }
 // static int SoftSpec48_AY_table [16] = {
 //     0, 655, 917, 1376, 2032, 3015, 4194, 7012,
@@ -192,7 +190,7 @@ void AySound::init()
     default_stereo_flag = 1;
     default_sound_format_flag = 1;
     dirty = 1;
-    
+
     cnt_a = cnt_b = cnt_c = cnt_n = cnt_e = 0;
     bit_a = bit_b = bit_c = bit_n = 0;
     env_pos = EnvNum = 0;
@@ -217,7 +215,7 @@ int AySound::set_chip_type(ayemu_chip_t type, int *custom_table)
 
     const float max_volume = float (AYEMU_MAX_AMP / 3.0f);	// As there are three channels.
     float root_two = 1.414213562373095f;
-    
+
     for(int v = 0; v < 32; v++) {
 		table[v] = int(max_volume / powf(root_two, float(v ^ 0x1f) / 3.18f));
 	}
@@ -229,7 +227,7 @@ int AySound::set_chip_type(ayemu_chip_t type, int *custom_table)
     //     // table[n] = Lion17_AY_table[n / 2];
     //     table[n] = Rampa_AY_table[n / 2];
     //     // table[n] = SoftSpec48_AY_table[n / 2];
-    
+
     type = AYEMU_AY;
 
     default_chip_flag = 0;
@@ -329,10 +327,10 @@ IRAM_ATTR void AySound::gen_sound(int sound_bufsize, int bufpos)
 
     // int snd_numcount = sound_bufsize / (sndfmt.channels * (sndfmt.bpc >> 3));
     // while (snd_numcount-- > 0) {
-    while (sound_bufsize-- > 0) {        
+    while (sound_bufsize-- > 0) {
 
         int mix_l = 0;
-        
+
         for (int m = 0 ; m < ChipTacts_per_outcount ; m++) {
 
             if (++cnt_a >= ayregs.tone_a) {
@@ -354,7 +352,7 @@ IRAM_ATTR void AySound::gen_sound(int sound_bufsize, int bufpos)
             if (++cnt_n >= (ayregs.noise * 2)) {
                 cnt_n = 0;
                 Cur_Seed = (Cur_Seed * 2 + 1) ^ \
-                    (((Cur_Seed >> 16) ^ (Cur_Seed >> 13)) & 1); 
+                    (((Cur_Seed >> 16) ^ (Cur_Seed >> 13)) & 1);
                 bit_n = ((Cur_Seed >> 16) & 1);
             }
             /* End of GenNoise (c) Hacker KAY & Sergey Bulba */
@@ -411,7 +409,7 @@ IRAM_ATTR void AySound::gen_sound(int sound_bufsize, int bufpos)
             //     Cur_Seed >>= 1;
             //     // End of Code borrowed from MAME sources
             // }
-            // // /* End of GenNoise (c) JSpeccy */            
+            // // /* End of GenNoise (c) JSpeccy */
 
             if (++cnt_e >= ayregs.env_freq) {
                 cnt_e = 0;
@@ -430,14 +428,14 @@ IRAM_ATTR void AySound::gen_sound(int sound_bufsize, int bufpos)
                 tmpvol = (ayregs.env_b) ? ENVVOL : Rampa_AY_table[ayregs.vol_b];
                 mix_l += table[tmpvol];
             }
-            
+
             if ((bit_c | !ayregs.R7_tone_c) & (bit_n | !ayregs.R7_noise_c)) {
                 tmpvol = (ayregs.env_c) ? ENVVOL : Rampa_AY_table[ayregs.vol_c];
                 mix_l += table[tmpvol];
-            }            
+            }
 
         }
-        
+
         *sound_buf++ = mix_l / Amp_Global;
 
     }
@@ -490,7 +488,7 @@ IRAM_ATTR void AySound::updEnvFreq() {
 }
 
 IRAM_ATTR void AySound::updEnvType() {
-    
+
     // This shouldn't happen on AY
     // if (regs[13] == 0xff) { // R13 = 255 means continue current envelop
     //     // printf("ENV TYPE 0xff!\n");
@@ -536,7 +534,7 @@ IRAM_ATTR uint8_t AySound::getRegisterData()
       case 0x0e: return ayregs.IOPortA;
       case 0x0f: return ayregs.IOPortB;
     }
-    
+
     return 0;
 
 }
@@ -565,7 +563,7 @@ void AySound::reset() {
     prepare_generation();
 
     for (int i=0;i<16;i++) regs[i] = 0; // All registers are set to 0
-    
+
     regs[7] = 0xff; // Mixer register
 
     selectedRegister = 0;

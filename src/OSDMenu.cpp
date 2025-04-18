@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +28,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #include <string>
 #include <algorithm>
@@ -720,10 +719,12 @@ unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy,
                     OSD::restoreBackbufferData(true);
                     click();
                     menu_prevopt = menuRealRowFor(focus);
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return menu_prevopt;
                 } else if (Menukey.vk == fabgl::VK_ESCAPE || Menukey.vk == fabgl::VK_F1 || Menukey.vk == fabgl::VK_JOY1A || Menukey.vk == fabgl::VK_JOY2A) {
                     OSD::restoreBackbufferData(true);
                     click();
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return 0;
                 }
             }
@@ -817,6 +818,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
                     if (retcb != 1) {
                         if (menu_level!=0) OSD::restoreBackbufferData(true);
                         use_current_menu_state = false;
+                        std::string().swap(menu); // Reset Menu for save free usage
                         return retcb;
                     }
                 }
@@ -892,11 +894,13 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
                     click();
                     menu_prevopt = menuRealRowFor(focus);
                     use_current_menu_state = false;
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return menu_prevopt;
                 } else if (Menukey.vk == fabgl::VK_ESCAPE || ((Menukey.vk == fabgl::VK_LEFT) && (Config::osd_LRNav == 1)) || Menukey.vk == fabgl::VK_F1 || Menukey.vk == fabgl::VK_JOY1A || Menukey.vk == fabgl::VK_JOY2A) {
                     if (menu_level!=0) OSD::restoreBackbufferData(true);
                     click();
                     use_current_menu_state = false;
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return 0;
                 }
             }
@@ -1389,6 +1393,7 @@ int OSD::menuTape(string title) {
                             if ( Tape::selectedBlocks.empty() ) Tape::selectBlockToggle(begin_row - 2 + focus);
                             Tape::removeSelectedBlocks();
                             menu_saverect = true;
+                            std::string().swap(menu); // Reset Menu for save free usage
                             return -2;
                         }
                     }
@@ -1399,11 +1404,13 @@ int OSD::menuTape(string title) {
                         if ( begin_row - 1 + focus < real_rows ) {
                             Tape::CalcTapBlockPos(begin_row + focus - 2);
                             // printf("Ret value: %d\n", begin_row + focus - 2);
+                            std::string().swap(menu); // Reset Menu for save free usage
                             return (begin_row + focus - 2);
                         }
                     } else {
                         Tape::CalcTZXBlockPos(begin_row + focus - 2);
                         // printf("Ret value: %d\n", begin_row + focus - 2);
+                        std::string().swap(menu); // Reset Menu for save free usage
                         return (begin_row + focus - 2);
                     }
                 } else if (Menukey.vk == fabgl::VK_ESCAPE || Menukey.vk == fabgl::VK_JOY1A || Menukey.vk == fabgl::VK_JOY2A) {
@@ -1414,6 +1421,7 @@ int OSD::menuTape(string title) {
 
                     if (menu_level!=0) OSD::restoreBackbufferData(true);
                     click();
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return -1;
                 }
             }
@@ -1696,6 +1704,7 @@ short OSD::menuGenericRun(const string title, const string& statusbar, void *use
                     if (retcb != 1) {
                         if (menu_level!=0) OSD::restoreBackbufferData(true);
                         use_current_menu_state = false;
+                        std::string().swap(menu); // Reset Menu for save free usage
                         return retcb;
                     }
                 }
@@ -1777,11 +1786,13 @@ short OSD::menuGenericRun(const string title, const string& statusbar, void *use
                 } else if (Menukey.vk == fabgl::VK_RETURN || ((Menukey.vk == fabgl::VK_RIGHT) && (Config::osd_LRNav == 1)) || Menukey.vk == fabgl::VK_JOY1B || Menukey.vk == fabgl::VK_JOY1C || Menukey.vk == fabgl::VK_JOY2B || Menukey.vk == fabgl::VK_JOY2C) {
                     click();
                     use_current_menu_state = false;
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return begin_row + focus - 1;
                 } else if (Menukey.vk == fabgl::VK_ESCAPE || ((Menukey.vk == fabgl::VK_LEFT) && (Config::osd_LRNav == 1)) || Menukey.vk == fabgl::VK_F1 || Menukey.vk == fabgl::VK_JOY1A || Menukey.vk == fabgl::VK_JOY2A) {
                     if (menu_level!=0) OSD::restoreBackbufferData(true);
                     click();
                     use_current_menu_state = false;
+                    std::string().swap(menu); // Reset Menu for save free usage
                     return 0;
                 }
 

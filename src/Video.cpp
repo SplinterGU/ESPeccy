@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +28,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
 
 #include "Video.h"
@@ -40,7 +38,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Config.h"
 #include "OSD.h"
 #include "messages.h"
-#include "hardconfig.h"
 #include "hardpins.h"
 #include "Z80_JLS/z80.h"
 #include "Z80_JLS/z80operations.h"
@@ -356,17 +353,16 @@ void VIDEO::Init() {
     for (int n = 0; n < 16; n++)
         AluByte[n] = (unsigned int *)AluBytes[bitRead(VIDEO::vga.SBits,7)][n];
 
-    //precalcULASWAP();   // precalculate ULA SWAP values
-
     precalcborder32();  // Precalc border 32 bits values
 
-    printf("offBmp[1] %04x\n", offBmp[1]);
-
-#if 1
+    // 0x9000 for full color
+    // 0x4800 for 16 colors
+#if USE_FULLCOLOR_BACKGROUND_BACKUP
     SaveRect = (uint32_t *) heap_caps_malloc(0x9000, MALLOC_CAP_32BIT);
 #else
-    SaveRect = (uint32_t *) heap_caps_malloc(0x9000, MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    SaveRect = (uint32_t *) heap_caps_malloc(0x4800, MALLOC_CAP_32BIT);
 #endif
+
     if (!SaveRect) {
         printf("ERROR can't alloc SaveRect!!!\n");
     }

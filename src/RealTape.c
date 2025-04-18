@@ -1,21 +1,10 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
 
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+This file is part of ESPeccy.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +18,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,7 +53,7 @@ static volatile uint8_t* __capture_buffer = NULL;
 static volatile int __capture_buffer_size = 0;
 static double __capture_frame_buffer_size = 0;
 static volatile int __sample_index = 0;
-//static uint8_t __esp_delay_backup = 0;
+
 static double __realtape_factor = 0;
 static int __realtape_basepos = 0;
 static uint64_t __global_tstates_base = 0;
@@ -109,9 +98,9 @@ void RealTape_realloc_buffers(int audio_freq, int samples_per_frame, uint32_t st
     __audio_freq = audio_freq;
 
     __capture_frame_buffer_size = (double)samples_per_frame;
-    __capture_buffer_size = (int)(__capture_frame_buffer_size * 4);
+    __capture_buffer_size = (int)(__capture_frame_buffer_size * 2);
 
-    __capture_buffer = (volatile uint8_t*) heap_caps_malloc(__capture_buffer_size, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    __capture_buffer = (volatile uint8_t*) heap_caps_malloc(__capture_buffer_size * sizeof(*__capture_buffer), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 
     if (__capture_buffer == NULL) {
         printf("Error al asignar el buffer de captura\n");
@@ -195,8 +184,8 @@ void RealTape_start(void) {
         __global_tstates_base = *(rt_params->global_tstates);
         __realtape_basepos = 0;
 
-        // Se posiciona el índice 2 frames adelante
-        __sample_index = __samples_per_frame * 2;
+        // Se posiciona el índice 1 frame por delante
+        __sample_index = __samples_per_frame;
 
         //printf("RealTape STARTED\n");
     }

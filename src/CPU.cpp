@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,14 +28,13 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #include "cpuESP.h"
 #include "ESPeccy.h"
 #include "MemESP.h"
 #include "Ports.h"
-#include "hardconfig.h"
 #include "Config.h"
 #include "Video.h"
 #include "Z80_JLS/z80.h"
@@ -72,7 +70,7 @@ bool Z80Ops::is2a3;
 void CPU::reset() {
 
     Z80::reset();
-    
+
     CPU::latetiming = Config::AluTiming;
 
     if (Config::arch == "48K") {
@@ -87,7 +85,7 @@ void CPU::reset() {
         ESPeccy::target[0] = MICROS_PER_FRAME_48;
         ESPeccy::target[1] = MICROS_PER_FRAME_48;
         ESPeccy::target[2] = MICROS_PER_FRAME_48_125SPEED;
-        ESPeccy::target[3] = MICROS_PER_FRAME_48_150SPEED;                        
+        ESPeccy::target[3] = MICROS_PER_FRAME_48_150SPEED;
 
     } else if (Config::arch == "TK90X" || Config::arch == "TK95") {
 
@@ -103,7 +101,7 @@ void CPU::reset() {
             ESPeccy::target[0] = MICROS_PER_FRAME_48;
             ESPeccy::target[1] = MICROS_PER_FRAME_48;
             ESPeccy::target[2] = MICROS_PER_FRAME_48_125SPEED;
-            ESPeccy::target[3] = MICROS_PER_FRAME_48_150SPEED;                        
+            ESPeccy::target[3] = MICROS_PER_FRAME_48_150SPEED;
             break;
         case 1:
             Ports::getFloatBusData = &Ports::getFloatBusDataTK;
@@ -111,7 +109,7 @@ void CPU::reset() {
             ESPeccy::target[0] = MICROS_PER_FRAME_TK_50;
             ESPeccy::target[1] = MICROS_PER_FRAME_TK_50;
             ESPeccy::target[2] = MICROS_PER_FRAME_TK_50_125SPEED;
-            ESPeccy::target[3] = MICROS_PER_FRAME_TK_50_150SPEED;                        
+            ESPeccy::target[3] = MICROS_PER_FRAME_TK_50_150SPEED;
             break;
         case 2:
             Ports::getFloatBusData = &Ports::getFloatBusDataTK;
@@ -137,7 +135,7 @@ void CPU::reset() {
         ESPeccy::target[0] = MICROS_PER_FRAME_128;
         ESPeccy::target[1] = MICROS_PER_FRAME_128;
         ESPeccy::target[2] = MICROS_PER_FRAME_128_125SPEED;
-        ESPeccy::target[3] = MICROS_PER_FRAME_128_150SPEED;                        
+        ESPeccy::target[3] = MICROS_PER_FRAME_128_150SPEED;
     } else if (Config::arch == "+2A" || Config::arch=="+3") {
         Ports::getFloatBusData = &Ports::getFloatBusData2A3;
         Z80Ops::is48 = false;
@@ -224,7 +222,7 @@ IRAM_ATTR void CPU::loop() {
     }
 
     while (tstates < statesInFrame) Z80::execute();
-    
+
     VIDEO::EndFrame();
 
     // // FDD calcs
@@ -246,8 +244,8 @@ IRAM_ATTR void CPU::loop() {
 ///////////////////////////////////////////////////////////////////////////////
 
 IRAM_ATTR void CPU::FlushOnHalt() {
-        
-    uint32_t stEnd = statesInFrame - IntEnd;    
+
+    uint32_t stEnd = statesInFrame - IntEnd;
 
     uint8_t page = Z80::getRegPC() >> 14;
     if (MemESP::ramContended[page]) {
@@ -404,7 +402,7 @@ IRAM_ATTR uint16_t Z80Ops::peek16_std(uint16_t address) {
 
         if (MemESP::ramContended[page]) {
             VIDEO::Draw(3, true);
-            VIDEO::Draw(3, true);            
+            VIDEO::Draw(3, true);
         } else
             VIDEO::Draw(6, false);
 
@@ -460,7 +458,7 @@ IRAM_ATTR void Z80Ops::poke16_std(uint16_t address, RegisterPair word) {
     uint8_t page = address >> 14;
     uint16_t page_addr = address & 0x3fff;
 
-    if (page_addr < 0x3fff) {    // Check if address is between two different pages    
+    if (page_addr < 0x3fff) {    // Check if address is between two different pages
 
         if (page == 0) {
             VIDEO::Draw(6, false);
@@ -469,7 +467,7 @@ IRAM_ATTR void Z80Ops::poke16_std(uint16_t address, RegisterPair word) {
 
         if (MemESP::ramContended[page]) {
             VIDEO::Draw(3, true);
-            VIDEO::Draw(3, true);            
+            VIDEO::Draw(3, true);
         } else
             VIDEO::Draw(6, false);
 

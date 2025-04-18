@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,13 +28,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #ifndef AySound_h
 #define AySound_h
 
-#include "hardconfig.h"
 #include "ESPeccy.h"
 #include <inttypes.h>
 #include <stddef.h>
@@ -93,7 +91,7 @@ typedef enum {
 typedef struct
 {
     int tone_a;       /**< R0, R1 */
-    int tone_b;       /**< R2, R3 */    
+    int tone_b;       /**< R2, R3 */
     int tone_c;       /**< R4, R5 */
     int noise;        /**< R6 */
     int R7_tone_a;    /**< R7 bit 0 */
@@ -140,7 +138,7 @@ public:
     static void updEnvType();
     static void updIOPortA();
     static void updIOPortB();
-    
+
     static void reset();
     static uint8_t getRegisterData();
     static void setRegisterData(uint8_t data);
@@ -167,7 +165,7 @@ private:
     static ayemu_chip_t type;               /**< general chip type (\b AYEMU_AY or \b AYEMU_YM) */
     static int ChipFreq;                    /**< chip emulator frequency */
     // static int eq[6];                       /**< volumes for channels.
-                                            // Array contains 6 elements: 
+                                            // Array contains 6 elements:
                                             // A left, A right, B left, B right, C left and C right;
                                             // range -100...100 */
     static ayemu_regdata_t ayregs;          /**< parsed registers data */
@@ -183,7 +181,7 @@ private:
     static int bit_b;                       /**< state of channel B generator */
     static int bit_c;                       /**< state of channel C generator */
     static int bit_n;                       /**< current generator state */
-    static int period_n;                    // Noise period 
+    static int period_n;                    // Noise period
     static int cnt_a;                       /**< back counter of A */
     static int cnt_b;                       /**< back counter of B */
     static int cnt_c;                       /**< back counter of C */

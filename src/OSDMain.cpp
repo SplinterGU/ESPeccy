@@ -1,21 +1,20 @@
 /*
-
-ESPeccy, a Sinclair ZX Spectrum emulator for Espressif ESP32 SoC
-
-This project is a fork of ESPectrum.
-ESPectrum is developed by Víctor Iborra [Eremus] and David Crespo [dcrespo3d]
-https://github.com/EremusOne/ZX-ESPectrum-IDF
-
-Based on previous work:
-- ZX-ESPectrum-Wiimote (2020, 2022) by David Crespo [dcrespo3d]
-  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
-- ZX-ESPectrum by Ramón Martinez and Jorge Fuertes
-  https://github.com/rampa069/ZX-ESPectrum
-- Original project by Pete Todd
-  https://github.com/retrogubbins/paseVGA
+ESPeccy - Sinclair ZX Spectrum emulator for the Espressif ESP32 SoC
 
 Copyright (c) 2024 Juan José Ponteprino [SplinterGU]
 https://github.com/SplinterGU/ESPeccy
+
+This file is part of ESPeccy.
+
+Based on previous work by:
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] (ESPectrum)
+  https://github.com/EremusOne/ZX-ESPectrum-IDF
+- David Crespo [dcrespo3d] (ZX-ESPectrum-Wiimote)
+  https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote
+- Ramón Martinez and Jorge Fuertes (ZX-ESPectrum)
+  https://github.com/rampa069/ZX-ESPectrum
+- Pete Todd (paseVGA)
+  https://github.com/retrogubbins/paseVGA
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +28,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 */
+
 
 #include "OSD.h"
 #include "FileUtils.h"
@@ -168,6 +167,7 @@ void OSD::esp_hard_reset() {
     while (true);
 }
 
+#if USE_FULLCOLOR_BACKGROUND_BACKUP
 void OSD::restoreBackbufferData(bool force) {
     if ( !SaveRectpos ) return;
     if (menu_saverect || force) {
@@ -179,7 +179,10 @@ void OSD::restoreBackbufferData(bool force) {
         uint16_t x = VIDEO::SaveRect[--SaveRectpos] >> 16;
         uint16_t y = VIDEO::SaveRect[SaveRectpos] & 0xffff;
 
-        SaveRectpos -= ( ( ( ( x + w ) >> 2 ) + 1 ) - ( x >> 2 ) ) * h;
+        uint32_t blocks_per_row = ((w + 3) >> 2) + 1;
+        SaveRectpos -= blocks_per_row * h;
+
+        uint32_t start_x = x >> 2;
 
         uint32_t j = SaveRectpos;
 
@@ -187,7 +190,7 @@ void OSD::restoreBackbufferData(bool force) {
 
         for (uint32_t m = y; m < y + h; m++) {
             uint32_t *backbuffer32 = (uint32_t *)(VIDEO::frameBuffer()[m]);
-            for (uint32_t n = x >> 2; n < ( ( x + w ) >> 2 ) + 1; n++) {
+            for (uint32_t n = start_x; n < start_x + blocks_per_row; n++) {
                 backbuffer32[n] = VIDEO::SaveRect[j++];
             }
         }
@@ -202,9 +205,12 @@ void OSD::saveBackbufferData(uint16_t x, uint16_t y, uint16_t w, uint16_t h, boo
     if ( force || menu_saverect ) {
         printf("OSD::saveBackbufferData x=%hd y=%hd w=%hd h=%hd pos=%d 0x%x\n", x, y, w, h, SaveRectpos, SaveRectpos * 4);
 
+        uint32_t blocks_per_row = ((w + 3) >> 2) + 1;
+        uint32_t start_x = x >> 2;
+
         for (uint32_t m = y; m < y + h; m++) {
             uint32_t *backbuffer32 = (uint32_t *)(VIDEO::frameBuffer()[m]);
-            for (uint32_t n = x >> 2; n < ( ( x + w ) >> 2 ) + 1; n++) {
+            for (uint32_t n = start_x; n < start_x + blocks_per_row; n++) {
                 VIDEO::SaveRect[SaveRectpos++] = backbuffer32[n];
             }
         }
@@ -215,6 +221,146 @@ void OSD::saveBackbufferData(uint16_t x, uint16_t y, uint16_t w, uint16_t h, boo
         printf("OSD::saveBackbufferData exit %d 0x%x\n", SaveRectpos, SaveRectpos * 4);
     }
 }
+#else
+
+// this method reduce memory usage, but limit backup to 16 colors
+
+static uint8_t color_lookup[64] = {
+    /*  0 */  0, // BLACK
+    /*  1 */  0,
+    /*  2 */  2, // RED
+    /*  3 */ 10, // BRI_RED
+    /*  4 */  0,
+    /*  5 */  0,
+    /*  6 */  0,
+    /*  7 */  0,
+    /*  8 */  4, // GREEN
+    /*  9 */  0,
+    /* 10 */  6, // YELLOW
+    /* 11 */  0,
+    /* 12 */ 12, // BRI_GREEN
+    /* 13 */  0,
+    /* 14 */  0,
+    /* 15 */ 14, // BRI_YELLOW
+    /* 16 */  0,
+    /* 17 */  0,
+    /* 18 */  0,
+    /* 19 */  0,
+    /* 20 */  0,
+    /* 21 */  0,
+    /* 22 */  0,
+    /* 23 */  0,
+    /* 24 */  0,
+    /* 25 */  0,
+    /* 26 */  0,
+    /* 27 */  0,
+    /* 28 */  0,
+    /* 29 */  0,
+    /* 30 */  0,
+    /* 31 */  0,
+    /* 32 */  1, // BLUE
+    /* 33 */  0,
+    /* 34 */  3, // MAGENTA
+    /* 35 */  0,
+    /* 36 */  0,
+    /* 37 */  0,
+    /* 38 */  0,
+    /* 39 */  0,
+    /* 40 */  5, // CYAN
+    /* 41 */  0,
+    /* 42 */  7, // WHITE
+    /* 43 */  0,
+    /* 44 */  0,
+    /* 45 */  0,
+    /* 46 */  0,
+    /* 47 */  0,
+    /* 48 */  9, // BRI_BLUE
+    /* 49 */  0,
+    /* 50 */  0,
+    /* 51 */ 11, // BRI_MAGENTA
+    /* 52 */  0,
+    /* 53 */  0,
+    /* 54 */  0,
+    /* 55 */  0,
+    /* 56 */  0,
+    /* 57 */  0,
+    /* 58 */  0,
+    /* 59 */  0,
+    /* 60 */ 13, // BRI_CYAN
+    /* 61 */  0,
+    /* 62 */  0,
+    /* 63 */ 15  // BRI_WHITE
+};
+
+static uint8_t color_palette[16] = {
+    BLACK, BLUE, RED, MAGENTA, GREEN, CYAN, YELLOW, WHITE,
+    BRI_BLACK, BRI_BLUE, BRI_RED, BRI_MAGENTA,
+    BRI_GREEN, BRI_CYAN, BRI_YELLOW, BRI_WHITE
+};
+
+void OSD::restoreBackbufferData(bool force) {
+    if (!SaveRectpos) return;
+    if (menu_saverect || force) {
+        printf("--- OSD::restoreBackbufferData %d 0x%x\n", SaveRectpos, SaveRectpos * 4);
+
+        uint16_t w = VIDEO::SaveRect[--SaveRectpos] >> 16;
+        uint16_t h = VIDEO::SaveRect[SaveRectpos] & 0xffff;
+
+        uint16_t x = VIDEO::SaveRect[--SaveRectpos] >> 16;
+        uint16_t y = VIDEO::SaveRect[SaveRectpos] & 0xffff;
+
+        uint32_t blocks_per_row = ((w + 7) >> 3) + 1;
+        SaveRectpos -= blocks_per_row * h;
+
+        uint32_t j = SaveRectpos;
+
+        uint32_t start_x = x & ~7;
+
+        printf("OSD::restoreBackbufferData x=%hd y=%hd w=%hd h=%hd\n", x, y, w, h);
+
+        for (uint32_t m = y; m < y + h; m++) {
+            uint8_t* row = VIDEO::frameBuffer()[m];
+            for (uint32_t n = start_x; n < start_x + (blocks_per_row << 3);) {
+                uint32_t packed = VIDEO::SaveRect[j++];
+                for (int k = 0; k < 8; ++k) {
+                    uint8_t index = (packed >> ((7 - k) << 2)) & 0x0F;
+                    row[n++] = VIDEO::vga.SBits | color_palette[index];
+                }
+            }
+        }
+
+        printf("OSD::restoreBackbufferData exit %d 0x%x j:%d 0x%x\n", SaveRectpos, SaveRectpos * 4, j, j * 4);
+
+        menu_saverect = false;
+    }
+}
+
+void OSD::saveBackbufferData(uint16_t x, uint16_t y, uint16_t w, uint16_t h, bool force) {
+    if (force || menu_saverect) {
+        printf("OSD::saveBackbufferData x=%hd y=%hd w=%hd h=%hd pos=%d 0x%x\n", x, y, w, h, SaveRectpos, SaveRectpos * 4);
+
+        uint32_t blocks_per_row = ((w + 7) >> 3) + 1;
+        uint32_t start_x = x & ~7;
+
+        for (uint32_t m = y; m < y + h; m++) {
+            uint8_t* row = VIDEO::frameBuffer()[m];
+            for (uint32_t n = start_x; n < start_x + (blocks_per_row << 3);) {
+                uint32_t packed = 0;
+                for (int k = 0; k < 8; ++k) {
+                    uint8_t index = color_lookup[row[n++] & 0x3F]; // color = bits 0..5 -> 4-bit index
+                    packed |= (index << ((7 - k) << 2));
+                }
+                VIDEO::SaveRect[SaveRectpos++] = packed;
+            }
+        }
+
+        VIDEO::SaveRect[SaveRectpos++] = (x << 16) | y;
+        VIDEO::SaveRect[SaveRectpos++] = (w << 16) | h;
+
+        printf("OSD::saveBackbufferData exit %d 0x%x\n", SaveRectpos, SaveRectpos * 4);
+    }
+}
+#endif
 
 void OSD::saveBackbufferData(bool force) {
     OSD::saveBackbufferData(x, y, w, h, force);
@@ -694,31 +840,31 @@ void OSD::loadCompressedScreen(FILE *f, uint32_t *buffer) {
 
 unsigned char aux_buff[128];
 
-int check_screen_relocator(unsigned char *buffer) {
+int check_screen_relocator() {
     // Buscar desde la posición 255 hacia atrás
     for (int i = sizeof(aux_buff) - 1; i >= 9; --i) {
         // Seq1: 237,176,201
-        if (buffer[i - 2] == 237 && buffer[i - 1] == 176 && buffer[i] == 201) {
+        if (aux_buff[i - 2] == 237 && aux_buff[i - 1] == 176 && aux_buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq2: 237,176,251,201
-        if (buffer[i - 3] == 237 && buffer[i - 2] == 176 && buffer[i - 1] == 251 && buffer[i] == 201) {
+        if (aux_buff[i - 3] == 237 && aux_buff[i - 2] == 176 && aux_buff[i - 1] == 251 && aux_buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq3: 237,176,195,*,*
-        if (buffer[i - 4] == 237 && buffer[i - 3] == 176 && buffer[i - 2] == 195) {
+        if (aux_buff[i - 4] == 237 && aux_buff[i - 3] == 176 && aux_buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq4: 237,176,251,195,*,*
-        if (buffer[i - 5] == 237 && buffer[i - 4] == 176 && buffer[i - 3] == 251 && buffer[i - 2] == 195) {
+        if (aux_buff[i - 5] == 237 && aux_buff[i - 4] == 176 && aux_buff[i - 3] == 251 && aux_buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq5: 237,176,205,*,*,201
-        if (buffer[i - 5] == 237 && buffer[i - 4] == 176 && buffer[i - 3] == 205 && buffer[i] == 201) {
+        if (aux_buff[i - 5] == 237 && aux_buff[i - 4] == 176 && aux_buff[i - 3] == 205 && aux_buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq6: 237,176,205,*,*,195,*,*
-        if (buffer[i - 7] == 237 && buffer[i - 6] == 176 && buffer[i - 5] == 205 && buffer[i - 2] == 195) {
+        if (aux_buff[i - 7] == 237 && aux_buff[i - 6] == 176 && aux_buff[i - 5] == 205 && aux_buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
     }
@@ -792,7 +938,7 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
                             else if (data_length > 6914) {
                                 fseek(file, pos + 4 + 2, SEEK_SET);
                                 fread(aux_buff, 1, sizeof(aux_buff), file);
-                                seek_pos_add = check_screen_relocator(aux_buff) + 2;
+                                seek_pos_add = check_screen_relocator() + 2;
                             }
 
                             off_t off = seek_pos_add;
@@ -835,7 +981,7 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
                             else if (data_length > 6914) {
                                 fseek(file, pos + 4 + 2, SEEK_SET);
                                 fread(aux_buff, 1, sizeof(aux_buff), file);
-                                seek_pos_add = check_screen_relocator(aux_buff) + 2;
+                                seek_pos_add = check_screen_relocator() + 2;
                             }
 
                             off_t off = seek_pos_add;
@@ -1052,7 +1198,7 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
                     if (block_length > 6912) {
                         fseek(file, pos + 1, SEEK_SET);
                         fread(aux_buff, 1, sizeof(aux_buff), file);
-                        seek_pos_add = check_screen_relocator(aux_buff);
+                        seek_pos_add = check_screen_relocator();
                     }
 
                     off_t off = seek_pos_add;
@@ -2184,6 +2330,7 @@ void OSD::LoadState() {
 
     menu_level = 0;
     menu_curopt = 1;
+    std::string().swap(menu); // Reset Menu for save free usage
 
     if ( FileUtils::isSDReady() ) {
         // State Load
@@ -2217,6 +2364,7 @@ void OSD::SaveState() {
 
     menu_level = 0;
     menu_curopt = 1;
+    std::string().swap(menu); // Reset Menu for save free usage
 
     if ( FileUtils::isSDReady() ) {
         string menusave = MENU_STATE_SAVE[Config::lang] + getStringStateCatalog();
@@ -2241,6 +2389,7 @@ void OSD::FileBrowser() {
     flushBackbufferData();
 
     menu_level = 0;
+    std::string().swap(menu); // Reset Menu for save free usage
 
     bool continue_while = true;
     while( continue_while ) {
@@ -4645,6 +4794,8 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 void OSD::HWInfo() {
 
     click();
+
+    ESPeccy::showMemInfo("HWInfo");
 
     // Draw Hardware and memory info
     drawOSD(true);
