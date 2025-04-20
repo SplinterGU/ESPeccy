@@ -109,45 +109,40 @@ There's also no need to sort files using external utilities: the emulator create
 ## PS/2 Keyboard functions
 
 - F1 Main menu
-- F2 Load snapshot (SNA, Z80, SP, P)
-- SHIFT + F2 Save snapshot (SNA, Z80, SP, P)
-- F3 Load custom snapshot
-- F4 Save custom snapshot
-- F5 Select TAP file
+- F2 Load state
+- F5 File browser
 - F6 Play/Stop tape
-- F7 Tape Browser
-- SHIFT + F3 Load cartridge
 - F8 CPU / Tape load stats ( [CPU] microsecs per CPU cycle, [IDL] idle microsecs, [FPS] Frames per second, [FND] FPS w/no delay applied )
 - F9 Volume down
 - F10 Volume up
 - F11 Hard reset
 - F12 Reset ESP32
+- PrntScr SCR screen capture
+- ScrollLock Switch "Cursor keys as joy" setting
+- Pause Pause
+- SHIFT + F1 Hardware info
+- SHIFT + F2 Save state
+- SHIFT + F5 Tape Browser
+- SHIFT + F6 Eject tape
+- SHIFT + F9 Cheats (POK)
+- SHIFT + PrintScr BMP screen capture (Folder /.c at SDCard)
 - CTRL + F1 Show current machine keyboard layout
 - CTRL + F2 Cycle turbo modes -> 100% speed (blue OSD), 125% speed (red OSD), 150% speed (magenta OSD), and MAX speed (black speed and no sound)
 - CTRL + F5..F8 Screen centering in CRT 15K/50hz mode
-- SHIFT + F9 Cheats (POK)
 - CTRL + F9 Input poke
 - CTRL + F10 NMI
 - CTRL + F11 Reset to TR-DOS
-- SHIFT + F1 Hardware info
-- SHIFT + F6 Eject tape
-- Pause Pause
-- ScrollLock Switch "Cursor keys as joy" setting
-- PrntScr BMP screen capture (Folder /.c at SDCard)
 
 ## ZX Keyboard functions
 
 Press CAPS SHIFT + SYMBOL SHIFT and:
 
 - 1 Main menu
-- 2 Load (SNA,Z80, SP, P)
-- S Save snapshot (SNA, Z80, SP, P)
-- 3 Load custom snapshot
-- 4 Save custom snapshot
-- 5 Select TAP file
-- 6 Play/Stop tape
-- 7 Tape browser
-- Y Load cartridge
+- 2 Load state
+- 3 Save state
+- 5 File browser
+- 6 Tape browser
+- 7 Play/Stop tape
 - 8 CPU / Tape load stats ( [CPU] microsecs per CPU cycle, [IDL] idle microsecs, [FPS] Frames per second, [FND] FPS w/no delay applied )
 - 9 Volume down
 - 0 Volume up
@@ -162,13 +157,14 @@ Press CAPS SHIFT + SYMBOL SHIFT and:
 - P Pause
 - K Show current machine keyboard layout
 - Z,X,C,V Screen centering in CRT 15K mode
+- G SCR screen capture
 - B BMP screen capture (Folder /.c at SDCard)
 - N NMI
-- J Enable tape load
+- J Enable real tape load
 
 Press SYMBOL SHIFT and:
 
-- S Stop tape load
+- S Stop real tape load
 
 ## How to flash custom ROMs
 
