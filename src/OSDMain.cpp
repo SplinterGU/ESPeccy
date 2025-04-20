@@ -122,6 +122,8 @@ unsigned int OSD::SaveRectpos = 0;
 unsigned short OSD::scrW = 320;
 unsigned short OSD::scrH = 240;
 
+string OSD::lastPreviewFile = "";
+
 char OSD::stats_lin1[25]; // "CPU: 00000 / IDL: 00000 ";
 char OSD::stats_lin2[25]; // "FPS:000.00 / FND:000.00 ";
 
@@ -559,10 +561,22 @@ string OSD::rowReplace(string& menu, unsigned short row, const string& newRowCon
 
 // Paleta de colores del ZX Spectrum
 static const uint8_t ZX_PALETTE[16][3] = {
-    {0, 0, 0}, {0, 0, 128}, {128, 0, 0}, {128, 0, 128},
-    {0, 128, 0}, {0, 128, 128}, {128, 128, 0}, {128, 128, 128},
-    {0, 0, 0}, {0, 0, 255}, {255, 0, 0}, {255, 0, 255},
-    {0, 255, 0}, {0, 255, 255}, {255, 255, 0}, {255, 255, 255}
+    {  0,   0,   0},
+    {  0,   0, 128},
+    {128,   0,   0},
+    {128,   0, 128},
+    {  0, 128,   0},
+    {  0, 128, 128},
+    {128, 128,   0},
+    {128, 128, 128},
+    {  0,   0,   0},
+    {  0,   0, 192},
+    {192,   0,   0},
+    {192,   0, 192},
+    {  0, 192,   0},
+    {  0, 192, 192},
+    {192, 192,   0},
+    {192, 192, 192}
 };
 
 // Función común para construir el path en la subcarpeta SCRSHOT
@@ -709,7 +723,29 @@ void OSD::renderScreenNormal(int x0, int y0, const uint32_t *bitmap, bool monocr
 }
 #endif
 
+#define USE_BAYER_2x2
+#define __USE_AA_FOR_RENDER_PREVIEW
+
 void OSD::renderScreenScaled(int x0, int y0, const uint32_t *bitmap, int divisor, bool monocrome) {
+
+    #ifndef __USE_AA_FOR_RENDER_PREVIEW
+    #ifdef USE_BAYER_2x2
+    // Matriz de Bayer 2x2 para dithering (valores normalizados en 0..3)
+    const uint8_t bayer2x2[2][2] = {
+        {0, 2},
+        {3, 1}
+    };
+    #else
+    // Matriz de Bayer 4x4 para dithering (valores normalizados en 0..15)
+    const uint8_t bayer4x4[4][4] = {
+        {  0,  8,  2, 10 },
+        { 12,  4, 14,  6 },
+        {  3, 11,  1,  9 },
+        { 15,  7, 13,  5 }
+    };
+    #endif
+    #endif
+
     if (divisor <= 0) divisor = 1; // Evitar divisores inválidos
     int scaled_width = SCREEN_WIDTH / divisor;
     int scaled_height = SCREEN_HEIGHT / divisor;
@@ -727,13 +763,13 @@ void OSD::renderScreenScaled(int x0, int y0, const uint32_t *bitmap, int divisor
                     int src_y = y * divisor + j;
 
                     // Calcular offset en pantalla original
-                    int char_col = src_x / 8;
-                    int bit = 7 - (src_x % 8);
+                    int char_col = src_x >> 3;
+                    int bit = 7 - (src_x & 0x07);
 
                     // Leer atributos
                     uint8_t attr = (monocrome)
                                    ? 0x38
-                                   : ((attributes[(src_y / 8) * 8 + char_col / 4] >> ((char_col % 4) * 8)) & 0xFF);
+                                   : ((attributes[((src_y >> 3) << 3) + (char_col >> 2)] >> ((char_col & 0x03) << 3)) & 0xFF);
 
                     // Obtener colores según el atributo
                     int ink = attr & 0x07;          // INK (color del pixel encendido)
@@ -745,8 +781,8 @@ void OSD::renderScreenScaled(int x0, int y0, const uint32_t *bitmap, int divisor
                                   (((src_y & 0x38) >> 3) << 5);
 
                     // Leer palabra alineada de 32 bits
-                    uint32_t word = bitmap[(address / 4) + char_col / 4];
-                    uint8_t databyte = (word >> ((char_col % 4) * 8)) & 0xFF;
+                    uint32_t word = bitmap[(address >> 2) + (char_col >> 2)];
+                    uint8_t databyte = (word >> (((char_col & 0x03) << 3))) & 0xFF;
 
                     // Determinar el color del pixel actual
                     uint8_t color_index = (databyte & (1 << bit))
@@ -762,10 +798,51 @@ void OSD::renderScreenScaled(int x0, int y0, const uint32_t *bitmap, int divisor
                 }
             }
 
-            // Promediar colores del bloque y guardar en el buffer reducido
-            uint8_t color =  ((r / count) >> 6) |
-                            (((g / count) >> 6) << 2) |
-                            (((b / count) >> 6) << 4);
+            // Promedio de bloque
+            r /= count;
+            g /= count;
+            b /= count;
+
+            // Escalamos a 2-bit (0-3) por canal
+            r >>= 6;
+            g >>= 6;
+            b >>= 6;
+
+    #ifndef __USE_AA_FOR_RENDER_PREVIEW
+            // Umbral de dithering
+            #ifdef USE_BAYER_2x2
+            uint8_t threshold = bayer2x2[y & 0x01][x & 0x01];
+            #else
+            uint8_t threshold = bayer4x4[y & 0x03][x & 0x03];
+            #endif
+
+            // Aplicamos dithering por canal (simple umbral)
+            r = (r > threshold) ? r & 0x03 : (r & 0x03) - 1;
+            g = (g > threshold) ? g & 0x03 : (g & 0x03) - 1;
+            b = (b > threshold) ? b & 0x03 : (b & 0x03) - 1;
+
+            // Clamp por si quedó negativo
+            if (r < 0) r = 0;
+            if (g < 0) g = 0;
+            if (b < 0) b = 0;
+
+        #ifdef __CONVERT_TO_ZX_PALETTE
+            // Convertir a paleta de colores zx spectrum
+            int total = 0, c = 0;
+
+            if (r) total += r, c++;
+            if (g) total += g, c++;
+            if (b) total += b, c++;
+
+            uint8_t val = c && (total / c > 0b10) ? 0b11 : 0b10;
+
+            r = r ? val : 0b00;
+            g = g ? val : 0b00;
+            b = b ? val : 0b00;
+        #endif
+    #endif
+
+            uint8_t color = (r) | (g << 2) | (b << 4);
 
             VIDEO::dotFast(x0 + x, y0 + y, color);
         }
@@ -1408,8 +1485,7 @@ void OSD::drawCompressedBMP(int x, int y, const uint8_t * bmp) {
 void OSD::drawOSD(bool bottom_info) {
     unsigned short x = scrAlignCenterX(OSD_W);
     unsigned short y = scrAlignCenterY(OSD_H);
-    VIDEO::fillRect(x, y, OSD_W, OSD_H, zxColor(1, 0));
-    VIDEO::rect(x, y, OSD_W, OSD_H, zxColor(0, 0));
+    VIDEO::fillRect(x, y, OSD_W, OSD_H, zxColor(0, 0));
     VIDEO::rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(7, 0));
     VIDEO::setTextColor(zxColor(0, 0), zxColor(5, 1));
     VIDEO::setFont(SystemFont);
@@ -2055,7 +2131,7 @@ void OSD::pref_rom_menu() {
 
 Cheat OSD::currentCheat = {};
 
-void OSD::LoadCheatFile(string snapfile) {
+void OSD::LoadCheatFile(const string& snapfile) {
     if ( FileUtils::isSDReady() ) {
         if ( !CheatMngr::loadCheatFile( getSnapshotCheatPath( snapfile ) ) ) {
             CheatMngr::closeCheatFile();
@@ -2348,6 +2424,7 @@ void OSD::LoadState() {
 
         //uint8_t opt2 = menuRun(menuload, statusbar, menuProcessSnapshot);
         uint8_t opt2 = menuSlotsWithPreview(menuload, statusbar, menuProcessSnapshot);
+        std::string().swap(menuload); // Reset menuload for save free usage
         if (opt2 && FileUtils::isSDReady()) {
             if ( stateLoad(opt2) ) {
                 // Clear Cheat data
@@ -4693,7 +4770,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 
                     drawCompressedBMP(pos_x, pos_y, ESPeccy_logo);
 
-                    VIDEO::setTextColor(zxColor(7, 0), zxColor(1, 0));
+                    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
 
                     pos_x = osdInsideX() + OSD_FONT_W;
                     pos_y = osdInsideY() + 50 + 2;
@@ -4701,8 +4778,8 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                     int osdRow = 0; int osdCol = 0;
                     int msgIndex = 0; int msgChar = 0;
                     int msgDelay = 0; int cursorBlink = 16; int nextChar = 0;
-                    uint16_t cursorCol = zxColor(7,1);
-                    uint16_t cursorCol2 = zxColor(1,0);
+                    uint16_t cursorCol = zxColor(7,0);
+                    uint16_t cursorCol2 = zxColor(0,0);
 
                     while (1) {
                         if (msgDelay == 0) {
@@ -4720,7 +4797,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     VIDEO::drawChar(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), nextChar);
                                 }
                             } else {
-                                VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W, OSD_FONT_H, zxColor(1, 0) );
+                                VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W, OSD_FONT_H, zxColor(0, 0) );
                             }
 
                             osdCol++;
@@ -4732,7 +4809,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     osdCol--;
                                     msgDelay = 192;
                                 } else {
-                                    VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W,OSD_FONT_H, zxColor(1, 0) );
+                                    VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W,OSD_FONT_H, zxColor(0, 0) );
                                     osdCol = 0;
                                     msgChar++;
                                     osdRow++;
@@ -4741,7 +4818,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                         } else {
                             msgDelay--;
                             if (msgDelay==0) {
-                                VIDEO::fillRect(osdInsideX(), osdInsideY() + 50 + 2, OSD_W - OSD_FONT_W - 2, ( osdRow + 1 ) * OSD_FONT_H, zxColor(1, 0)); // Clean page
+                                VIDEO::fillRect(osdInsideX(), osdInsideY() + 50 + 2, OSD_W - OSD_FONT_W - 2, ( osdRow + 1 ) * OSD_FONT_H, zxColor(0, 0)); // Clean page
 
                                 osdCol = 0;
                                 osdRow  = 0;
@@ -4801,7 +4878,7 @@ void OSD::HWInfo() {
     drawOSD(true);
     osdAt(2, 0);
 
-    VIDEO::setTextColor(zxColor(7, 0), zxColor(1, 0));
+    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
 
     // Get chip information
     esp_chip_info_t chip_info;
@@ -5328,7 +5405,7 @@ esp_err_t OSD::updateFirmware(FILE *firmware) {
 
 }
 
-void OSD::progressDialog(string title, string msg, int percent, int action, bool noprogressbar ) {
+void OSD::progressDialog(const string& title, const string& msg, int percent, int action, bool noprogressbar) {
 
     static unsigned short h;
     static unsigned short y;
@@ -5345,10 +5422,13 @@ void OSD::progressDialog(string title, string msg, int percent, int action, bool
         h = (OSD_FONT_H * (noprogressbar ? 4 : 6)) + 2;
         y = scrAlignCenterY(h);
 
-        if (msg.length() > (scrW / 6) - 4) msg = msg.substr(0,(scrW / 6) - 4);
-        if (title.length() > (scrW / 6) - 4) title = title.substr(0,(scrW / 6) - 4);
+        int mw = msg.length();
+        int tw = title.length();
 
-        w = (((msg.length() > title.length() + 6 ? msg.length(): title.length() + 6) + 2) * OSD_FONT_W) + 2;
+        if (mw > (scrW / 6) - 4) mw = (scrW / 6) - 4;
+        if (tw > (scrW / 6) - 4) tw = (scrW / 6) - 4;
+
+        w = ((( mw > tw + 6 ? mw : tw + 6 ) + 2 ) * OSD_FONT_W) + 2;
         x = scrAlignCenterX(w);
 
         // Save backbuffer data
@@ -5368,12 +5448,12 @@ void OSD::progressDialog(string title, string msg, int percent, int action, bool
         // Title
         VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
         VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
-        VIDEO::print(title.c_str());
+        for (int i=0; i < tw; i++) VIDEO::print((const char)title[i]);
 
         // Msg
         VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
-        VIDEO::setCursor(scrAlignCenterX(msg.length() * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
-        VIDEO::print(msg.c_str());
+        VIDEO::setCursor(scrAlignCenterX(mw * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
+        for (int i=0; i < mw; i++) VIDEO::print((const char)msg[i]);
 
         // Rainbow
         unsigned short rb_y = y + 8;
@@ -5417,16 +5497,19 @@ void OSD::progressDialog(string title, string msg, int percent, int action, bool
     }
 }
 
-uint8_t OSD::msgDialog(string title, string msg) {
+uint8_t OSD::msgDialog(const string& title, const string& msg) {
 
     const unsigned short h = (OSD_FONT_H * 6) + 2;
     const unsigned short y = scrAlignCenterY(h);
     uint8_t res = DLG_NO;
 
-    if (msg.length() > (scrW / 6) - 4) msg = msg.substr(0,(scrW / 6) - 4);
-    if (title.length() > (scrW / 6) - 4) title = title.substr(0,(scrW / 6) - 4);
+    int mw = msg.length();
+    int tw = title.length();
 
-    const unsigned short w = (((msg.length() > title.length() + 6 ? msg.length() : title.length() + 6) + 2) * OSD_FONT_W) + 2;
+    if (mw > (scrW / 6) - 4) mw = (scrW / 6) - 4;
+    if (tw > (scrW / 6) - 4) tw = (scrW / 6) - 4;
+
+    const unsigned short w = ((( mw > tw + 6 ? mw : tw + 6 ) + 2 ) * OSD_FONT_W) + 2;
     const unsigned short x = scrAlignCenterX(w);
 
     // Save backbuffer data
@@ -5446,12 +5529,12 @@ uint8_t OSD::msgDialog(string title, string msg) {
     // Title
     VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
     VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
-    VIDEO::print(title.c_str());
+    for (int i=0; i < tw; i++) VIDEO::print((const char)title[i]);
 
     // Msg
     VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
-    VIDEO::setCursor(scrAlignCenterX(msg.length() * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
-    VIDEO::print(msg.c_str());
+    VIDEO::setCursor(scrAlignCenterX(mw * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
+    for (int i=0; i < mw; i++) VIDEO::print((const char)msg[i]);
 
     // Yes
     VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));

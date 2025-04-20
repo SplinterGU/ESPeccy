@@ -350,6 +350,7 @@ int OSD::menuProcessSnapshot(fabgl::VirtualKeyItem Menukey) {
                 menuRedraw();
             }
         }
+        lastPreviewFile = "";
         return 0;
     } else if (Menukey.vk == fabgl::VK_RETURN || ((Menukey.vk == fabgl::VK_RIGHT) && (Config::osd_LRNav == 1)) || Menukey.vk == fabgl::VK_JOY1B || Menukey.vk == fabgl::VK_JOY1C || Menukey.vk == fabgl::VK_JOY2B || Menukey.vk == fabgl::VK_JOY2C) {
         int idx = menuRealRowFor( focus );
@@ -382,7 +383,7 @@ int OSD::menuProcessSnapshotSave(fabgl::VirtualKeyItem Menukey) {
 }
 
 // Run a new menu
-short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuRun(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -598,7 +599,7 @@ short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb
 }
 
 // Run a new menu
-unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols) {
+unsigned short OSD::simpleMenuRun(const string& new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols) {
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -737,7 +738,7 @@ unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy,
 }
 
 // Run a new menu slot with preview (dirty)
-short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
 
     if (menu_level != 0) return 0; // only menu_level 0
 
@@ -797,7 +798,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
     if (statusbar != "") statusbarDraw(statusbar);
 
     int idle = 0;
-    string lastFile = "";
+    lastPreviewFile = "";
 
     while (1) {
 
@@ -915,9 +916,9 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
 
                 string _fname = FileUtils::MountPoint + DISK_PSNA_DIR + "/" + persistfname;
 
-                if (lastFile != _fname ) {
+                if (lastPreviewFile != _fname ) {
                     int retPreview;
-                    lastFile = _fname;
+                    lastPreviewFile = _fname;
                     if (_fname[0] != ' ') {
                         rtrim(_fname);
                         retPreview = OSD::renderScreen(x + w - 128 - 1, y + 1 + OSD_FONT_H, _fname.c_str(), 0);
@@ -1102,7 +1103,7 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
     VIDEO::print(" ");
 
     if ((!is_menu || virtual_row_num == 0) && line.substr(0,7) == "ESPeccy") {
-        VIDEO::setTextColor(zxColor(16,0), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(2,0), zxColor(0, 0));
         VIDEO::print("ESP");
         VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
         VIDEO::print(("eccy " + Config::arch).c_str());
@@ -1452,7 +1453,7 @@ size_t OSD::colsCountCheat(void *data) {
     return 40;
 }
 
-void OSD::menuRedrawCheat(const string title, bool force) {
+void OSD::menuRedrawCheat(const string& title, bool force) {
     if ( force || focus != last_focus || begin_row != last_begin_row ) {
         // Read bunch of rows
         menu = title + "\n";
@@ -1545,7 +1546,7 @@ size_t OSD::colsCountPoke(void *data) {
     return 13;
 }
 
-void OSD::menuRedrawPoke(const string title, bool force) {
+void OSD::menuRedrawPoke(const string& title, bool force) {
     if ( force || focus != last_focus || begin_row != last_begin_row ) {
         // Read bunch of rows
         menu = title + "\n";
@@ -1602,7 +1603,7 @@ int OSD::menuProcessPokeInput(fabgl::VirtualKeyItem Menukey) {
 
 
 // Run a new menu
-short OSD::menuGenericRun(const string title, const string& statusbar, void *user_data, size_t (*rowCount)(void *), size_t (*colsCount)(void *), void (*menuRedraw)(const string, bool), int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuGenericRun(const string& title, const string& statusbar, void *user_data, size_t (*rowCount)(void *), size_t (*colsCount)(void *), void (*menuRedraw)(const string&, bool), int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
 
     fabgl::VirtualKeyItem Menukey;
 

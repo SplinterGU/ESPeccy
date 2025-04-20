@@ -54,7 +54,7 @@ using namespace std;
 #include "Z80_JLS/z80.h"
 #include "Tape.h"
 
-FILE *dirfile;
+FILE *dirfile = NULL;
 unsigned int OSD::elements;
 unsigned int OSD::fdSearchElements;
 unsigned int OSD::ndirs;
@@ -93,7 +93,7 @@ void OSD::fd_StatusbarDraw(const string& statusbar, bool fdMode) {
 }
 
 // Redraw inside rows
-void OSD::fd_Redraw(string title, string fdir, uint8_t ftype) {
+void OSD::fd_Redraw(const string& title, const string& fdir, uint8_t ftype) {
 
     if ((FileUtils::fileTypes[ftype].focus != last_focus) || (FileUtils::fileTypes[ftype].begin_row != last_begin_row)) {
 
@@ -320,16 +320,17 @@ string OSD::getStatusBar(uint8_t ftype, bool thumb_funcs_enabled) {
 }
 
 // Run a new file menu
-string OSD::fileDialog(string &fdir, string title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows) {
+string OSD::fileDialog(string &fdir, const string& title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows) {
 
     bool scr_loaded = false;
 
     int screen_number = 0;
     off_t screen_offset = 0;
 
-    string lastFile = "";
     int last_screen_number = 0;
     off_t last_screen_offset = 0;
+
+    lastPreviewFile = "";
 
     // struct stat stat_buf;
     long dirfilesize;
@@ -405,6 +406,9 @@ string OSD::fileDialog(string &fdir, string title, uint8_t ftype, uint8_t mfcols
     uint8_t ftype_focus = ftype;
 
 reset:
+
+    if (dirfile) fclose(dirfile);
+    dirfile = NULL;
 
     // Draw blank rows
     uint8_t row = 2;
@@ -744,7 +748,7 @@ reset:
 
                         }
 
-                    } else if (Menukey.vk == fabgl::VK_F2 && ftype != DISK_UPGFILE && ftype != DISK_ROMFILE ) {
+                    } else if (Menukey.vk == fabgl::VK_F2 && ftype != DISK_UPGFILE && ftype != DISK_ROMFILE) {
 
                         bool save_withrom = Menukey.SHIFT;
 
@@ -833,7 +837,7 @@ reset:
                         CaptureToBmp();
                     } else if (Menukey.vk == fabgl::VK_PRINTSCREEN) {
                         if (thumb_funcs_enabled && scr_loaded && !is_scr) {
-                            OSD::saveSCR((FileUtils::MountPoint+fdir+lastFile).c_str(), (uint32_t *) VIDEO::SaveRect);
+                            OSD::saveSCR((FileUtils::MountPoint+fdir+lastPreviewFile).c_str(), (uint32_t *) VIDEO::SaveRect);
                             screen_offset = 0;
                             screen_number = 0;
                             VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
@@ -859,6 +863,7 @@ reset:
                                     menu_saverect = true;
                                     goto reset;
                                 }
+                                lastPreviewFile = ""; // force redraw thumb
                             } else {
                                 OSD::osdCenteredMsg(OSD_READONLY_FILE_WARN[Config::lang], LEVEL_WARN);
                             }
@@ -962,9 +967,6 @@ reset:
                             || Menukey.vk == fabgl::VK_JOY2C
                             || (Menukey.vk == fabgl::VK_RIGHT && Config::osd_LRNav == 1 && trim_copy(rowGet(menu,FileUtils::fileTypes[ftype].focus)) != "..")) {
 
-                        fclose(dirfile);
-                        dirfile = NULL;
-
                         if (current_is_dir) {
                             if (currentfile[0] == ASCII_SPC) {
                                 fdir.pop_back();
@@ -976,6 +978,9 @@ reset:
                             break;
 
                         } else {
+                            fclose(dirfile);
+                            dirfile = NULL;
+
                             OSD::restoreBackbufferData();
                             click();
                             std::string().swap(menu); // Reset Menu for save free usage
@@ -999,15 +1004,15 @@ reset:
             } else {
                 fd_PrintRow(FileUtils::fileTypes[ftype].focus, IS_FOCUSED);
                 if (thumb_enabled && (idle > 20 || Config::instantPreview)) {
-                    if (lastFile != currentfile) {
+                    if (lastPreviewFile != currentfile) {
                         screen_number = 0;
                         screen_offset = 0;
                         scr_loaded = false;
                     }
 
-                    if (lastFile != currentfile || screen_number != last_screen_number || screen_offset != last_screen_offset) {
+                    if (lastPreviewFile != currentfile || screen_number != last_screen_number || screen_offset != last_screen_offset) {
                         int retPreview;
-                        lastFile = currentfile;
+                        lastPreviewFile = currentfile;
                         last_screen_number = screen_number;
                         last_screen_offset = screen_offset;
                         if (!current_is_dir) {
@@ -1123,6 +1128,9 @@ reset:
         }
 
     }
+
+    if (dirfile) fclose(dirfile);
+    dirfile = NULL;
 
     std::string().swap(menu); // Reset Menu for save free usage
     return "";

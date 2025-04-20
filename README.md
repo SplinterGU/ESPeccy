@@ -6,61 +6,66 @@ Currently, it can be used with Lilygo's TTGo VGA32 board, Antonio Villena's ESPe
 
 To use it, simply connect a VGA monitor or CRT TV (a special VGA-RGB cable is required), a PS/2 keyboard, prepare an SD card as needed, and power it via microUSB.
 
-This project is a fork of the great work of Víctor Iborra [Eremus] on the [ESPectrum](https://github.com/EremusOne/ESPectrum) project, which is based on the excellent work of David Crespo on [ZX-ESPectrum-Wiimote](https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote). The latter is a fork of the [ZX-ESPectrum](https://github.com/rampa069/ZX-ESPectrum) project by Rampa and Queru, inspired by Pete Todd's [PaseVGA](https://github.com/retrogubbins/paseVGA) project.
+This project is maintained and developed by Juan José Ponteprino [SplinterGU].
 
-This fork is maintained and developed by Juan José Ponteprino, known as [SplinterGU].
+## Features Overview
 
-## Features
+### **Machine Emulation:**
+- **ZX Spectrum 48K, 128K, and Pentagon 128K** 100% cycle accurate emulation (no PSRAM needed).
+- **Microdigital TK90X and TK95 models** (w/Microdigital ULA at 50 and 60hz) emulation.
+- **Spectrum +2A model** support.
 
-- ZX Spectrum 48K, 128K, and Pentagon 128K 100% cycle accurate emulation (no PSRAM needed).
-- Microdigital TK90X and TK95 models (w/Microdigital ULA at 50 and 60hz) emulation.
-- State of the art Z80 emulation (Authored by [José Luis Sánchez](https://github.com/jsanchezv/z80cpp)).
-- Selectable Sinclair 48K, Sinclair 128K, and Amstrad +2 English and Spanish ROMs.
-- Selectable TK90X v1, v2, and v3 (Rodolfo Guerra) ROMs.
-- Possibility of using one 48K, one 128K, and one TK90X custom ROM with easy flashing procedure from SD card.
-- ZX81+ IF2 ROM by courtesy of Paul Farrow with .P file loading from SD card.
-- 6 bpp VGA output in three modes: Standard VGA (60 and 70hz), VGA with every machine's real vertical frequency, and CRT 15khz with real vert. freq. also.
-- VGA fake scanlines effect.
-- Support for two aspect ratios: 16:9 or 4:3 monitors (using 360x200 or 320x240 modes).
-- Complete overscan supported in CRT 15Khz mode (at 352x272 resolution for 50hz machines and 352x224 for 60hz ones).
-- Multicolor attribute effects emulated (Bifrost*2, Nirvana, and Nirvana+ engines).
-- Border effects emulated (Aquaplane, The Sentinel, Overscan demo).
-- Floating bus effect emulated (Arkanoid, Sidewize).
-- Snow effect accurate emulation (as [described](https://spectrumcomputing.co.uk/forums/viewtopic.php?t=8240) by Weiv and MartianGirl).
-- Contended memory and contended I/O emulation.
-- AY-3-8912 sound emulation.
-- Beeper & Mic emulation (Cobra’s Arc).
-- Dual PS/2 keyboard support: you can connect two devices using PS/2 protocol at the same time.
-- PS/2 Joystick emulation (Cursor, Sinclair, Kempston, and Fuller).
-- Two real joysticks support (Up to 8 button joysticks) using [ESPjoy adapter](https://antoniovillena.es/store/product/espjoy-for-espectrum/) or DIY DB9 to PS/2 converter.
-- Emulation of Betadisk interface with reset to tr-dos option, four drives, and TRD (read and write) and SCL (read only) support.
-- Realtime (with OSD) TZX and TAP file loading.
-- Flashload of TAP files.
-- Rodolfo Guerra's ROMs fast load routines support with on-the-fly standard speed blocks translation.
-- Virtual tape system with support for the SAVE command and block renaming, deleting, and moving.
-- SNA, Z80, and SP snapshot saving and loading.
-- State saving and loading.
-- Rename and delete states.
-- Complete file navigation system with auto-indexing, folder support, and search functions.
-- Complete OSD menu in three languages: English, Spanish, and Portuguese.
-- BMP screen capture to SD Card (thanks David Crespo 😉).
-- Menu navigation with cursor keys.
-- Fullerbox sound in ZX-Spectrum.
-- Zon-X sound emulation in ZX81.
-- BIOS support with boot-time activation:
+### **Component and Effect Emulation:**
+- **State of the art Z80 emulation** (Authored by [José Luis Sánchez](https://github.com/jsanchezv/z80cpp)).
+- **Contended memory and contended I/O** emulation.
+- **AY-3-8912 sound emulation**.
+- **Beeper & Mic emulation** (Cobra’s Arc).
+- **Dual PS/2 keyboard support**: Connect two devices using PS/2 protocol simultaneously.
+- **ZXUnoPS2 (.ZXPURE) support** (selectable from BIOS).
+- **PS/2 Joystick emulation** (Cursor, Sinclair, Kempston, and Fuller).
+- **Two real joysticks support** (Up to 8 button joysticks) using [ESPjoy adapter](https://antoniovillena.es/store/product/espjoy-for-espectrum/) or DIY DB9 to PS/2 converter.
+- **Kempston mouse support** with configurable sample rate, DPI, and scaling.
+- **Covox sound support**.
+- **Fullerbox sound in ZX-Spectrum**.
+- **Zon-X sound emulation in ZX81**.
+- **Snow effect accurate emulation** (as [described](https://spectrumcomputing.co.uk/forums/viewtopic.php?t=8240) by Weiv and MartianGirl).
+- **Floating bus effect emulated** (Arkanoid, Sidewize).
+- **Multicolor attribute effects emulated** (Bifrost*2, Nirvana, and Nirvana+ engines).
+- **Border effects emulated** (Aquaplane, The Sentinel, Overscan demo).
+- **Issue 2 emulation**.
+
+### **ROM and File Support:**
+- **Selectable Sinclair 48K, Sinclair 128K, and Amstrad +2 English and Spanish ROMs**.
+- **Selectable TK90X v1, v2, and v3** (Rodolfo Guerra) ROMs.
+- **Possibility of using one 48K, one 128K, and one TK90X custom ROM** with easy flashing procedure from SD card.
+- **ZX81+ IF2 ROM** by courtesy of Paul Farrow with .P file loading from SD card.
+- **Rodolfo Guerra's ROMs fast load routines support** with on-the-fly standard speed blocks translation.
+- **Real tape support (SAVE/LOAD)**.
+- **Realtime (with OSD) TZX and TAP file loading**.
+- **Flashload of TAP files**.
+- **SCR file support** and screen autodetection in tape/snapshot/ROM files.
+- **SNA, Z80, and SP snapshot saving and loading**.
+- **Save, load, rename, and delete game states with screen preview**.
+- **Virtual tape system** with support for the SAVE command and block renaming, deleting, and moving.
+- **BMP screen capture to SD Card** (thanks David Crespo 😉).
+
+### **Graphics Output and Modes:**
+- **6 bpp VGA output in three modes**: Standard VGA (60 and 70hz), VGA with every machine's real vertical frequency, and CRT 15khz with real vertical frequency.
+- **VGA fake scanlines effect**.
+- **Support for two aspect ratios**: 16:9 or 4:3 monitors (using 360x200 or 320x240 modes).
+- **Complete overscan supported in CRT 15Khz mode** (at 352x272 resolution for 50hz machines and 352x224 for 60hz ones).
+
+### **Menu and Configuration System:**
+- **Complete OSD menu** in three languages: English, Spanish, and Portuguese.
+- **Menu navigation with cursor keys**.
+- **Configuration backup/restore feature to SD card**.
+- **BIOS support with boot-time activation**:
     - PS2 keyboard: Repeatedly press and release the F2 key (or 2 key) for VGA mode, or the F3 key (or 3 key) for CRT mode.
     - ZX Keyboard: Press and hold the 2 key for VGA mode, or press and hold the 3 key for CRT mode.
     - ZXUnoPS2 (.ZXPURE): Repeatedly press and release the 2 key for VGA mode, or the 3 key for CRT mode.
     - LilyGO (button labeled GPIO36): Press and hold the button for less than 10 seconds for VGA mode, or press and hold it for more than 10 seconds for CRT mode.
-- Configuration backup/restore feature to SD card.
-- Covox sound support.
-- Kempston mouse support with configurable sample rate, DPI, and scaling.
-- Spectrum +2A model support.
-- SCR file support and screen autodetection in tape/snapshot/ROM files.
-- State screen preview.
-- Real tape support (SAVE/LOAD)
-- ZXUnoPS2 (.ZXPURE) support (selectable from BIOS)
-- Configurable IO36 Button functionality on LilyGo (from BIOS) (RESET, NMI, CHEATS, POKE, STATS, MENU)
+- **Configurable IO36 Button functionality** on LilyGo (from BIOS) (RESET, NMI, CHEATS, POKE, STATS, MENU).
+- **Complete file navigation system** with auto-indexing, folder support, and search functions.
 
 ## Work in progress
 
@@ -185,62 +190,32 @@ Finally, keep in mind that when updating the firmware, you will need to re-flash
 
 Pin assignment in `hardpins.h` is set to match the boards we've tested emulator in, use it as-is, or change it to your own preference.
 
-## Project links
-
-[Telegram](https://t.me/ESPeccy)
-
 ## Supported hardware
 
 - [Lilygo FabGL VGA32](https://www.lilygo.cc/products/fabgl-vga32?_pos=1&_sid=b28e8cac0&_ss=r)
 - [Antonio Villena's ESPectrum board](https://antoniovillena.es/store/product/espectrum/) and [ESPjoy add-on](https://antoniovillena.es/store/product/espjoy-for-espectrum/)
 - [ESP32-SBC-FabGL board from Olimex](https://www.olimex.com/Products/Retro-Computers/ESP32-SBC-FabGL/open-source-hardware)
 
-## Thanks to
+## Based on work from:
 
-- Víctor Iborra [Eremus](https://github.com/EremusOne/ESPectrum) for his work on the original ESPectrum project.
-- [David Crespo](https://youtube.com/Davidprograma) for his friendly help and support and his excellent work at his [Youtube Channel](https://youtube.com/Davidprograma) and the [ZX-ESPectrum-Wiimote](https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote) emulator.
-- Pete Todd, developer of the original project [PaseVGA](https://github.com/retrogubbins/paseVGA).
-- Ramón Martínez ["Rampa"](https://github.com/rampa069) and Jorge Fuertes ["Queru"](https://github.com/jorgefuertes) who improved PaseVGA in the first [ZX-ESPectrum](https://github.com/rampa069/ZX-ESPectrum).
-- Z80 Emulation derived from [z80cpp](https://github.com/jsanchezv/z80cpp), authored by José Luis Sánchez.
-- VGA Driver from [ESP32Lib by BitLuni](https://github.com/bitluni/ESP32Lib).
-- AY-3-8912 emulation from [libayemu by Alexander Sashnov](https://asashnov.github.io/libayemu.html).
-- PS2 Driver from Fabrizio di Vittorio for his [FabGL library](https://github.com/fdivitto/FabGL).
-- [Paul Farrow](http://www.fruitcake.plus.com/index.html) for his kind permission to include his amazing ZX81+ IF2 ROM.
-- Azesmbog for testing and providing very valuable info to make the emu more precise.
-- David Carrión for hardware and ZX keyboard code.
-- ZjoyKiLer for his testing, code and ideas.
-- [Ackerman](https://github.com/rpsubc8/ESP32TinyZXSpectrum) for his code and ideas.
-- [Mark Woodmass](https://specemu.zxe.io) and [Juan Carlos González Amestoy](https://www.retrovirtualmachine.org) for his excellent emulators and his help with wd1793 emulation and many other things.
-- Magnus Krook for [SoftSpectrum 48](https://softspectrum48.weebly.com), an excellent emulator which together with his complete and well documented website was of great help and inspiration.
-- [Rodolfo Guerra](https://sites.google.com/view/rodolfoguerra) for his wonderful enhanced ROMs and his help for adding tape load turbo mode support to the emulator.
-- Weiv and [MartianGirl](https://github.com/MartianGirl) for his detailed analysis of Snow effect.
-- [Antonio Villena](https://antoniovillena.es/store) for creating the ESPectrum board.
-- Tsvetan Usunov from [Olimex Ltd](https://www.olimex.com).
-- [Amstrad PLC](http://www.amstrad.com) for the ZX-Spectrum ROM binaries [liberated for emulation purposes](http://www.worldofspectrum.org/permits/amstrad-roms.txt).
-- [Jean Thomas](https://github.com/jeanthom/ESP32-APLL-cal) for his ESP32 APLL calculator.
+- Víctor Iborra [Eremus] and David Crespo [dcrespo3d] [ESPectrum](https://github.com/EremusOne/ZX-ESPectrum-IDF)
+- David Crespo [dcrespo3d] [ZX-ESPectrum-Wiimote](https://github.com/dcrespo3d/ZX-ESPectrum-Wiimote)
+- Ramón Martinez and Jorge Fuertes [ZX-ESPectrum](https://github.com/rampa069/ZX-ESPectrum)
+- Pete Todd [paseVGA](https://github.com/retrogubbins/paseVGA)
 
-## Thanks also to all this writters, hobbyists and documenters
+## Acknowledgements
 
-- [Retrowiki](http://retrowiki.es/) especially the people at [ESP32 TTGO VGA32](http://retrowiki.es/viewforum.php?f=114) subforum.
-- [RetroReal](https://www.youtube.com/@retroreal) for his kindness and hospitality and his great work.
-- Rodrigo Méndez [Ron](https://www.twitch.tv/retrocrypta)
-- Armand López [El Viejoven FX](https://www.youtube.com/@ElViejovenFX)
-- Javi Ortiz [El Spectrumero](https://www.youtube.com/@ElSpectrumeroJaviOrtiz)
-- José Luis Rodríguez [VidaExtraRetro](https://www.twitch.tv/vidaextraretro)
-- [El Mundo del Spectrum](http://www.elmundodelspectrum.com/)
-- [Microhobby magazine](https://es.wikipedia.org/wiki/MicroHobby).
-- [The World of Spectrum](http://www.worldofspectrum.org/)
-- Dr. Ian Logan & Dr. Frank O'Hara for [The Complete Spectrum ROM Disassembly book](http://freestuff.grok.co.uk/rom-dis/).
-- Chris Smith for the The [ZX-Spectrum ULA book](http://www.zxdesign.info/book/).
+Special thanks to all the developers and contributors involved in the aforementioned projects for their outstanding work and commitment to open-source retro computing. For more details, please refer to each project's page.
 
-## And all the involved people from the golden age
+## Project links
 
-- [Sir Clive Sinclair](https://en.wikipedia.org/wiki/Clive_Sinclair).
-- [Christopher Curry](https://en.wikipedia.org/wiki/Christopher_Curry).
-- [The Sinclair Team](https://en.wikipedia.org/wiki/Sinclair_Research).
-- [Lord Alan Michael Sugar](https://en.wikipedia.org/wiki/Alan_Sugar).
-- [Investrónica team](https://es.wikipedia.org/wiki/Investr%C3%B3nica).
-- [Matthew Smith](https://en.wikipedia.org/wiki/Matthew_Smith_(games_programmer)) for [Manic Miner](https://en.wikipedia.org/wiki/Manic_Miner).
+[GitHub](https://github.com/SplinterGU/ESPeccy)
+
+[Telegram](https://t.me/ESPeccy)
+
+[Discord](https://discord.gg/jRqMbTHhzt)
+
+[Patreon](https://www.patreon.com/SplinterGU)
 
 ## Support the Project
 
@@ -248,3 +223,6 @@ If you enjoy using **ESPeccy** and would like to show your support, you have the
 
 [![Donate to this project](https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png)](https://paypal.me/bennugd?country.x=AR&locale.x=es_XC)
 
+Or become a patron on Patreon and support continued development:
+
+[![Become a Patron](https://c5.patreon.com/external/logo/become_a_patron_button.png)](https://www.patreon.com/SplinterGU)

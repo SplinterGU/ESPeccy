@@ -174,14 +174,14 @@ public:
     static void menuPrintRow(uint8_t virtual_row_num, uint8_t line_type);
     static void menuRedraw();
     static void WindowDraw();
-    static short menuRun(const string new_menu, const string& statusbar = "", int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
-    static short menuSlotsWithPreview(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
-    static unsigned short simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols);
+    static short menuRun(const string& new_menu, const string& statusbar = "", int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static short menuSlotsWithPreview(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static unsigned short simpleMenuRun(const string& new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols);
     static string getStatusBar(uint8_t ftype, bool thumb_funcs_enabled);
-    static string fileDialog(string &fdir, string title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows);
+    static string fileDialog(string &fdir, const string& title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows);
     static int menuTape(string title);
     static void menuScroll(bool up);
-    static void fd_Redraw(string title, string fdir, uint8_t ftype);
+    static void fd_Redraw(const string& title, const string& fdir, uint8_t ftype);
     static void fd_PrintRow(uint8_t virtual_row_num, uint8_t line_type);
     static void fd_StatusbarDraw(const string& statusbar, bool fdMode);
     static void tapemenuStatusbarRedraw();
@@ -194,7 +194,7 @@ public:
 
     static void drawCompressedBMP(int x, int y, const uint8_t * bmp);
 
-    static short menuGenericRun(const string title, const string& statusbar = "", void *user_data = nullptr, size_t (*rowCount)(void *) = nullptr, size_t (*colsCount)(void *) = nullptr, void (*menuRedraw)(const string, bool) = nullptr, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static short menuGenericRun(const string& title, const string& statusbar = "", void *user_data = nullptr, size_t (*rowCount)(void *) = nullptr, size_t (*colsCount)(void *) = nullptr, void (*menuRedraw)(const string&, bool) = nullptr, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
 
     // menu callbacks
     static int menuProcessSnapshot(fabgl::VirtualKeyItem Menukey);
@@ -202,16 +202,16 @@ public:
 
     static size_t rowCountCheat(void *data);
     static size_t colsCountCheat(void *data);
-    static void menuRedrawCheat(const string title, bool force = false);
+    static void menuRedrawCheat(const string& title, bool force = false);
     static int menuProcessCheat(fabgl::VirtualKeyItem Menukey);
 
     static size_t rowCountPoke(void *data);
     static size_t colsCountPoke(void *data);
-    static void menuRedrawPoke(const string title, bool force = false);
+    static void menuRedrawPoke(const string& title, bool force = false);
     static int menuProcessPokeInput(fabgl::VirtualKeyItem Menukey);
 
     static bool browseCheatFiles();
-    static void LoadCheatFile(string snapfile);
+    static void LoadCheatFile(const string& snapfile);
     static void showCheatDialog();
 
     // Función para preservar el estado actual en una estructura pasada por referencia.
@@ -231,9 +231,9 @@ public:
     static unsigned int elements;
     static unsigned int ndirs;
 
-    static uint8_t msgDialog(string title, string msg);
+    static uint8_t msgDialog(const string& title, const string& msg);
 
-    static void progressDialog(string title, string msg, int percent, int action, bool noprogressbar = false);
+    static void progressDialog(const string& title, const string& msg, int percent, int action, bool noprogressbar = false);
     string inputBox(int x, int y, string text);
     static void joyDialog(uint8_t joynum);
     static void pokeDialog();
@@ -282,6 +282,8 @@ public:
     static RowScrollContext rowScrollCTX;
     static RowScrollContext fdRowScrollCTX;
     static RowScrollContext statusBarScrollCTX;
+
+    static string lastPreviewFile;
 
 };
 

@@ -213,7 +213,7 @@ void ShowStartMsg() {
     OSD::drawCompressedBMP(pos_x, pos_y, ESPeccy_logo);
 
     OSD::osdAt(7, 1);
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(1, 0));
+    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
 
     char nextChar;
     const char *text = StartMsg[Config::lang];
@@ -242,7 +242,7 @@ void ShowStartMsg() {
     for (int i=START_MSG_DURATION; i >= 0 && !quit; i--) {
         OSD::osdAt(20, 1);
         sprintf(msg,STARTMSG_CLOSE[Config::lang],i);
-        VIDEO::setTextColor(zxColor(7, 0), zxColor(1, 0));
+        VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
         VIDEO::print(msg);
 
         for (int j = 0; j < 200; j++) {

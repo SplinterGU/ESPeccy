@@ -82,25 +82,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Colors for 6 bit mode
 //                  //  BBGGRR
-#define BLACK       0b00000000
-#define BLUE        0b00100000
-#define RED         0b00000010
-#define MAGENTA     0b00100010
-#define GREEN       0b00001000
-#define CYAN        0b00101000
-#define YELLOW      0b00001010
-#define WHITE       0b00101010
-#define BRI_BLACK   0b00000000
-#define BRI_BLUE    0b00110000
-#define BRI_RED     0b00000011
-#define BRI_MAGENTA 0b00110011
-#define BRI_GREEN   0b00001100
-#define BRI_CYAN    0b00111100
-#define BRI_YELLOW  0b00001111
-#define BRI_WHITE   0b00111111
-#define ORANGE      0b00000111 // used in ESPectrum logo text
+#define BLACK       0b00000000 // 0
+#define BLUE        0b00100000 // 20
+#define RED         0b00000010 // 2
+#define MAGENTA     0b00100010 // 34
+#define GREEN       0b00001000 // 8
+#define CYAN        0b00101000 // 40
+#define YELLOW      0b00001010 // 10
+#define WHITE       0b00101010 // 42
+#define BRI_BLACK   0b00000000 // 0
+#define BRI_BLUE    0b00110000 // 48
+#define BRI_RED     0b00000011 // 3
+#define BRI_MAGENTA 0b00110011 // 51
+#define BRI_GREEN   0b00001100 // 12
+#define BRI_CYAN    0b00111100 // 60
+#define BRI_YELLOW  0b00001111 // 15
+#define BRI_WHITE   0b00111111 // 63
 
-#define NUM_SPECTRUM_COLORS 17
+#define NUM_SPECTRUM_COLORS 16
 
 const int redPins[] = {RED_PINS_6B};
 const int grePins[] = {GRE_PINS_6B};
@@ -108,7 +107,7 @@ const int bluPins[] = {BLU_PINS_6B};
 
 #define zxColor(color,bright) VIDEO::spectrum_colors[bright ? color + 8 : color]
 
-#define USE_FULLCOLOR_BACKGROUND_BACKUP 1
+#define USE_FULLCOLOR_BACKGROUND_BACKUP 0
 
 class VIDEO
 {
