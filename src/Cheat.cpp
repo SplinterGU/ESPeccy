@@ -38,8 +38,6 @@ Poke* CheatMngr::pokes = nullptr;
 uint16_t CheatMngr::cheatCount = 0;
 uint32_t CheatMngr::pokeCount = 0;
 
-static char line[200]; // Buffer para leer líneas
-
 // Función para liberar todos los datos
 void CheatMngr::clearData() {
     if (cheats) heap_caps_free(cheats);
@@ -59,19 +57,6 @@ void CheatMngr::closeCheatFile() {
     }
 }
 
-// Función para contar POKEs y CHEATs
-static void countCheatsAndPokes(FILE* file, uint16_t& cheatCount, uint32_t& pokeCount) {
-    cheatCount = 0;
-    pokeCount = 0;
-
-    rewind(file); // Volver al inicio del archivo
-
-    while (fgets(line, sizeof(line), file)) {
-        if (line[0] == 'N') cheatCount++;
-        else if (line[0] == 'M' || line[0] == 'Z') pokeCount++;
-    }
-}
-
 // Función para cargar el archivo .pok
 bool CheatMngr::loadCheatFile(const std::string& filename) {
     if (cheatFileFP) fclose(cheatFileFP);
@@ -85,13 +70,18 @@ bool CheatMngr::loadCheatFile(const std::string& filename) {
     cheatFilename = filename;
     clearData(); // Limpiar cualquier dato previo
 
+    char line[200]; // Buffer para leer líneas
+
     // 1. Contar cheats y pokes
-    countCheatsAndPokes(cheatFileFP, cheatCount, pokeCount);
+    rewind(cheatFileFP); // Volver al inicio del archivo
+    while (fgets(line, sizeof(line), cheatFileFP)) {
+        if (line[0] == 'N') cheatCount++;
+        else if (line[0] == 'M' || line[0] == 'Z') pokeCount++;
+    }
 
     // 2. Reservar memoria alineada para cheats y pokes
     cheats = (Cheat*)heap_caps_malloc(cheatCount * sizeof(Cheat), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
     pokes = (Poke*)heap_caps_malloc(pokeCount * sizeof(Poke), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-
     if (!cheats || !pokes) {
         printf("Error: Failed to allocate memory\n");
         closeCheatFile();
@@ -99,14 +89,12 @@ bool CheatMngr::loadCheatFile(const std::string& filename) {
     }
 
     // 3. Segunda pasada para cargar datos
-    rewind(cheatFileFP);
-
     uint32_t pokeIdx = 0;
     uint16_t cheatIdx = 0;
     Cheat currentCheat = {};
 
+    rewind(cheatFileFP);
     while (fgets(line, sizeof(line), cheatFileFP)) {
-
         if (line[0] == 'N') {
             if (currentCheat.pokeCount > 0) copyCheat(&currentCheat, &cheats[cheatIdx++]);
             currentCheat = {};
@@ -153,6 +141,8 @@ const Cheat CheatMngr::toggleCheat(int index) {
 std::string CheatMngr::getCheatName(const Cheat& cheat) {
     if (!cheatFileFP) return "";
     fseek(cheatFileFP, cheat.nameOffset, SEEK_SET);
+
+    char line[200]; // Buffer para leer líneas
     if (fgets(line, sizeof(line), cheatFileFP)) {
         char* p = line;
         while (*p) {

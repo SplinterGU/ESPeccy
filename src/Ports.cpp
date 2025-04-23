@@ -57,23 +57,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //   6: ula <= 8'hF8;
 //   7: ula <= 8'hFF;
 // and adjusted for BEEPER_MAX_VOLUME = 97
-#if 0
-uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
-#else
-#define SPK_VAL         0xA0 // 0xB0
-#define MIC_VAL         0x50 // 0x40
-#define EARBIT_VAL      0x0F
 
-uint8_t Ports::speaker_values[8]={
-              MIC_VAL             , // 000
-              MIC_VAL + EARBIT_VAL, // 001
-    0                             , // 010
-                        EARBIT_VAL, // 011
-    SPK_VAL + MIC_VAL             , // 100
-    SPK_VAL + MIC_VAL + EARBIT_VAL, // 101
-    SPK_VAL                       , // 110
-    SPK_VAL           + EARBIT_VAL  // 111
-};
+#if 0
+    uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
+#else
+    #define SPK_VAL         0xA0 // 0xB0
+    #define MIC_VAL         0x50 // 0x40
+    #define EARBIT_VAL      0x0F
+
+    const uint8_t Ports::speaker_values[8]={
+                  MIC_VAL             , // 000
+                  MIC_VAL + EARBIT_VAL, // 001
+        0                             , // 010
+                            EARBIT_VAL, // 011
+        SPK_VAL + MIC_VAL             , // 100
+        SPK_VAL + MIC_VAL + EARBIT_VAL, // 101
+        SPK_VAL                       , // 110
+        SPK_VAL           + EARBIT_VAL  // 111
+    };
 #endif
 
 uint8_t Ports::port[128];

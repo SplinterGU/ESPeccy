@@ -187,14 +187,6 @@ int OSD::prepare_checkbox_menu(string &menu, string curopt) {
 // Get real row number for a virtual one
 unsigned short OSD::menuRealRowFor(uint8_t virtual_row_num) { return begin_row + virtual_row_num - 1; }
 
-// // Get real row number for a virtual one
-// bool OSD::menuIsSub(uint8_t virtual_row_num) {
-//     string line = rowGet(menu, menuRealRowFor(virtual_row_num));
-//     int n = line.find(ASCII_TAB);
-//     if (n == line.npos) return false;
-//     return (line.substr(n+1).find(">") != line.npos);
-// }
-
 // Menu relative AT
 void OSD::menuAt(short int row, short int col) {
     if (col < 0)

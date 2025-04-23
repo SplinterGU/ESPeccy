@@ -42,7 +42,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void CaptureToBmp()
 {
-
     if (!FileUtils::isSDReady()) return;
 
     char filename[] = "ESP00000.bmp";

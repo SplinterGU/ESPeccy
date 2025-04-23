@@ -174,14 +174,6 @@ uint8_t Config::io36button = BTN_ASSIGN_RESET;
 bool Config::KBDLayoutEnable = false;
 string Config::KBDLayoutFile = "";
 
-// erase control characters (in place)
-static inline void erase_cntrl(std::string &s) {
-    s.erase(std::remove_if(s.begin(), s.end(),
-            [&](char ch)
-            { return std::iscntrl(static_cast<unsigned char>(ch));}),
-            s.end());
-}
-
 enum ConfigType {
     CONFIG_TYPE_STRING,
     CONFIG_TYPE_BOOL,
@@ -190,7 +182,7 @@ enum ConfigType {
     CONFIG_TYPE_INT8
 };
 
-struct ConfigEntry {
+typedef struct ConfigEntry {
     const char* key;
     ConfigType type;
     void* value;  // Pointer to the configuration value

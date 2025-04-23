@@ -815,7 +815,8 @@ void Tape::TZX_GetBlock() {
 
             case 0x19:
 
-                // printf("\n\n------------------------------------------------------------------------------------------------------------------------\nTZX block: %d, ID 0x19 - Generalized Data Block, Tape position: %d\n",tapeCurBlock + 1, tapebufByteCount);
+                // printf("\n\n------------------------------------------------------------------------------------------------------------------------\n"
+                //        "TZX block: %d, ID 0x19 - Generalized Data Block, Tape position: %d\n",tapeCurBlock + 1, tapebufByteCount);
 
                 tapeData = readByteFile(tape) | (readByteFile(tape) << 8) | (readByteFile(tape) << 16) | (readByteFile(tape) << 24);
 

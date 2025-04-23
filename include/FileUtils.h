@@ -108,16 +108,8 @@ public:
     static bool isMountedSDCard();
     static bool isSDReady();
 
-    // static String         getAllFilesFrom(const String path);
-    // static void           listAllFiles();
-    // static void           sanitizeFilename(String filename); // in-place
-    // static File           safeOpenFileRead(String filename);
-    // static string getFileEntriesFromDir(string path);
     static int getDirStats(const string& filedir, const vector<string>& filexts, unsigned long* hash, unsigned int* elements, unsigned int* ndirs);
     static void DirToFile(string Dir, uint8_t ftype /*string fileExts*/, unsigned long hash, unsigned int item_count);
-//    static void Mergefiles(string fpath, uint8_t ftype, int chunk_cnt);
-    // static uint16_t       countFileEntriesFromDir(String path);
-    // static string getSortedFileList(string fileDir);
     static bool hasExtension(string filename, string extension);
 
     static void deleteFilesWithExtension(const char *folder_path, const char *extension);

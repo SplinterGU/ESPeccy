@@ -98,7 +98,7 @@ using namespace std;
 extern Font SystemFont;
 
 uint8_t OSD::cols;                     // Maximum columns
-uint8_t OSD::mf_rows;                  // File menu maximum rows
+uint8_t OSD::rows;                  // File menu maximum rows
 unsigned short OSD::real_rows;      // Real row count
 uint8_t OSD::virtual_rows;             // Virtual maximum rows on screen
 uint16_t OSD::w;                        // Width in pixels
@@ -227,7 +227,7 @@ void OSD::saveBackbufferData(uint16_t x, uint16_t y, uint16_t w, uint16_t h, boo
 
 // this method reduce memory usage, but limit backup to 16 colors
 
-static uint8_t color_lookup[64] = {
+static const uint8_t color_lookup[64] = {
     /*  0 */  0, // BLACK
     /*  1 */  0,
     /*  2 */  2, // RED
@@ -294,12 +294,6 @@ static uint8_t color_lookup[64] = {
     /* 63 */ 15  // BRI_WHITE
 };
 
-static uint8_t color_palette[16] = {
-    BLACK, BLUE, RED, MAGENTA, GREEN, CYAN, YELLOW, WHITE,
-    BRI_BLACK, BRI_BLUE, BRI_RED, BRI_MAGENTA,
-    BRI_GREEN, BRI_CYAN, BRI_YELLOW, BRI_WHITE
-};
-
 void OSD::restoreBackbufferData(bool force) {
     if (!SaveRectpos) return;
     if (menu_saverect || force) {
@@ -326,7 +320,7 @@ void OSD::restoreBackbufferData(bool force) {
                 uint32_t packed = VIDEO::SaveRect[j++];
                 for (int k = 0; k < 8; ++k) {
                     uint8_t index = (packed >> ((7 - k) << 2)) & 0x0F;
-                    row[n++] = VIDEO::vga.SBits | color_palette[index];
+                    row[n++] = VIDEO::spectrum_colors[index];
                 }
             }
         }
@@ -915,33 +909,31 @@ void OSD::loadCompressedScreen(FILE *f, uint32_t *buffer) {
     }
 }
 
-unsigned char aux_buff[128];
-
-int check_screen_relocator() {
+int check_screen_relocator(unsigned char* buff, size_t sz) {
     // Buscar desde la posición 255 hacia atrás
-    for (int i = sizeof(aux_buff) - 1; i >= 9; --i) {
+    for (int i = sz - 1; i >= 9; --i) {
         // Seq1: 237,176,201
-        if (aux_buff[i - 2] == 237 && aux_buff[i - 1] == 176 && aux_buff[i] == 201) {
+        if (buff[i - 2] == 237 && buff[i - 1] == 176 && buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq2: 237,176,251,201
-        if (aux_buff[i - 3] == 237 && aux_buff[i - 2] == 176 && aux_buff[i - 1] == 251 && aux_buff[i] == 201) {
+        if (buff[i - 3] == 237 && buff[i - 2] == 176 && buff[i - 1] == 251 && buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq3: 237,176,195,*,*
-        if (aux_buff[i - 4] == 237 && aux_buff[i - 3] == 176 && aux_buff[i - 2] == 195) {
+        if (buff[i - 4] == 237 && buff[i - 3] == 176 && buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq4: 237,176,251,195,*,*
-        if (aux_buff[i - 5] == 237 && aux_buff[i - 4] == 176 && aux_buff[i - 3] == 251 && aux_buff[i - 2] == 195) {
+        if (buff[i - 5] == 237 && buff[i - 4] == 176 && buff[i - 3] == 251 && buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq5: 237,176,205,*,*,201
-        if (aux_buff[i - 5] == 237 && aux_buff[i - 4] == 176 && aux_buff[i - 3] == 205 && aux_buff[i] == 201) {
+        if (buff[i - 5] == 237 && buff[i - 4] == 176 && buff[i - 3] == 205 && buff[i] == 201) {
             return i + 1; // Retornar posición final + 1
         }
         // Seq6: 237,176,205,*,*,195,*,*
-        if (aux_buff[i - 7] == 237 && aux_buff[i - 6] == 176 && aux_buff[i - 5] == 205 && aux_buff[i - 2] == 195) {
+        if (buff[i - 7] == 237 && buff[i - 6] == 176 && buff[i - 5] == 205 && buff[i - 2] == 195) {
             return i + 1; // Retornar posición final + 1
         }
     }
@@ -966,6 +958,8 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
         perror("Error opening file");
         return RENDER_PREVIEW_ERROR;
     }
+
+    unsigned char buff[128];
 
     size_t filesize = FileUtils::fileSize(fname.c_str());
 
@@ -1014,8 +1008,8 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
                             }
                             else if (data_length > 6914) {
                                 fseek(file, pos + 4 + 2, SEEK_SET);
-                                fread(aux_buff, 1, sizeof(aux_buff), file);
-                                seek_pos_add = check_screen_relocator() + 2;
+                                fread(buff, 1, sizeof(buff), file);
+                                seek_pos_add = check_screen_relocator(buff, sizeof(buff)) + 2;
                             }
 
                             off_t off = seek_pos_add;
@@ -1057,8 +1051,8 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
                             }
                             else if (data_length > 6914) {
                                 fseek(file, pos + 4 + 2, SEEK_SET);
-                                fread(aux_buff, 1, sizeof(aux_buff), file);
-                                seek_pos_add = check_screen_relocator() + 2;
+                                fread(buff, 1, sizeof(buff), file);
+                                seek_pos_add = check_screen_relocator(buff, sizeof(buff)) + 2;
                             }
 
                             off_t off = seek_pos_add;
@@ -1274,8 +1268,8 @@ int OSD::renderScreen(int x0, int y0, const char* filename, int screen_number, o
 
                     if (block_length > 6912) {
                         fseek(file, pos + 1, SEEK_SET);
-                        fread(aux_buff, 1, sizeof(aux_buff), file);
-                        seek_pos_add = check_screen_relocator();
+                        fread(buff, 1, sizeof(buff), file);
+                        seek_pos_add = check_screen_relocator(buff, sizeof(buff));
                     }
 
                     off_t off = seek_pos_add;
@@ -5721,151 +5715,150 @@ static const char *MENU_JOYSELKEY[NLANGS] = { MENU_JOYSELKEY_EN, MENU_JOYSELKEY_
 
 string vkToText(int key) {
 
-fabgl::VirtualKey vk = (fabgl::VirtualKey) key;
+    fabgl::VirtualKey vk = (fabgl::VirtualKey) key;
 
-switch (vk)
-{
-case fabgl::VK_0:
-    return "    0    ";
-case fabgl::VK_1:
-    return "    1    ";
-case fabgl::VK_2:
-    return "    2    ";
-case fabgl::VK_3:
-    return "    3    ";
-case fabgl::VK_4:
-    return "    4    ";
-case fabgl::VK_5:
-    return "    5    ";
-case fabgl::VK_6:
-    return "    6    ";
-case fabgl::VK_7:
-    return "    7    ";
-case fabgl::VK_8:
-    return "    8    ";
-case fabgl::VK_9:
-    return "    9    ";
-case fabgl::VK_A:
-    return "    A    ";
-case fabgl::VK_B:
-    return "    B    ";
-case fabgl::VK_C:
-    return "    C    ";
-case fabgl::VK_D:
-    return "    D    ";
-case fabgl::VK_E:
-    return "    E    ";
-case fabgl::VK_F:
-    return "    F    ";
-case fabgl::VK_G:
-    return "    G    ";
-case fabgl::VK_H:
-    return "    H    ";
-case fabgl::VK_I:
-    return "    I    ";
-case fabgl::VK_J:
-    return "    J    ";
-case fabgl::VK_K:
-    return "    K    ";
-case fabgl::VK_L:
-    return "    L    ";
-case fabgl::VK_M:
-    return "    M    ";
-case fabgl::VK_N:
-    return "    N    ";
-case fabgl::VK_O:
-    return "    O    ";
-case fabgl::VK_P:
-    return "    P    ";
-case fabgl::VK_Q:
-    return "    Q    ";
-case fabgl::VK_R:
-    return "    R    ";
-case fabgl::VK_S:
-    return "    S    ";
-case fabgl::VK_T:
-    return "    T    ";
-case fabgl::VK_U:
-    return "    U    ";
-case fabgl::VK_V:
-    return "    V    ";
-case fabgl::VK_W:
-    return "    W    ";
-case fabgl::VK_X:
-    return "    X    ";
-case fabgl::VK_Y:
-    return "    Y    ";
-case fabgl::VK_Z:
-    return "    Z    ";
-case fabgl::VK_RETURN:
-    return "  Enter  ";
-case fabgl::VK_SPACE:
-    return "Brk/Space";
-case fabgl::VK_LSHIFT:
-    return "  Caps   ";
-case fabgl::VK_LCTRL:
-    return "SymbShift";
-case fabgl::VK_F1:
-    return "   F1    ";
-case fabgl::VK_F2:
-    return "   F2    ";
-case fabgl::VK_F3:
-    return "   F3    ";
-case fabgl::VK_F4:
-    return "   F4    ";
-case fabgl::VK_F5:
-    return "   F5    ";
-case fabgl::VK_F6:
-    return "   F6    ";
-case fabgl::VK_F7:
-    return "   F7    ";
-case fabgl::VK_F8:
-    return "   F8    ";
-case fabgl::VK_F9:
-    return "   F9    ";
-case fabgl::VK_F10:
-    return "   F10   ";
-case fabgl::VK_F11:
-    return "   F11   ";
-case fabgl::VK_F12:
-    return "   F12   ";
-case fabgl::VK_PAUSE:
-    return "  Pause  ";
-case fabgl::VK_PRINTSCREEN:
-    return " PrtScr  ";
-case fabgl::VK_LEFT:
-    return "  Left   ";
-case fabgl::VK_RIGHT:
-    return "  Right  ";
-case fabgl::VK_UP:
-    return "   Up    ";
-case fabgl::VK_DOWN:
-    return "  Down   ";
-case fabgl::VK_KEMPSTON_LEFT:
-    return "Kmp.Left ";
-case fabgl::VK_KEMPSTON_RIGHT:
-    return "Kmp.Right";
-case fabgl::VK_KEMPSTON_UP:
-    return " Kmp.Up  ";
-case fabgl::VK_KEMPSTON_DOWN:
-    return "Kmp.Down ";
-case fabgl::VK_KEMPSTON_FIRE:
-    return "Kmp.Fire1";
-case fabgl::VK_KEMPSTON_ALTFIRE:
-    return "Kmp.Fire2";
-case fabgl::VK_FULLER_LEFT:
-    return "Fll.Left ";
-case fabgl::VK_FULLER_RIGHT:
-    return "Fll.Right";
-case fabgl::VK_FULLER_UP:
-    return " Fll.Up  ";
-case fabgl::VK_FULLER_DOWN:
-    return "Fll.Down ";
-case fabgl::VK_FULLER_FIRE:
-    return "Fll.Fire ";
-default:
-    return "  None   ";
-}
+    switch (vk) {
+        case fabgl::VK_0:
+            return "    0    ";
+        case fabgl::VK_1:
+            return "    1    ";
+        case fabgl::VK_2:
+            return "    2    ";
+        case fabgl::VK_3:
+            return "    3    ";
+        case fabgl::VK_4:
+            return "    4    ";
+        case fabgl::VK_5:
+            return "    5    ";
+        case fabgl::VK_6:
+            return "    6    ";
+        case fabgl::VK_7:
+            return "    7    ";
+        case fabgl::VK_8:
+            return "    8    ";
+        case fabgl::VK_9:
+            return "    9    ";
+        case fabgl::VK_A:
+            return "    A    ";
+        case fabgl::VK_B:
+            return "    B    ";
+        case fabgl::VK_C:
+            return "    C    ";
+        case fabgl::VK_D:
+            return "    D    ";
+        case fabgl::VK_E:
+            return "    E    ";
+        case fabgl::VK_F:
+            return "    F    ";
+        case fabgl::VK_G:
+            return "    G    ";
+        case fabgl::VK_H:
+            return "    H    ";
+        case fabgl::VK_I:
+            return "    I    ";
+        case fabgl::VK_J:
+            return "    J    ";
+        case fabgl::VK_K:
+            return "    K    ";
+        case fabgl::VK_L:
+            return "    L    ";
+        case fabgl::VK_M:
+            return "    M    ";
+        case fabgl::VK_N:
+            return "    N    ";
+        case fabgl::VK_O:
+            return "    O    ";
+        case fabgl::VK_P:
+            return "    P    ";
+        case fabgl::VK_Q:
+            return "    Q    ";
+        case fabgl::VK_R:
+            return "    R    ";
+        case fabgl::VK_S:
+            return "    S    ";
+        case fabgl::VK_T:
+            return "    T    ";
+        case fabgl::VK_U:
+            return "    U    ";
+        case fabgl::VK_V:
+            return "    V    ";
+        case fabgl::VK_W:
+            return "    W    ";
+        case fabgl::VK_X:
+            return "    X    ";
+        case fabgl::VK_Y:
+            return "    Y    ";
+        case fabgl::VK_Z:
+            return "    Z    ";
+        case fabgl::VK_RETURN:
+            return "  Enter  ";
+        case fabgl::VK_SPACE:
+            return "Brk/Space";
+        case fabgl::VK_LSHIFT:
+            return "  Caps   ";
+        case fabgl::VK_LCTRL:
+            return "SymbShift";
+        case fabgl::VK_F1:
+            return "   F1    ";
+        case fabgl::VK_F2:
+            return "   F2    ";
+        case fabgl::VK_F3:
+            return "   F3    ";
+        case fabgl::VK_F4:
+            return "   F4    ";
+        case fabgl::VK_F5:
+            return "   F5    ";
+        case fabgl::VK_F6:
+            return "   F6    ";
+        case fabgl::VK_F7:
+            return "   F7    ";
+        case fabgl::VK_F8:
+            return "   F8    ";
+        case fabgl::VK_F9:
+            return "   F9    ";
+        case fabgl::VK_F10:
+            return "   F10   ";
+        case fabgl::VK_F11:
+            return "   F11   ";
+        case fabgl::VK_F12:
+            return "   F12   ";
+        case fabgl::VK_PAUSE:
+            return "  Pause  ";
+        case fabgl::VK_PRINTSCREEN:
+            return " PrtScr  ";
+        case fabgl::VK_LEFT:
+            return "  Left   ";
+        case fabgl::VK_RIGHT:
+            return "  Right  ";
+        case fabgl::VK_UP:
+            return "   Up    ";
+        case fabgl::VK_DOWN:
+            return "  Down   ";
+        case fabgl::VK_KEMPSTON_LEFT:
+            return "Kmp.Left ";
+        case fabgl::VK_KEMPSTON_RIGHT:
+            return "Kmp.Right";
+        case fabgl::VK_KEMPSTON_UP:
+            return " Kmp.Up  ";
+        case fabgl::VK_KEMPSTON_DOWN:
+            return "Kmp.Down ";
+        case fabgl::VK_KEMPSTON_FIRE:
+            return "Kmp.Fire1";
+        case fabgl::VK_KEMPSTON_ALTFIRE:
+            return "Kmp.Fire2";
+        case fabgl::VK_FULLER_LEFT:
+            return "Fll.Left ";
+        case fabgl::VK_FULLER_RIGHT:
+            return "Fll.Right";
+        case fabgl::VK_FULLER_UP:
+            return " Fll.Up  ";
+        case fabgl::VK_FULLER_DOWN:
+            return "Fll.Down ";
+        case fabgl::VK_FULLER_FIRE:
+            return "Fll.Fire ";
+        default:
+            return "  None   ";
+    }
 
 }
 

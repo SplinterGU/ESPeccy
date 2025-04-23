@@ -133,7 +133,7 @@ private:
     // 0xDD o 0xFD como si no.
     static uint8_t prefixOpcode;
     // Subsistema de notificaciones
-    static bool execDone;
+    // static bool execDone;
     // Posiciones de los flags
     const static uint8_t CARRY_MASK = 0x01;
     const static uint8_t ADDSUB_MASK = 0x02;
@@ -238,10 +238,10 @@ private:
      * decreto. Si lo ponen a 1 por el mismo método basta con hacer un OR con
      * la máscara correspondiente.
      */
-    static uint8_t sz53n_addTable[256];
-    static uint8_t sz53pn_addTable[256];
-    static uint8_t sz53n_subTable[256];
-    static uint8_t sz53pn_subTable[256];
+    static const uint8_t sz53n_addTable[256];
+    static const uint8_t sz53pn_addTable[256];
+    static const uint8_t sz53n_subTable[256];
+    static const uint8_t sz53pn_subTable[256];
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.

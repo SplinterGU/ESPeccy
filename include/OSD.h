@@ -170,7 +170,6 @@ public:
     static void FileEject();
 
     static unsigned short menuRealRowFor(uint8_t virtual_row_num);
-    // static bool menuIsSub(uint8_t virtual_row_num);
     static void menuPrintRow(uint8_t virtual_row_num, uint8_t line_type);
     static void menuRedraw();
     static void WindowDraw();
@@ -254,22 +253,22 @@ public:
     static char stats_lin1[25]; // "CPU: 00000 / IDL: 00000 ";
     static char stats_lin2[25]; // "FPS:000.00 / FND:000.00 ";
 
-    static uint8_t cols;                     // Maximum columns
-    static uint8_t mf_rows;                  // File menu maximum rows
-    static unsigned short real_rows;      // Real row count
-    static uint8_t virtual_rows;             // Virtual maximum rows on screen
-    static uint16_t w;                        // Width in pixels
-    static uint16_t h;                        // Height in pixels
-    static uint16_t x;                        // X vertical position
-    static uint16_t y;                        // Y horizontal position
-    static uint16_t prev_y[5];                // Y prev. position
+    static uint8_t cols;                    // Maximum columns
+    static uint8_t rows;                    // File menu maximum rows
+    static unsigned short real_rows;        // Real row count
+    static uint8_t virtual_rows;            // Virtual maximum rows on screen
+    static uint16_t w;                      // Width in pixels
+    static uint16_t h;                      // Height in pixels
+    static uint16_t x;                      // X vertical position
+    static uint16_t y;                      // Y horizontal position
+    static uint16_t prev_y[5];              // Y prev. position
     static unsigned short menu_prevopt;
-    static string menu;                   // Menu string
+    static string menu;                     // Menu string
 
-    static unsigned short begin_row;      // First real displayed row
-    static uint8_t focus;                    // Focused virtual row
-    static uint8_t last_focus;               // To check for changes
-    static unsigned short last_begin_row; // To check for changes
+    static unsigned short begin_row;        // First real displayed row
+    static uint8_t focus;                   // Focused virtual row
+    static uint8_t last_focus;              // To check for changes
+    static unsigned short last_begin_row;   // To check for changes
 
     static bool use_current_menu_state;
 
