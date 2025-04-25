@@ -135,7 +135,7 @@ uint16_t Config::DSK_focus = 1;
 uint8_t  Config::DSK_fdMode = 0;
 string   Config::DSK_fileSearch = "";
 
-uint8_t Config::scanlines = 0;
+bool Config::scanlines = 0;
 uint8_t Config::render = 0;
 
 bool Config::TABasfire1 = false;
@@ -226,7 +226,7 @@ ConfigEntry configEntries[] = {
     {"TAP_Path", CONFIG_TYPE_STRING, &Config::TAP_Path},
     {"DSK_Path", CONFIG_TYPE_STRING, &Config::DSK_Path},
     {"volume", CONFIG_TYPE_UINT8, &Config::volume},
-    {"scanlines", CONFIG_TYPE_UINT8, &Config::scanlines},
+    {"scanlines", CONFIG_TYPE_BOOL, &Config::scanlines},
     {"render", CONFIG_TYPE_UINT8, &Config::render},
 
     // Joystick definitions

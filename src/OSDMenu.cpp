@@ -62,6 +62,9 @@ using namespace std;
 
 extern Font SystemFont;
 
+uint8_t OSD::menuBGColor;
+uint8_t OSD::menuFGColor;
+
 RowScrollContext OSD::rowScrollCTX;
 RowScrollContext OSD::statusBarScrollCTX;
 
@@ -202,7 +205,7 @@ void OSD::menuPrintRow(uint8_t virtual_row_num, uint8_t line_type) {
 
 void OSD::statusbarDraw(const string& statusbar) {
     VIDEO::setCursor(x + 1, y + 1 + (virtual_rows * OSD_FONT_H));
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(CYAN, BRIGHT_OFF));
     string text = " " + RotateLine(statusbar, &statusBarScrollCTX, cols - 2, 125, 25) + " ";
     VIDEO::print(text.c_str());
 }
@@ -218,11 +221,11 @@ void OSD::WindowDraw() {
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
     // Title Background
     for (uint8_t i = 0; i < OSD_FONT_H; ++i) {
-        VIDEO::line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(0, 0));
+        VIDEO::line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(BLACK, BRIGHT_OFF));
     }
 
     // Title
@@ -234,7 +237,7 @@ void OSD::WindowDraw() {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; ++i) {
-            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
         }
         rb_paint_x += 5;
     }
@@ -302,7 +305,7 @@ int OSD::menuProcessSnapshot(fabgl::VirtualKeyItem Menukey) {
         click();
         uint8_t flags = 0;
 
-        string new_name = input(1, focus, "", SLOTNAME_LEN, min(SLOTNAME_LEN, cols - 4), zxColor(0,0), zxColor(7,0), rowGet(menu, idx), "", &flags);
+        string new_name = input(1, focus, "", SLOTNAME_LEN, min(SLOTNAME_LEN, cols - 4), zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), rowGet(menu, idx), "", &flags);
         if ( !( flags & INPUT_CANCELED ) ) { // if not canceled
             renameSlot(idx, new_name);
         }
@@ -376,6 +379,9 @@ int OSD::menuProcessSnapshotSave(fabgl::VirtualKeyItem Menukey) {
 
 // Run a new menu
 short OSD::menuRun(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+
+    menuBGColor = zxColor(WHITE, BRIGHT_ON);
+    menuFGColor = zxColor(BLACK, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -593,6 +599,9 @@ short OSD::menuRun(const string& new_menu, const string& statusbar, int (*proc_c
 // Run a new menu
 unsigned short OSD::simpleMenuRun(const string& new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols) {
 
+    menuBGColor = zxColor(WHITE, BRIGHT_ON);
+    menuFGColor = zxColor(BLACK, BRIGHT_ON);
+
     fabgl::VirtualKeyItem Menukey;
 
     menu = new_menu;
@@ -619,7 +628,7 @@ unsigned short OSD::simpleMenuRun(const string& new_menu, uint16_t posx, uint16_
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
     // Title
     PrintRow(0, IS_TITLE);
@@ -734,6 +743,9 @@ short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar,
 
     if (menu_level != 0) return 0; // only menu_level 0
 
+    menuBGColor = zxColor(BLUE, BRIGHT_ON);
+    menuFGColor = zxColor(CYAN, BRIGHT_ON);
+
     fabgl::VirtualKeyItem Menukey;
 
     menu = new_menu;
@@ -774,7 +786,7 @@ short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar,
 
     // Scrollbar Background (don't worry about update or scroll)
     for (uint8_t i = h - OSD_FONT_H - 1; i < h - 2; ++i) {
-        VIDEO::line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(5, 0));
+        VIDEO::line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(CYAN, BRIGHT_OFF));
     }
 
     if (!use_current_menu_state) {
@@ -916,7 +928,7 @@ short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar,
                         retPreview = OSD::renderScreen(x + w - 128 - 1, y + 1 + OSD_FONT_H, _fname.c_str(), 0);
 
                         // fix issue render overlap (antialiasing issue)
-                        VIDEO::line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(5, 0));
+                        VIDEO::line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(CYAN, BRIGHT_OFF));
 
                     } else {
                         retPreview = RENDER_PREVIEW_ERROR;
@@ -929,24 +941,16 @@ short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar,
                                         y + i + OSD_FONT_H + 1,
                                         x + w - 2,
                                         y + i + OSD_FONT_H + 1,
-                                        zxColor(7, 0));
+                                        zxColor(BLUE, BRIGHT_OFF));
                         }
 
                         VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1              ,
                                     x + w - 2      , y + OSD_FONT_H + 1 + 192 / 2 - 1,
-                                    zxColor(2, 0));
+                                    zxColor(RED, BRIGHT_OFF));
                         VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1 + 192 / 2 - 1,
                                     x + w - 2      , y + OSD_FONT_H + 1              ,
-                                    zxColor(2, 0));
+                                    zxColor(RED, BRIGHT_OFF));
 
-                        #if 0
-                        string no_preview_txt = Config::lang == 0 ? "NO PREVIEW AVAILABLE" :
-                                                Config::lang == 1 ? "SIN VISTA PREVIA" :
-                                                                    "TELA N\x8EO DISPON\x8BVEL";
-                        menuAt(2+((h/OSD_FONT_H)-2)/2, ( w / OSD_FONT_W ) + 1 + cols/2 - no_preview_txt.length()/2);
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 0));
-                        VIDEO::print(no_preview_txt.c_str());
-                        #endif
                     }
                 }
             }
@@ -1002,10 +1006,10 @@ void OSD::menuScrollBar(unsigned short br) {
         // Top handle
         menuAt(1, -1);
         if (br > 1) {
-            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
             VIDEO::print("+");
         } else {
-            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
             VIDEO::print("-");
         }
 
@@ -1014,7 +1018,7 @@ void OSD::menuScrollBar(unsigned short br) {
         unsigned short holder_y = y + (OSD_FONT_H * 2);
         unsigned short holder_h = OSD_FONT_H * (virtual_rows - 3);
         unsigned short holder_w = OSD_FONT_W;
-        VIDEO::fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(7, 0));
+        VIDEO::fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(WHITE, BRIGHT_OFF));
         holder_y++;
 
         // Scroll bar
@@ -1029,15 +1033,15 @@ void OSD::menuScrollBar(unsigned short br) {
             bar_y--;
         }
 
-        VIDEO::fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(0, 0));
+        VIDEO::fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(BLACK, BRIGHT_OFF));
 
         // Bottom handle
         menuAt(-1, -1);
         if ((br + virtual_rows - 1) < real_rows) {
-            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
             VIDEO::print("+");
         } else {
-            VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
             VIDEO::print("-");
         }
     }
@@ -1052,23 +1056,24 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
 
     switch (line_type) {
     case IS_TITLE:
-        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
         margin = 2;
         break;
     case IS_FOCUSED:
-        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED:
-        VIDEO::setTextColor(zxColor(0, 1), zxColor(6, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(YELLOW, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED_FOCUSED:
-        VIDEO::setTextColor(zxColor(0, 1), zxColor(4, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(GREEN, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     default:
-        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+        //VIDEO::setTextColor(zxColor(CYAN, BRIGHT_ON), zxColor(BLUE, BRIGHT_ON));
+        VIDEO::setTextColor(menuFGColor, menuBGColor);
         margin = (real_rows > virtual_rows ? 3 : 2);
     }
 
@@ -1095,9 +1100,9 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
     VIDEO::print(" ");
 
     if ((!is_menu || virtual_row_num == 0) && line.substr(0,7) == "ESPeccy") {
-        VIDEO::setTextColor(zxColor(2,0), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(RED, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
         VIDEO::print("ESP");
-        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
         VIDEO::print(("eccy " + Config::arch).c_str());
         for (uint8_t i = line.length(); i < (cols - margin); ++i)
             VIDEO::print(" ");
@@ -1181,6 +1186,9 @@ void OSD::tapemenuRedraw(string title, bool force) {
 int OSD::menuTape(string title) {
 
     if ( !Tape::tape ) return -1;
+
+    menuBGColor = zxColor(BLUE, BRIGHT_ON);
+    menuFGColor = zxColor(CYAN, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -1350,7 +1358,7 @@ int OSD::menuTape(string title) {
                         case TapeBlock::Character_array_header:
                         case TapeBlock::Code_header: {
                             uint8_t flags;
-                            string new_name = input(21, focus, "", 10, 10, zxColor(0,0), zxColor(7,0), Tape::getBlockName(blocknum), "", &flags);
+                            string new_name = input(21, focus, "", 10, 10, zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), Tape::getBlockName(blocknum), "", &flags);
                             if ( new_name != "" && !(flags & INPUT_CANCELED) ) {
                                 Tape::renameBlock( begin_row - 2 + focus, new_name );
                             }
@@ -1578,7 +1586,7 @@ int OSD::menuProcessPokeInput(fabgl::VirtualKeyItem Menukey) {
 
         Poke poke = CheatMngr::getInputPoke(currentCheat, idx - 1);
 //        string value = to_string(poke.value);
-        string new_value = input(cols - 5, focus, "", 3, 3, zxColor(0,0), zxColor(7,0), "", "0123456789", &flags, FILTER_ALLOWED );
+        string new_value = input(cols - 5, focus, "", 3, 3, zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), "", "0123456789", &flags, FILTER_ALLOWED );
         if ( !( flags & INPUT_CANCELED ) && new_value != "" ) { // if not canceled
             int nv = stoi(new_value);
             if ( nv < 256 ) poke = CheatMngr::setPokeValue(currentCheat, idx - 1, (uint8_t) nv);

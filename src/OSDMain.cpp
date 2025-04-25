@@ -387,57 +387,26 @@ void OSD::drawWindow(uint16_t width, uint16_t height, string top, string bottom,
 
     unsigned short x = scrAlignCenterX(width);
     unsigned short y = scrAlignCenterY(height);
-    if (clear) VIDEO::fillRect(x, y, width, height, zxColor(0, 0));
-    VIDEO::rect(x, y, width, height, zxColor(0, 0));
-    VIDEO::rect(x + 1, y + 1, width - 2, height - 2, zxColor(7, 0));
+    if (clear) VIDEO::fillRect(x, y, width, height, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::rect(x, y, width, height, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::rect(x + 1, y + 1, width - 2, height - 2, zxColor(WHITE, BRIGHT_OFF));
 
     if (top != "") {
-        VIDEO::rect(x + 3, y + 3, width - 6, 9, zxColor(5, 0));
-        VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+        VIDEO::rect(x + 3, y + 3, width - 6, 9, zxColor(CYAN, BRIGHT_OFF));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(CYAN, BRIGHT_OFF));
         VIDEO::setFont(SystemFont);
         VIDEO::setCursor(x + 3, y + 4);
         VIDEO::print(top.c_str());
     }
 
     if (bottom != "") {
-        VIDEO::rect(x + 3, y + height - 12, width - 6, 9, zxColor(5, 0));
-        VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+        VIDEO::rect(x + 3, y + height - 12, width - 6, 9, zxColor(CYAN, BRIGHT_OFF));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(CYAN, BRIGHT_OFF));
         VIDEO::setFont(SystemFont);
         VIDEO::setCursor(x + 3, y + height - 11);
         VIDEO::print(bottom.c_str());
     }
 
-}
-
-// Shows a red panel with error text
-void OSD::errorPanel(string errormsg) {
-    unsigned short x = scrAlignCenterX(OSD_W);
-    unsigned short y = scrAlignCenterY(OSD_H);
-
-    if (Config::slog_on)
-        printf((errormsg + "\n").c_str());
-
-    VIDEO::fillRect(x, y, OSD_W, OSD_H, zxColor(0, 0));
-    VIDEO::rect(x, y, OSD_W, OSD_H, zxColor(7, 0));
-    VIDEO::rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(2, 1));
-    VIDEO::setFont(SystemFont);
-    osdHome();
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(2, 1));
-    VIDEO::print(ERROR_TITLE);
-    osdAt(2, 0);
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
-    VIDEO::println(errormsg.c_str());
-    osdAt(17, 0);
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(2, 1));
-    VIDEO::print(ERROR_BOTTOM);
-}
-
-// Error panel and infinite loop
-void OSD::errorHalt(string errormsg) {
-    errorPanel(errormsg);
-    while (1) {
-        vTaskDelay(5 / portTICK_PERIOD_MS);
-    }
 }
 
 // Centered message
@@ -451,6 +420,7 @@ void OSD::osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause) {
     const unsigned short y = scrAlignCenterY(h);
     unsigned short paper;
     unsigned short ink;
+    unsigned short border;
     unsigned int j;
 
     if (msg.length() > (scrW / 6) - 10) msg = msg.substr(0,(scrW / 6) - 10);
@@ -460,20 +430,24 @@ void OSD::osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause) {
 
     switch (warn_level) {
     case LEVEL_OK:
-        ink = zxColor(7, 1);
-        paper = zxColor(4, 0);
+        ink = zxColor(WHITE, BRIGHT_ON);
+        paper = zxColor(GREEN, BRIGHT_ON);
+        border = zxColor(GREEN, BRIGHT_OFF);
         break;
     case LEVEL_ERROR:
-        ink = zxColor(7, 1);
-        paper = zxColor(2, 0);
+        ink = zxColor(WHITE, BRIGHT_ON);
+        paper = zxColor(RED, BRIGHT_ON);
+        border = zxColor(RED, BRIGHT_OFF);
         break;
     case LEVEL_WARN:
-        ink = zxColor(0, 0);
-        paper = zxColor(6, 0);
+        ink = zxColor(BLACK, BRIGHT_OFF);
+        paper = zxColor(YELLOW, BRIGHT_ON);
+        border = zxColor(YELLOW, BRIGHT_OFF);
         break;
     default:
-        ink = zxColor(7, 0);
-        paper = zxColor(1, 0);
+        ink = zxColor(WHITE, BRIGHT_ON);
+        paper = zxColor(BLUE, BRIGHT_ON);
+        border = zxColor(BLUE, BRIGHT_OFF);
     }
 
     if (millispause > 0) {
@@ -482,11 +456,13 @@ void OSD::osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause) {
     }
 
     VIDEO::fillRect(x, y, w, h, paper);
-    // VIDEO::rect(x - 1, y - 1, w + 2, h + 2, ink);
+    //VIDEO::rect(x - 1, y - 1, w + 2, h + 2, ink);
     VIDEO::setTextColor(ink, paper);
     VIDEO::setFont(SystemFont);
     VIDEO::setCursor(x + OSD_FONT_W, y + OSD_FONT_H);
     VIDEO::print(msg.c_str());
+
+    VIDEO::rect(x, y, w, h, border);
 
     if (millispause > 0) {
         vTaskDelay(millispause/portTICK_PERIOD_MS); // Pause if needed
@@ -1479,9 +1455,9 @@ void OSD::drawCompressedBMP(int x, int y, const uint8_t * bmp) {
 void OSD::drawOSD(bool bottom_info) {
     unsigned short x = scrAlignCenterX(OSD_W);
     unsigned short y = scrAlignCenterY(OSD_H);
-    VIDEO::fillRect(x, y, OSD_W, OSD_H, zxColor(0, 0));
-    VIDEO::rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(7, 0));
-    VIDEO::setTextColor(zxColor(0, 0), zxColor(5, 1));
+    VIDEO::fillRect(x, y, OSD_W, OSD_H, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::rect(x + 1, y + 1, OSD_W - 2, OSD_H - 2, zxColor(WHITE, BRIGHT_OFF));
+    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(CYAN, BRIGHT_ON));
     VIDEO::setFont(SystemFont);
     osdHome();
     VIDEO::print(OSD_TITLE);
@@ -1612,7 +1588,7 @@ void OSD::drawKbdLayout(uint8_t layout) {
                 }
             }
 
-            VIDEO::setTextColor(zxColor(7, 1), zxColor(5, 0));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(CYAN, BRIGHT_OFF));
             VIDEO::setFont(SystemFont);
             VIDEO::setCursor(x + 3, y + height - 11);
 
@@ -1782,7 +1758,7 @@ void OSD::drawStats() {
         y = VIDEO::brdlin_osdstart;
     }
 
-    VIDEO::setTextColor(zxColor(7, 0), zxColor( ESPeccy::ESP_delay, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor( ESPeccy::ESP_delay, 0));
     VIDEO::setFont(SystemFont);
     VIDEO::setCursor(x,y);
     VIDEO::print(stats_lin1);
@@ -2684,6 +2660,109 @@ void OSD::FileEject() {
 
 }
 
+
+template<typename T>
+void handleBoolConfigOption(
+    const std::string& menuTitle,
+    T& configVar,
+    const char* configKey,
+    void (*extraOnChange)() = nullptr
+) {
+    OSD::menu_saverect = true;
+    while (true) {
+        bool prevVal = (configVar != 0);
+        uint8_t selected = prevVal ? 1 : 2;
+        OSD::menu_curopt = selected;
+        std::string fullMenu = menuTitle + markSelectedOption(MENU_YESNO[Config::lang], prevVal ? "Y" : "N");
+        uint8_t opt = OSD::menuRun(fullMenu);
+
+        if (opt) {
+            bool new_value = (opt == 1);
+
+            if (new_value != prevVal) {
+                configVar = static_cast<T>(new_value);
+                Config::save(configKey);
+                if (extraOnChange) extraOnChange();
+            }
+            OSD::menu_curopt = opt;
+            OSD::menu_saverect = false;
+        } else {
+            break;
+        }
+    }
+}
+
+
+void handleStringConfigOption(
+    const string& menu_base,
+    string& configVar,
+    const string& configKey,
+    const vector<pair<string, string>>& options,
+    void (*extraOnChange)() = nullptr
+) {
+    OSD::menu_saverect = true;
+    while(true) {
+        int current_index = 0;
+        for (size_t i = 0; i < options.size(); ++i) {
+            if (configVar == options[i].first) {
+                current_index = i;
+                break;
+            }
+        }
+
+        string marked_menu = markSelectedOption(menu_base, options[current_index].second);
+        OSD::menu_curopt = current_index + 1;
+
+        uint8_t opt = OSD::menuRun(marked_menu);
+        if (opt && opt <= options.size()) {
+            const string& new_val = options[opt - 1].first;
+            if (new_val != configVar) {
+                configVar = new_val;
+                Config::save(configKey);
+                if (extraOnChange) extraOnChange();
+            }
+            OSD::menu_curopt = opt;
+            OSD::menu_saverect = false;
+        } else {
+            break;
+        }
+    }
+}
+
+
+template<typename T>
+bool handleUintConfigOption(
+    const string& menu_base,
+    T& configVar,
+    const string& configKey,
+    const vector<string>& options,
+    bool (*extraOnChange)() = nullptr
+) {
+    OSD::menu_saverect = true;
+    while (true) {
+        uint8_t current_index = configVar;
+        if (current_index >= options.size()) current_index = 0;
+
+        string marked_menu = markSelectedOption(menu_base, options[current_index]);
+        OSD::menu_curopt = current_index + 1;
+
+        uint8_t opt = OSD::menuRun(marked_menu);
+        if (opt && opt <= options.size()) {
+            uint8_t new_val = opt - 1;
+            if (new_val != configVar) {
+                configVar = static_cast<T>(new_val);
+                Config::save(configKey);
+                if (extraOnChange) if (extraOnChange()) return true;
+            }
+            OSD::menu_curopt = opt;
+            OSD::menu_saverect = false;
+        } else {
+            break;
+        }
+    }
+    return false;
+}
+
 // OSD Main Loop
 void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
     fabgl::VirtualKeyItem Nextkey;
@@ -2943,13 +3022,13 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                 y = VIDEO::brdlin_osdstart + 4;
             }
 
-            VIDEO::fillRect(x, y - 4, 24 * OSD_FONT_W, 16, zxColor(1, 0));
-            VIDEO::setTextColor(zxColor(7, 0), zxColor(1, 0));
+            VIDEO::fillRect(x, y - 4, 24 * OSD_FONT_W, 16, zxColor(BLUE, BRIGHT_OFF));
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLUE, BRIGHT_OFF));
             VIDEO::setFont(SystemFont);
             VIDEO::setCursor(x + OSD_FONT_W, y + 1);
             VIDEO::print(Config::load_monitor ? "TAP" : "VOL");
             for (int i = 0; i < ESPeccy::aud_volume + 16; i++)
-                VIDEO::fillRect(x + (i + 7) * OSD_FONT_W, y + 1, OSD_FONT_W - 1, 7, zxColor( 7, 0));
+                VIDEO::fillRect(x + (i + 7) * OSD_FONT_W, y + 1, OSD_FONT_W - 1, 7, zxColor(WHITE, BRIGHT_OFF));
 
         }
         else if (KeytoESP == fabgl::VK_F11) { // Hard reset
@@ -3442,416 +3521,213 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                         menu_level = 1;
                         // Options menu
                         uint8_t options_num = menuRun(MENU_OPTIONS[Config::lang]);
-                        if (options_num == 1) {
+
+                        if (options_num) {
                             menu_level = 2;
                             menu_curopt = 1;
                             menu_saverect = true;
-                            while (1) {
-                                string stor_menu = MENU_STORAGE[Config::lang];
-                                uint8_t opt2 = menuRun(stor_menu);
-                                if (opt2) {
-                                    if (opt2 == 1) {
+
+                            if (options_num == 1) {
+                                while (1) {
+                                    string stor_menu = MENU_STORAGE[Config::lang];
+                                    uint8_t opt2 = menuRun(stor_menu);
+                                    if (opt2) {
                                         menu_level = 3;
                                         menu_curopt = 1;
                                         menu_saverect = true;
-                                        while (1) {
-                                            string opt_menu = MENU_DISKCTRL[Config::lang];
-                                            bool prev_opt = Config::DiskCtrl;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::DiskCtrl = 1;
-                                                else
-                                                    Config::DiskCtrl = 0;
-
-                                                if (Config::DiskCtrl != prev_opt) {
-                                                    Config::save("DiskCtrl");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                break;
-                                            }
+                                        if (opt2 == 1) {
+                                            handleBoolConfigOption(MENU_DISKCTRL[Config::lang], Config::DiskCtrl, "DiskCtrl");
                                         }
-                                    }
-                                    else if (opt2 == 2) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string TapeAutoload_menu = MENU_AUTOLOAD[Config::lang];
-                                            bool prev_TapeAutoload = Config::TapeAutoload;
-                                            if (prev_TapeAutoload) {
-                                                menu_curopt = 1;
-                                                TapeAutoload_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                TapeAutoload_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(TapeAutoload_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::TapeAutoload = true;
-                                                else
-                                                    Config::TapeAutoload = false;
-
-                                                if (Config::TapeAutoload != prev_TapeAutoload) {
-                                                    Config::save("TapeAutoload");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                break;
-                                            }
+                                        else if (opt2 == 2) {
+                                            handleBoolConfigOption(MENU_AUTOLOAD[Config::lang], Config::TapeAutoload, "TapeAutoload");
                                         }
-                                    }
-                                    else if (opt2 == 3) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string flash_menu = MENU_FLASHLOAD[Config::lang];
-                                            bool prev_flashload = Config::flashload;
-                                            if (prev_flashload) {
-                                                menu_curopt = 1;
-                                                flash_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                flash_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(flash_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::flashload = true;
-                                                else
-                                                    Config::flashload = false;
-
-                                                if (Config::flashload != prev_flashload) {
-                                                    Config::save("flashload");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                break;
-                                            }
+                                        else if (opt2 == 3) {
+                                            handleBoolConfigOption(MENU_FLASHLOAD[Config::lang], Config::flashload, "flashload");
                                         }
-                                    }
-                                    else if (opt2 == 4) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string mnu_str = MENU_RGTIMINGS[Config::lang];
-                                            bool prev_opt = Config::tape_timing_rg;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                mnu_str += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                mnu_str += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(mnu_str);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::tape_timing_rg = true;
-                                                else
-                                                    Config::tape_timing_rg = false;
-
-                                                if (Config::tape_timing_rg != prev_opt) {
-                                                    Config::save("tape_timing_rg");
-
+                                        else if (opt2 == 4) {
+                                            handleBoolConfigOption(MENU_RGTIMINGS[Config::lang], Config::tape_timing_rg, "tape_timing_rg",
+                                                []() {
                                                     if (Tape::tape != NULL && Tape::tapeFileType == TAPE_FTYPE_TAP) {
                                                         Tape::TAP_setBlockTimings();
                                                     }
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                break;
-                                            }
+                                                });
                                         }
-                                    }
-                                    else if (opt2 == 5) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string Mnustr = MENU_TAPEMONITOR[Config::lang];
-                                            bool prev_opt = Config::load_monitor;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                Mnustr += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                Mnustr += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-
-                                            uint8_t opt3 = menuRun(Mnustr);
-                                            if (opt3) {
-                                                if (opt3 == 1)
-                                                    Config::load_monitor = true;
-                                                else
-                                                    Config::load_monitor = false;
-
-                                                if (Config::load_monitor != prev_opt) {
-                                                    if (Config::load_monitor) {
-                                                        ESPeccy::aud_volume = ESP_VOLUME_MAX;
-                                                    } else {
-                                                        ESPeccy::aud_volume = Config::volume;
-                                                    }
+                                        else if (opt2 == 5) {
+                                            handleBoolConfigOption(MENU_TAPEMONITOR[Config::lang], Config::load_monitor, "load_monitor",
+                                                []() {
+                                                    ESPeccy::aud_volume = Config::load_monitor ? ESP_VOLUME_MAX : Config::volume;
                                                     pwm_audio_set_volume(ESPeccy::aud_volume);
-                                                    Config::save("load_monitor");
+                                                });
+                                        }
+                                        else if (opt2 == 6) {
+                                            while (1) {
+                                                string Mnustr = markSelectedOption(MENU_REALTAPE[Config::lang], to_string(Config::realtape_mode));
+                                                menu_curopt = Config::realtape_mode + 1;
+
+                                                uint8_t opt3 = menuRun(Mnustr);
+                                                if (opt3) {
+                                                    if (opt3 - 1 != Config::realtape_mode) {
+                                                        Config::realtape_mode = opt3 - 1;
+                                                        Config::save("RealTapeMode");
+                                                    }
+                                                    menu_curopt = opt3;
+                                                    menu_saverect = false;
+                                                } else {
+                                                    break;
                                                 }
-                                                menu_curopt = opt3;
-                                                menu_saverect = false;
-                                            } else {
-                                                break;
                                             }
                                         }
+                                        else if (opt2 == 7) {
+                                            while (1) {
+                                                string realtape_gpio_menu;
+                                                if (ZXKeyb::Exists) {
+                                                    if (Config::psramsize > 0) {
+                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_PSRAM;
+                                                    } else {
+                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_NO_PSRAM;
+                                                    }
+                                                } else {
+                                                    realtape_gpio_menu = MENU_REALTAPE_OPTIONS_LILY;
+                                                }
+
+                                                std::vector<std::string> values = extractValues(realtape_gpio_menu);
+                                                uint8_t val = Config::realtape_gpio_num;
+
+                                                auto it = std::find(values.begin(), values.end(), to_string(val));
+                                                if (it != values.end()) {
+                                                    menu_curopt = std::distance(values.begin(), it) + 1;
+                                                } else {
+                                                    val = std::stoi(values[0]);
+                                                    menu_curopt = 1;
+                                                }
+
+                                                realtape_gpio_menu = markSelectedOption(realtape_gpio_menu, to_string(val));
+
+                                                uint8_t opt3 = menuRun(realtape_gpio_menu);
+                                                if (opt3) {
+
+                                                    if (std::stoi(values[opt3-1]) != Config::realtape_gpio_num) {
+                                                        Config::realtape_gpio_num = std::stoi(values[opt3-1]);
+                                                        Config::save("RealTapeGPIO");
+                                                        RealTape_init(NULL);
+                                                    }
+
+                                                    menu_curopt = opt3;
+                                                    menu_saverect = false;
+
+                                                } else {
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        menu_level = 2;
+                                        menu_curopt = opt2;
+                                        menu_saverect = false;
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
                                     }
-                                    else if (opt2 == 6) {
+                                }
+                            }
+                            else if (options_num == 2) {
+                                  const vector<pair<string, string>> arch_options = {
+                                    {"48K", "4"},
+                                    {"128K", "1"},
+                                    {"+2A", "2"},
+                                    {"Pentagon", "P"},
+                                    {"TK90X", "T"},
+                                    {"TK95", "9"},
+                                    {"Last", "L"},
+                                };
+
+                                handleStringConfigOption(MENU_ARCH_PREF[Config::lang], Config::pref_arch, "pref_arch", arch_options);
+
+                            }
+                            else if (options_num == 3) {
+                                pref_rom_menu();
+                            }
+                            else if (options_num == 4) {
+                                while (1) {
+                                    // joystick
+                                    string Mnustr = MENU_JOY[Config::lang];
+                                    uint8_t opt2 = menuRun(Mnustr);
+                                    if (opt2) {
+                                        // Joystick customization
                                         menu_level = 3;
                                         menu_curopt = 1;
                                         menu_saverect = true;
                                         while (1) {
-                                            uint8_t prev_opt = Config::realtape_mode;
-
-                                            string Mnustr = markSelectedOption(MENU_REALTAPE[Config::lang], to_string(prev_opt));
-                                            menu_curopt = Config::realtape_mode + 1;
-
-                                            uint8_t opt3 = menuRun(Mnustr);
-                                            if (opt3) {
-                                                if (opt3 - 1 != prev_opt) {
-                                                    Config::realtape_mode = opt3 - 1;
-                                                    Config::save("RealTapeMode");
+                                            menu_curopt = (opt2 == 1 ? Config::joystick1 : Config::joystick2) + 1;
+                                            string joy_menu = markSelectedOption(MENU_DEFJOY[Config::lang], to_string(menu_curopt - 1));
+                                            joy_menu.replace(joy_menu.find("#",0),1,(string)" " + char(48 + opt2));
+                                            uint8_t optjoy = menuRun(joy_menu);
+                                            if (optjoy>0 && optjoy<6) {
+                                                if (opt2 == 1) {
+                                                    Config::joystick1 = optjoy - 1;
+                                                    Config::save("joystick1");
+                                                } else {
+                                                    Config::joystick2 = optjoy - 1;
+                                                    Config::save("joystick2");
                                                 }
-                                                menu_curopt = opt3;
+                                                Config::setJoyMap(opt2,optjoy - 1);
+                                                menu_curopt = optjoy;
+                                                menu_saverect = false;
+                                            } else if (optjoy == 6) {
+                                                joyDialog(opt2);
+                                                if (VIDEO::OSD) OSD::drawStats(); // Redraw stats for 16:9 modes
+                                                return;
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                        menu_curopt = opt2;
+                                        menu_level = 2;
+                                        menu_saverect = false;
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
+                                    }
+                                }
+                            }
+                            else if (options_num == 5) {
+                                while (1) {
+                                    // joystick
+                                    string Mnustr = MENU_JOYPS2[Config::lang];
+                                    uint8_t opt2 = menuRun(Mnustr);
+
+                                    menu_level = 3;
+                                    menu_curopt = 1;
+                                    menu_saverect = true;
+                                    if (opt2 == 1) {
+                                        // Joystick type
+                                        while (1) {
+                                            string joy_menu = markSelectedOption(MENU_PS2JOYTYPE[Config::lang], to_string(Config::joyPS2));
+                                            menu_curopt = Config::joyPS2 + 1;
+                                            uint8_t optjoy = menuRun(joy_menu);
+                                            if (optjoy > 0 && optjoy < 6) {
+                                                if (Config::joyPS2 != (optjoy - 1)) {
+                                                    Config::joyPS2 = optjoy - 1;
+                                                    Config::save("joyPS2");
+                                                }
+                                                menu_curopt = optjoy;
                                                 menu_saverect = false;
                                             } else {
                                                 break;
                                             }
                                         }
-                                    }
+                                    } else if (opt2 == 2) {
+                                        // Menu cursor keys as joy
+                                        handleBoolConfigOption(MENU_CURSORJOY[Config::lang], Config::CursorAsJoy, "CursorAsJoy",
+                                            []() {
+                                                ESPeccy::PS2Controller.keyboard()->setLEDs(false,false,Config::CursorAsJoy);
+                                                if(ESPeccy::ps2kbd2) ESPeccy::PS2Controller.keybjoystick()->setLEDs(false, false, Config::CursorAsJoy);
+                                            });
 
-                                    menu_level = 2;
-                                    menu_curopt = opt2;
-                                    menu_saverect = false;
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 2) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                string archprefmenu;
-                                string prev_archpref = Config::pref_arch;
-                                menu_curopt = 7;
-                                if (Config::pref_arch == "48K") {
-                                    menu_curopt = 1;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "4");
-                                } else if (Config::pref_arch == "128K") {
-                                    menu_curopt = 2;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "1");
-                                } else if (Config::pref_arch == "+2A") {
-                                    menu_curopt = 3;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "2");
-                                } else if (Config::pref_arch == "Pentagon") {
-                                    menu_curopt = 4;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "P");
-                                } else if (Config::pref_arch == "TK90X") {
-                                    menu_curopt = 5;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "T");
-                                } else if (Config::pref_arch == "TK95") {
-                                    menu_curopt = 6;
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "9");
-                                }
-                                if (menu_curopt == 7)
-                                    archprefmenu = markSelectedOption(MENU_ARCH_PREF[Config::lang], "L");
-
-                                uint8_t opt2 = menuRun(archprefmenu);
-                                if (opt2) {
-
-                                    if (opt2 == 1)
-                                        Config::pref_arch = "48K";
-                                    else
-                                    if (opt2 == 2)
-                                        Config::pref_arch = "128K";
-                                    else
-                                    if (opt2 == 3)
-                                        Config::pref_arch = "+2A";
-                                    else
-                                    if (opt2 == 4)
-                                        Config::pref_arch = "Pentagon";
-                                    else
-                                    if (opt2 == 5)
-                                        Config::pref_arch = "TK90X";
-                                    else
-                                    if (opt2 == 6)
-                                        Config::pref_arch = "TK95";
-                                    else
-                                    if (opt2 == 7)
-                                        Config::pref_arch = "Last";
-
-                                    if (Config::pref_arch != prev_archpref) {
-                                        Config::save("pref_arch");
-                                    }
-
-                                    menu_curopt = opt2;
-                                    menu_saverect = false;
-
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 3) {
-                            pref_rom_menu();
-                        }
-                        else if (options_num == 4) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // joystick
-                                string Mnustr = MENU_JOY[Config::lang];
-                                uint8_t opt2 = menuRun(Mnustr);
-                                if (opt2) {
-                                    // Joystick customization
-                                    menu_level = 3;
-                                    menu_curopt = 1;
-                                    menu_saverect = true;
-                                    while (1) {
-                                        menu_curopt = (opt2 == 1 ? Config::joystick1 : Config::joystick2) + 1;
-                                        string joy_menu = markSelectedOption(MENU_DEFJOY[Config::lang], to_string(menu_curopt - 1));
-                                        joy_menu.replace(joy_menu.find("#",0),1,(string)" " + char(48 + opt2));
-                                        uint8_t optjoy = menuRun(joy_menu);
-                                        if (optjoy>0 && optjoy<6) {
-                                            if (opt2 == 1) {
-                                                Config::joystick1 = optjoy - 1;
-                                                Config::save("joystick1");
-                                            } else {
-                                                Config::joystick2 = optjoy - 1;
-                                                Config::save("joystick2");
-                                            }
-                                            Config::setJoyMap(opt2,optjoy - 1);
-                                            menu_curopt = optjoy;
-                                            menu_saverect = false;
-                                        } else if (optjoy == 6) {
-                                            joyDialog(opt2);
-                                            if (VIDEO::OSD) OSD::drawStats(); // Redraw stats for 16:9 modes
-                                            return;
-                                        } else {
-                                            menu_curopt = opt2;
-                                            menu_level = 2;
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 5) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // joystick
-                                string Mnustr = MENU_JOYPS2[Config::lang];
-                                uint8_t opt2 = menuRun(Mnustr);
-                                if (opt2 == 1) {
-                                    // Joystick type
-                                    menu_level = 3;
-                                    menu_curopt = 1;
-                                    menu_saverect = true;
-                                    while (1) {
-                                        string joy_menu = markSelectedOption(MENU_PS2JOYTYPE[Config::lang], to_string(Config::joyPS2));
-                                        menu_curopt = Config::joyPS2 + 1;
-                                        uint8_t optjoy = menuRun(joy_menu);
-                                        if (optjoy > 0 && optjoy < 6) {
-                                            if (Config::joyPS2 != (optjoy - 1)) {
-                                                Config::joyPS2 = optjoy - 1;
-                                                Config::save("joyPS2");
-                                            }
-                                            menu_curopt = optjoy;
-                                            menu_saverect = false;
-                                        } else {
-                                            menu_curopt = 1;
-                                            menu_level = 2;
-                                            break;
-                                        }
-                                    }
-                                } else if (opt2 == 2) {
-                                    // Menu cursor keys as joy
-                                    menu_level = 3;
-                                    menu_curopt = 1;
-                                    menu_saverect = true;
-                                    while (1) {
-                                        string csasjoy_menu = MENU_CURSORJOY[Config::lang];
-                                        if (Config::CursorAsJoy) {
-                                            menu_curopt = 1;
-                                            csasjoy_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                        } else {
-                                            menu_curopt = 2;
-                                            csasjoy_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                        }
-                                        uint8_t opt2 = menuRun(csasjoy_menu);
-                                        if (opt2) {
-                                            if (opt2 == 1)
-                                                Config::CursorAsJoy = true;
-                                            else
-                                                Config::CursorAsJoy = false;
-
-                                            ESPeccy::PS2Controller.keyboard()->setLEDs(false,false,Config::CursorAsJoy);
-                                            if(ESPeccy::ps2kbd2)
-                                                ESPeccy::PS2Controller.keybjoystick()->setLEDs(false, false, Config::CursorAsJoy);
-                                            Config::save("CursorAsJoy");
-
-                                            menu_curopt = opt2;
-                                            menu_saverect = false;
-                                        } else {
-                                            menu_curopt = 2;
-                                            menu_level = 2;
-                                            break;
-                                        }
-                                    }
-                                } else if (opt2 == 3) {
-                                    // Menu TAB as fire 1
-                                    menu_level = 3;
-                                    menu_curopt = 1;
-                                    menu_saverect = true;
-                                    while (1) {
-                                        string csasjoy_menu = MENU_TABASFIRE[Config::lang];
-                                        bool prev_opt = Config::TABasfire1;
-                                        if (prev_opt) {
-                                            menu_curopt = 1;
-                                            csasjoy_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                        } else {
-                                            menu_curopt = 2;
-                                            csasjoy_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                        }
-                                        uint8_t opt2 = menuRun(csasjoy_menu);
-                                        if (opt2) {
-                                            if (opt2 == 1)
-                                                Config::TABasfire1 = true;
-                                            else
-                                                Config::TABasfire1 = false;
-
-                                            if (Config::TABasfire1 != prev_opt) {
-
+                                    } else if (opt2 == 3) {
+                                        // Menu TAB as fire 1
+                                        handleBoolConfigOption(MENU_TABASFIRE[Config::lang], Config::TABasfire1, "TABasfire1",
+                                            []() {
                                                 if (Config::TABasfire1) {
                                                     ESPeccy::VK_ESPECCY_FIRE1 = fabgl::VK_TAB;
                                                     ESPeccy::VK_ESPECCY_FIRE2 = fabgl::VK_GRAVEACCENT;
@@ -3863,59 +3739,33 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                                     ESPeccy::VK_ESPECCY_TAB = fabgl::VK_TAB;
                                                     ESPeccy::VK_ESPECCY_GRAVEACCENT = fabgl::VK_GRAVEACCENT;
                                                 }
+                                            });
 
-                                                Config::save("TABasfire1");
-                                            }
-
-                                            menu_curopt = opt2;
-                                            menu_saverect = false;
-                                        } else {
-                                            menu_curopt = 3;
-                                            menu_level = 2;
-                                            break;
-                                        }
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
                                     }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
+
+                                    menu_curopt = opt2;
+                                    menu_level = 2;
+                                    menu_saverect = false;
                                 }
                             }
-                        }
-                        else if (options_num == 6) {
-
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // Video
-                                uint8_t opt1 = menuRun(MENU_VIDEO[Config::lang]);
-                                if (opt1 > 0) {
-                                    if (opt1 == 1) {
+                            else if (options_num == 6) {
+                                while (1) {
+                                    // Video
+                                    uint8_t opt1 = menuRun(MENU_VIDEO[Config::lang]);
+                                    if (opt1 > 0) {
                                         menu_level = 3;
                                         menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string opt_menu;
-                                            uint8_t prev_opt = Config::render;
-                                            if (prev_opt) {
-                                                menu_curopt = 2;
-                                                opt_menu = markSelectedOption(MENU_RENDER[Config::lang], "A");
-                                            } else {
-                                                menu_curopt = 1;
-                                                opt_menu = markSelectedOption(MENU_RENDER[Config::lang], "S");
-                                            }
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::render = 0;
-                                                else
-                                                    Config::render = 1;
-
-                                                if (Config::render != prev_opt) {
-                                                    Config::save("render");
-
+                                        if (opt1 == 1) {
+                                            handleUintConfigOption(
+                                                MENU_RENDER[Config::lang],
+                                                Config::render,
+                                                "render",
+                                                vector<string>{"S", "A"},
+                                                []() {
                                                     VIDEO::snow_toggle = Config::arch != "Pentagon" ? Config::render : false;
-
                                                     if (VIDEO::snow_toggle) {
                                                         VIDEO::Draw = &VIDEO::MainScreen_Blank_Snow;
                                                         VIDEO::Draw_Opcode = &VIDEO::MainScreen_Blank_Snow_Opcode;
@@ -3923,751 +3773,326 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                                         VIDEO::Draw = &VIDEO::MainScreen_Blank;
                                                         VIDEO::Draw_Opcode = &VIDEO::MainScreen_Blank_Opcode;
                                                     }
-
+                                                    return false;
                                                 }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
+                                            );
                                         }
-                                    }
-                                    else if (opt1 == 2) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-
-                                            // aspect ratio
-                                            string asp_menu;
-                                            bool prev_asp = Config::aspect_16_9;
-                                            if (prev_asp) {
-                                                menu_curopt = 2;
-                                                asp_menu = markSelectedOption(MENU_ASPECT[Config::lang], "1");
-                                            } else {
-                                                menu_curopt = 1;
-                                                asp_menu = markSelectedOption(MENU_ASPECT[Config::lang], "4");
-                                            }
-                                            uint8_t opt2 = menuRun(asp_menu);
-                                            if (opt2) {
-
-                                                if (Config::videomode == 2) opt2 = 1; // Force 4:3 aspect ratio in CRT mode
-
-                                                if (opt2 == 1)
-                                                    Config::aspect_16_9 = false;
-                                                else
-                                                    Config::aspect_16_9 = true;
-
-                                                if (Config::aspect_16_9 != prev_asp) {
+                                        else if (opt1 == 2) {
+                                            handleUintConfigOption(
+                                                MENU_ASPECT[Config::lang],
+                                                Config::aspect_16_9,
+                                                "asp169",
+                                                vector<string>{"4", "1"},
+                                                []() {
+                                                    if (Config::videomode == 2) {
+                                                        if (Config::aspect_16_9) return false;
+                                                        Config::aspect_16_9 = 1; // Force 4:3 aspect ratio in CRT mode
+                                                        Config::save("asp169");
+                                                    }
                                                     Config::rom_file = "none";
                                                     Config::ram_file = "none";
-                                                    Config::save("asp169");
                                                     Config::save("ram");
                                                     Config::save("rom");
                                                     esp_hard_reset();
+                                                    return false;
                                                 }
-
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-
-                                            } else {
-                                                menu_curopt = 2;
-                                                menu_level = 2;
-                                                break;
-                                            }
+                                            );
                                         }
-                                    }
-                                    else if (opt1 == 3) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string opt_menu = MENU_SCANLINES[Config::lang];
-                                            uint8_t prev_opt = Config::scanlines;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::scanlines = 1;
-                                                else
-                                                    Config::scanlines = 0;
-
-                                                if (Config::scanlines != prev_opt) {
+                                        else if (opt1 == 3) {
+                                            handleBoolConfigOption(MENU_SCANLINES[Config::lang], Config::scanlines, "scanlines",
+                                                []() {
                                                     Config::rom_file = "none";
                                                     Config::ram_file = "none";
-                                                    Config::save("scanlines");
                                                     Config::save("ram");
                                                     Config::save("rom");
-                                                    // Reset to apply if mode != CRT
+
                                                     if (Config::videomode!=2) esp_hard_reset();
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 3;
-                                                menu_level = 2;
-                                                break;
-                                            }
+                                                });
+
                                         }
+
+                                        menu_curopt = opt1;
+                                        menu_level = 2;
+
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
                                     }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
                                 }
                             }
-                        }
-                        else if (options_num == 7) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // Mouse
-                                uint8_t opt1 = menuRun(MENU_MOUSE[Config::lang]);
-                                if (opt1 > 0) {
-                                    if (opt1 == 1) {
+                            else if (options_num == 7) {
+                                while (1) {
+                                    // Mouse
+                                    uint8_t opt1 = menuRun(MENU_MOUSE[Config::lang]);
+                                    if (opt1 > 0) {
                                         menu_level = 3;
                                         menu_curopt = 1;
                                         menu_saverect = true;
-                                        while (1) {
-                                            uint8_t values[] = { 10, 20, 40, 60, 80, 100, 200 };
 
-                                            string mouse_sample_rate_menu = markSelectedOption(MENU_MOUSE_SAMPLE_RATE[Config::lang], to_string(Config::mousesamplerate));
-                                            menu_curopt = std::find(values, values + sizeof(values)/sizeof(values[0]), Config::mousesamplerate) - values;
-                                            if ( menu_curopt > sizeof(values)/sizeof(values[0]) ) menu_curopt = 1;
-                                            else menu_curopt = menu_curopt + 1;
-                                            uint8_t opt2 = menuRun(mouse_sample_rate_menu);
-                                            if (opt2) {
-                                                if (Config::mousesamplerate != values[opt2 - 1]) {
-                                                    Config::mousesamplerate = values[opt2 - 1];
-                                                    Config::save("MouseSampleRate");
-                                                    if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setSampleRate(Config::mousesamplerate);
+                                        if (opt1 == 1) {
+                                            while (1) {
+                                                uint8_t values[] = { 10, 20, 40, 60, 80, 100, 200 };
+                                                string mouse_sample_rate_menu = markSelectedOption(MENU_MOUSE_SAMPLE_RATE[Config::lang], to_string(Config::mousesamplerate));
+                                                menu_curopt = std::find(values, values + sizeof(values)/sizeof(values[0]), Config::mousesamplerate) - values;
+                                                if ( menu_curopt > sizeof(values)/sizeof(values[0]) ) menu_curopt = 1;
+                                                else menu_curopt = menu_curopt + 1;
+                                                uint8_t opt2 = menuRun(mouse_sample_rate_menu);
+                                                if (opt2) {
+                                                    if (Config::mousesamplerate != values[opt2 - 1]) {
+                                                        Config::mousesamplerate = values[opt2 - 1];
+                                                        Config::save("MouseSampleRate");
+                                                        if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setSampleRate(Config::mousesamplerate);
+                                                    }
+                                                    menu_curopt = opt2;
+                                                    menu_saverect = false;
+                                                } else {
+                                                    break;
                                                 }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
                                             }
                                         }
-                                    }
-                                    else if (opt1 == 2) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string mouse_dpi_menu = markSelectedOption(MENU_MOUSE_DPI[Config::lang], to_string(Config::mousedpi));
-                                            menu_curopt = Config::mousedpi + 1;
-                                            uint8_t opt2 = menuRun(mouse_dpi_menu);
-                                            if (opt2) {
-                                                if (Config::mousedpi != opt2 - 1) {
-                                                    Config::mousedpi = opt2 - 1;
-                                                    Config::save("MouseDPI");
-                                                    if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setResolution(Config::mousedpi);
+                                        else if (opt1 == 2) {
+                                            while (1) {
+                                                string mouse_dpi_menu = markSelectedOption(MENU_MOUSE_DPI[Config::lang], to_string(Config::mousedpi));
+                                                menu_curopt = Config::mousedpi + 1;
+                                                uint8_t opt2 = menuRun(mouse_dpi_menu);
+                                                if (opt2) {
+                                                    if (Config::mousedpi != opt2 - 1) {
+                                                        Config::mousedpi = opt2 - 1;
+                                                        Config::save("MouseDPI");
+                                                        if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setResolution(Config::mousedpi);
+                                                    }
+                                                    menu_curopt = opt2;
+                                                    menu_saverect = false;
+                                                } else {
+                                                    break;
                                                 }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 2;
-                                                menu_level = 2;
-                                                break;
                                             }
                                         }
-                                    }
-                                    else if (opt1 == 3) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string mouse_scaling_menu = markSelectedOption(MENU_MOUSE_SCALING[Config::lang], to_string(Config::mousescaling));
-                                            menu_curopt = Config::mousescaling;
-                                            uint8_t opt2 = menuRun(mouse_scaling_menu);
-                                            if (opt2) {
-                                                if (Config::mousescaling != opt2) {
-                                                    Config::mousescaling = opt2;
-                                                    Config::save("MouseScaling");
-                                                    if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setScaling(Config::mousescaling);
+                                        else if (opt1 == 3) {
+                                            while (1) {
+                                                string mouse_scaling_menu = markSelectedOption(MENU_MOUSE_SCALING[Config::lang], to_string(Config::mousescaling));
+                                                menu_curopt = Config::mousescaling;
+                                                uint8_t opt2 = menuRun(mouse_scaling_menu);
+                                                if (opt2) {
+                                                    if (Config::mousescaling != opt2) {
+                                                        Config::mousescaling = opt2;
+                                                        Config::save("MouseScaling");
+                                                        if (ESPeccy::PS2Controller.mouse()) ESPeccy::PS2Controller.mouse()->setScaling(Config::mousescaling);
+                                                    }
+                                                    menu_curopt = opt2;
+                                                    menu_saverect = false;
+                                                } else {
+                                                    break;
                                                 }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 3;
-                                                menu_level = 2;
-                                                break;
                                             }
                                         }
+                                        menu_curopt = opt1;
+                                        menu_level = 2;
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
                                     }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
                                 }
                             }
-                        }
-                        else if (options_num == 8) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // Sound
-                                uint8_t opt1 = menuRun(MENU_SOUND[Config::lang]);
-                                if (opt1 > 0) {
-                                    if (opt1 == 1) {
+                            else if (options_num == 8) {
+                                while (1) {
+                                    // Sound
+                                    uint8_t opt1 = menuRun(MENU_SOUND[Config::lang]);
+                                    if (opt1 > 0) {
                                         menu_level = 3;
                                         menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string ay_menu = MENU_AY48[Config::lang];
-                                            bool prev_ay48 = Config::AY48;
-                                            if (prev_ay48) {
-                                                menu_curopt = 1;
-                                                ay_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                ay_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(ay_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::AY48 = true;
-                                                else
-                                                    Config::AY48 = false;
 
-                                                if (Config::AY48 != prev_ay48) {
-                                                if (Z80Ops::is48) {
-                                                    ESPeccy::AY_emu = Config::AY48;
-                                                    if (ESPeccy::AY_emu == false) {
-                                                    for (int i=0; i < ESPeccy::samplesPerFrame; i++)
-                                                        AySound::SamplebufAY[i] = ESPeccy::audioBuffer[i] = 0;
-                                                }
-                                                    ESPeccy::aud_active_sources = (Config::Covox & 0x01) | (ESPeccy::AY_emu << 1);
-                                                }
-
-                                                Config::save("AY48");
-                                            }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
+                                        if (opt1 == 1) {
+                                            handleBoolConfigOption(MENU_AY48[Config::lang], Config::AY48, "AY48",
+                                                []() {
+                                                    if (Z80Ops::is48) {
+                                                        ESPeccy::AY_emu = Config::AY48;
+                                                        if (ESPeccy::AY_emu == false) {
+                                                        for (int i=0; i < ESPeccy::samplesPerFrame; i++)
+                                                            AySound::SamplebufAY[i] = ESPeccy::audioBuffer[i] = 0;
+                                                        }
+                                                        ESPeccy::aud_active_sources = (Config::Covox & 0x01) | (ESPeccy::AY_emu << 1);
+                                                    }
+                                                });
                                         }
-                                    }
-                                    else if (opt1 == 2) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string optmenu;
-                                            uint8_t prev_opt = Config::Covox;
-                                            if (prev_opt == 0) {
-                                                menu_curopt = 1;
-                                                optmenu = markSelectedOption(MENU_COVOX[Config::lang], "N");
-                                            } else
-                                            if (prev_opt == 1) {
-                                                menu_curopt = 2;
-                                                optmenu = markSelectedOption(MENU_COVOX[Config::lang], "M");
-                                            } else
-                                            if (prev_opt == 2) {
-                                                menu_curopt = 3;
-                                                optmenu = markSelectedOption(MENU_COVOX[Config::lang], "S");
-                                            } else
-                                            if (prev_opt == 3) {
-                                                menu_curopt = 4;
-                                                optmenu = markSelectedOption(MENU_COVOX[Config::lang], "1");
-                                            } else
-                                            if (prev_opt == 4) {
-                                                menu_curopt = 5;
-                                                optmenu = markSelectedOption(MENU_COVOX[Config::lang], "2");
-                                            }
-                                            uint8_t opt2 = menuRun(optmenu);
-                                            if (opt2) {
-                                                if (Config::Covox != (opt2 - 1)) {
-                                                    Config::Covox = opt2 -1;
-                                                    Config::save("Covox");
+                                        else if (opt1 == 2) {
+                                            handleUintConfigOption(
+                                                MENU_COVOX[Config::lang],
+                                                Config::Covox,
+                                                "Covox",
+                                                vector<string>{"N", "M", "S", "1", "2"},
+                                                [] {
                                                     ESPeccy::covoxData[0] = ESPeccy::covoxData[1] = ESPeccy::covoxData[2] = ESPeccy::covoxData[3] = 0;
-                                                    for (int i=0; i < ESPeccy::samplesPerFrame; i++)
+                                                    for (int i = 0; i < ESPeccy::samplesPerFrame; i++)
                                                         ESPeccy::SamplebufCOVOX[i] = ESPeccy::audioBuffer[i] = 0;
                                                     ESPeccy::aud_active_sources = (Config::Covox & 0x01) | (ESPeccy::AY_emu << 1);
+                                                    return false;
                                                 }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 2;
-                                                menu_level = 2;
-                                                break;
-                                            }
+                                            );
                                         }
-                                    }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 9) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // Other
-                                uint8_t opt1 = menuRun(MENU_OTHER[Config::lang]);
-                                if (opt1 > 0) {
-                                    if (opt1 == 1) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string alu_menu;
-                                            uint8_t prev_AluTiming = Config::AluTiming;
-                                            if (prev_AluTiming == 0) {
-                                                menu_curopt = 1;
-                                                alu_menu = markSelectedOption(MENU_ALUTIMING[Config::lang], "E");
-                                            } else {
-                                                menu_curopt = 2;
-                                                alu_menu = markSelectedOption(MENU_ALUTIMING[Config::lang], "L");
-                                            }
-                                            uint8_t opt2 = menuRun(alu_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::AluTiming = 0;
-                                                else
-                                                    Config::AluTiming = 1;
 
-                                                if (Config::AluTiming != prev_AluTiming) {
-                                                    CPU::latetiming = Config::AluTiming;
-                                                    Config::save("AluTiming");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = opt1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt1 == 2) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string iss_menu = MENU_ISSUE2[Config::lang];
-                                            bool prev_iss = Config::Issue2;
-                                            if (prev_iss) {
-                                                menu_curopt = 1;
-                                                iss_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                iss_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(iss_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::Issue2 = true;
-                                                else
-                                                    Config::Issue2 = false;
+                                        menu_curopt = opt1;
+                                        menu_level = 2;
 
-                                                if (Config::Issue2 != prev_iss) {
-                                                    Config::save("Issue2");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = opt1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt1 == 3) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string alu_menu;
-                                            int prev_alu = Config::ALUTK;
-                                            if (prev_alu == 0) {
-                                                menu_curopt = 1;
-                                                alu_menu = markSelectedOption(MENU_ALUTK_PREF[Config::lang], "F");
-                                            } else if (prev_alu == 1) {
-                                                menu_curopt = 2;
-                                                alu_menu = markSelectedOption(MENU_ALUTK_PREF[Config::lang], "5");
-                                            } else if (prev_alu == 2) {
-                                                menu_curopt = 3;
-                                                alu_menu = markSelectedOption(MENU_ALUTK_PREF[Config::lang], "6");
-                                            }
-                                            uint8_t opt2 = menuRun(alu_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::ALUTK = 0;
-                                                else if (opt2 == 2)
-                                                    Config::ALUTK = 1;
-                                                else if (opt2 == 3)
-                                                    Config::ALUTK = 2;
-
-                                                if (Config::ALUTK != prev_alu) {
-
-                                                    Config::save("ALUTK");
-
-                                                    // ALU Changed, Reset the emulator if we're using some TK model
-                                                    if (Config::arch[0] == 'T') {
-
-                                                        if (Config::videomode) {
-                                                            // ESP host reset
-                                                            Config::rom_file = NO_ROM_FILE;
-                                                            Config::save("rom");
-                                                            Config::ram_file = NO_RAM_FILE;
-                                                            Config::save("ram");
-                                                            esp_hard_reset();
-                                                        } else {
-                                                            Config::rom_file = NO_ROM_FILE;
-                                                            Config::last_rom_file = NO_ROM_FILE;
-
-                                                            Config::ram_file = NO_RAM_FILE;
-                                                            Config::last_ram_file = NO_RAM_FILE;
-
-                                                            // Clear Cheat data
-                                                            CheatMngr::closeCheatFile();
-
-                                                            ESPeccy::reset();
-                                                        }
-
-                                                        return;
-
-                                                    }
-
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = opt1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt1 == 4) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string ps2_menu;
-                                            uint8_t prev_ps2 = Config::ps2_dev2;
-                                            if (prev_ps2 == 1) {
-                                                menu_curopt = 2;
-                                                ps2_menu = markSelectedOption(MENU_KBD2NDPS2[Config::lang], "K");
-                                            } else if (prev_ps2 == 2) {
-                                                menu_curopt = 3;
-                                                ps2_menu = markSelectedOption(MENU_KBD2NDPS2[Config::lang], "M");
-                                            } else {
-                                                menu_curopt = 1;
-                                                ps2_menu = markSelectedOption(MENU_KBD2NDPS2[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(ps2_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::ps2_dev2 = 0;
-                                                else if (opt2 == 2)
-                                                    Config::ps2_dev2 = 1;
-                                                else
-                                                    Config::ps2_dev2 = 2;
-
-                                                if (Config::ps2_dev2 != prev_ps2) {
-                                                    Config::save("PS2Dev2");
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = opt1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt1 == 5) {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-                                        while (1) {
-                                            string kbd_layout_menu = MENU_CUSTOM_KBD_LAYOUT[Config::lang];
-                                            bool prev_kbd_layout = Config::KBDLayoutEnable;
-                                            if (prev_kbd_layout) {
-                                                menu_curopt = 1;
-                                                kbd_layout_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                kbd_layout_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-                                            uint8_t opt2 = menuRun(kbd_layout_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)
-                                                    Config::KBDLayoutEnable = true;
-                                                else
-                                                    Config::KBDLayoutEnable = false;
-
-                                                if (Config::KBDLayoutEnable != prev_kbd_layout) {
-                                                    Config::save("KBDLayoutEnable");
-                                                    KBDLayout::reset();
-                                                }
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = opt1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 10) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // language
-                                uint8_t opt2;
-                                string Mnustr;
-                                uint8_t prev_lang = Config::lang;
-                                if (prev_lang == 0) {
-                                    Mnustr = markSelectedOption(MENU_INTERFACE_LANG[Config::lang], "E");
-                                } else if (prev_lang == 1) {
-                                    Mnustr = markSelectedOption(MENU_INTERFACE_LANG[Config::lang], "S");
-                                } else if (prev_lang == 2) {
-                                    Mnustr = markSelectedOption(MENU_INTERFACE_LANG[Config::lang], "P");
-                                }
-                                menu_curopt = Config::lang + 1;
-                                opt2 = menuRun(Mnustr);
-                                if (opt2) {
-                                    if (Config::lang != (opt2 - 1)) {
-                                        Config::lang = opt2 - 1;
-                                        Config::save("language");
-                                        VIDEO::setCodepage(LANGCODEPAGE[Config::lang]);
-                                        return;
-                                    }
-                                    menu_curopt = opt2;
-                                    menu_saverect = false;
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-                            }
-                        }
-                        else if (options_num == 11) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                // options for UI
-                                string opt_menu = MENU_UI[Config::lang];
-                                uint8_t opt2 = menuRun(opt_menu);
-                                if (opt2) {
-                                    if (opt2 == 1)
-                                    {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-
-                                        while (1){
-                                            string opt_menu = MENU_UI_OPT[Config::lang];
-                                            bool prev_opt = Config::osd_LRNav;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)  Config::osd_LRNav = 1;
-                                                else            Config::osd_LRNav = 0;
-
-                                                if (Config::osd_LRNav != prev_opt) Config::save("osd_LRNav");
-
-                                                menu_curopt = opt2;
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt2==2)
-                                    {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-
-                                        while (1){
-                                            string opt_menu = MENU_UI_OPT[Config::lang];
-                                            bool prev_opt = Config::osd_AltRot;
-                                            if (prev_opt) {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_UI_TEXT_SCROLL, "P");
-                                            } else {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_UI_TEXT_SCROLL, "N");
-                                            }
-
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)  Config::osd_AltRot = 0;
-                                                else            Config::osd_AltRot = 1;
-
-                                                menu_curopt = opt2;
-
-                                                if (Config::osd_AltRot != prev_opt) Config::save("osd_AltRot");
-
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt2==3)
-                                    {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-
-                                        while (1){
-                                            string opt_menu = MENU_UI_OPT[Config::lang];
-                                            bool prev_opt = Config::thumbsEnabled;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)  Config::thumbsEnabled = 1;
-                                                else            Config::thumbsEnabled = 0;
-
-                                                menu_curopt = opt2;
-
-                                                if (Config::thumbsEnabled != prev_opt) Config::save("thumbsEnabled");
-
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    else if (opt2==4)
-                                    {
-                                        menu_level = 3;
-                                        menu_curopt = 1;
-                                        menu_saverect = true;
-
-                                        while (1){
-                                            string opt_menu = MENU_UI_OPT[Config::lang];
-                                            bool prev_opt = Config::instantPreview;
-                                            if (prev_opt) {
-                                                menu_curopt = 1;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "Y");
-                                            } else {
-                                                menu_curopt = 2;
-                                                opt_menu += markSelectedOption(MENU_YESNO[Config::lang], "N");
-                                            }
-
-                                            uint8_t opt2 = menuRun(opt_menu);
-                                            if (opt2) {
-                                                if (opt2 == 1)  Config::instantPreview = 1;
-                                                else            Config::instantPreview = 0;
-
-                                                menu_curopt = opt2;
-
-                                                if (Config::instantPreview != prev_opt) Config::save("instantPreview");
-
-                                                menu_saverect = false;
-                                            } else {
-                                                menu_curopt = 1;
-                                                menu_level = 2;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    menu_curopt = opt2;
-                                    menu_saverect = false;
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
-                                }
-
-                            }
-
-                        }
-                        else if (options_num == 12) {
-                            menu_level = 2;
-                            menu_curopt = 1;
-                            menu_saverect = true;
-                            while (1) {
-                                string realtape_gpio_menu;
-                                uint8_t prev_realtape_gpio_num = Config::realtape_gpio_num;
-
-                                if (ZXKeyb::Exists) {
-                                    if (Config::psramsize > 0) {
-                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_PSRAM;
                                     } else {
-                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_NO_PSRAM;
+                                        menu_curopt = options_num;
+                                        break;
                                     }
-                                } else {
-                                    realtape_gpio_menu = MENU_REALTAPE_OPTIONS_LILY;
-                                }
-
-                                std::vector<std::string> values = extractValues(realtape_gpio_menu);
-                                uint8_t val = Config::realtape_gpio_num;
-
-                                auto it = std::find(values.begin(), values.end(), to_string(val));
-                                if (it != values.end()) {
-                                    menu_curopt = std::distance(values.begin(), it) + 1;
-                                } else {
-                                    val = std::stoi(values[0]);
-                                    menu_curopt = 1;
-                                }
-
-                                realtape_gpio_menu = markSelectedOption(realtape_gpio_menu, to_string(val));
-
-                                uint8_t opt2 = menuRun(realtape_gpio_menu);
-                                if (opt2) {
-
-                                    if (std::stoi(values[opt2-1]) != prev_realtape_gpio_num) {
-                                        Config::realtape_gpio_num = std::stoi(values[opt2-1]);
-                                        Config::save("RealTapeGPIO");
-                                        RealTape_init(NULL);
-                                    }
-
-                                    menu_curopt = opt2;
-                                    menu_saverect = false;
-
-                                } else {
-                                    menu_curopt = options_num;
-                                    break;
                                 }
                             }
+                            else if (options_num == 9) {
+                                uint8_t prev_lang = Config::lang;
+                                if (handleUintConfigOption(
+                                        MENU_INTERFACE_LANG[Config::lang],
+                                        Config::lang,
+                                        "language",
+                                        vector<string>{"E", "S", "P"},
+                                        [] {
+                                            VIDEO::setCodepage(LANGCODEPAGE[Config::lang]);
+                                            return true;
+                                        }
+                                    )
+                                ) {
+                                    return;
+                                }
+
+                                if (Config::lang != prev_lang) return;
+
+                                menu_curopt = options_num;
+                            }
+                            else if (options_num == 10) {
+                                while (1) {
+                                    // options for UI
+                                    string opt_menu = MENU_UI[Config::lang];
+                                    uint8_t opt2 = menuRun(opt_menu);
+                                    if (opt2 > 0) {
+                                        menu_level = 3;
+                                        menu_curopt = 1;
+
+                                        if (opt2 == 1) {
+                                            handleBoolConfigOption(MENU_UI_OPT[Config::lang], Config::osd_LRNav, "osd_LRNav",
+                                                []() {
+                                                    if (Z80Ops::is48) {
+                                                        ESPeccy::AY_emu = Config::AY48;
+                                                        if (ESPeccy::AY_emu == false) {
+                                                        for (int i=0; i < ESPeccy::samplesPerFrame; i++)
+                                                            AySound::SamplebufAY[i] = ESPeccy::audioBuffer[i] = 0;
+                                                        }
+                                                        ESPeccy::aud_active_sources = (Config::Covox & 0x01) | (ESPeccy::AY_emu << 1);
+                                                    }
+                                                });
+
+                                        }
+                                        else if (opt2 == 2) {
+                                            const string menu = string(MENU_UI_OPT[Config::lang]) + MENU_UI_TEXT_SCROLL;
+                                            handleUintConfigOption(
+                                                menu,
+                                                Config::osd_AltRot,
+                                                "osd_AltRot",
+                                                vector<string>{"N", "P"}
+                                            );
+                                        }
+                                        else if (opt2 == 3) {
+                                            handleBoolConfigOption(MENU_UI_OPT[Config::lang], Config::thumbsEnabled, "thumbsEnabled");
+
+                                        }
+                                        else if (opt2 == 4) {
+                                            handleBoolConfigOption(MENU_UI_OPT[Config::lang], Config::instantPreview, "instantPreview");
+                                        }
+
+                                        menu_curopt = opt2;
+                                        menu_level = 2;
+
+                                    } else {
+                                        menu_curopt = options_num;
+                                        break;
+                                    }
+
+                                }
+
+                            }
+                            else if (options_num == 11) {
+                                while (1) {
+                                    // Other
+                                    uint8_t opt1 = menuRun(MENU_OTHER[Config::lang]);
+                                    if (opt1 > 0) {
+                                        menu_level = 3;
+                                        menu_curopt = 1;
+                                        if (opt1 == 1) {
+                                            handleUintConfigOption(
+                                                MENU_ALUTIMING[Config::lang],
+                                                Config::AluTiming,
+                                                "AluTiming",
+                                                vector<string>{"E", "L"},
+                                                []() {
+                                                    CPU::latetiming = Config::AluTiming;
+                                                    return false;
+                                                }
+                                            );
+                                        }
+                                        else if (opt1 == 2) {
+                                            handleBoolConfigOption(MENU_ISSUE2[Config::lang], Config::Issue2, "Issue2");
+                                        }
+                                        else if (opt1 == 3) {
+                                            if (handleUintConfigOption(
+                                                    MENU_ALUTK_PREF[Config::lang],
+                                                    Config::ALUTK,
+                                                    "ALUTK",
+                                                    vector<string>{"F", "5", "6"},
+                                                    []() {
+                                                        // ALU Changed, Reset the emulator if we're using some TK model
+                                                        if (Config::arch[0] == 'T') {
+                                                            if (Config::videomode) {
+                                                                // ESP host reset
+                                                                Config::rom_file = NO_ROM_FILE;
+                                                                Config::save("rom");
+                                                                Config::ram_file = NO_RAM_FILE;
+                                                                Config::save("ram");
+                                                                esp_hard_reset();
+                                                            } else {
+                                                                Config::rom_file = NO_ROM_FILE;
+                                                                Config::last_rom_file = NO_ROM_FILE;
+
+                                                                Config::ram_file = NO_RAM_FILE;
+                                                                Config::last_ram_file = NO_RAM_FILE;
+
+                                                                // Clear Cheat data
+                                                                CheatMngr::closeCheatFile();
+
+                                                                ESPeccy::reset();
+                                                            }
+                                                            return true;
+                                                        }
+                                                        return false;
+                                                    }
+                                                )
+                                            ) {
+                                                return;
+                                            }
+                                        }
+                                        else if (opt1 == 4) {
+                                            handleUintConfigOption(
+                                                MENU_KBD2NDPS2[Config::lang],
+                                                Config::ps2_dev2,
+                                                "PS2Dev2",
+                                                vector<string>{"N", "K", "M"}
+                                            );
+                                        }
+                                        else if (opt1 == 5) {
+                                            handleBoolConfigOption(MENU_CUSTOM_KBD_LAYOUT[Config::lang], Config::KBDLayoutEnable, "KBDLayoutEnable");
+                                        }
+
+                                        menu_curopt = opt1;
+                                        menu_level = 2;
+
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                            menu_level = 1;
+                            menu_curopt = options_num;
+                            menu_saverect = false;
                         }
                         else {
                             menu_curopt = opt;
@@ -4754,7 +4179,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                     // About
                     drawOSD(false);
 
-                    VIDEO::fillRect(osdInsideX(), osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(0, 0));
+                    VIDEO::fillRect(osdInsideX(), osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(BLACK, BRIGHT_OFF));
 
                     // Decode Logo in EBF8 format
                     int logo_w = (ESPeccy_logo[5] << 8) + ESPeccy_logo[4]; // Get Width
@@ -4764,7 +4189,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
 
                     drawCompressedBMP(pos_x, pos_y, ESPeccy_logo);
 
-                    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+                    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
 
                     pos_x = osdInsideX() + OSD_FONT_W;
                     pos_y = osdInsideY() + 50 + 2;
@@ -4772,8 +4197,8 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                     int osdRow = 0; int osdCol = 0;
                     int msgIndex = 0; int msgChar = 0;
                     int msgDelay = 0; int cursorBlink = 16; int nextChar = 0;
-                    uint16_t cursorCol = zxColor(7,0);
-                    uint16_t cursorCol2 = zxColor(0,0);
+                    uint16_t cursorCol = zxColor(WHITE, BRIGHT_OFF);
+                    uint16_t cursorCol2 = zxColor(BLACK, BRIGHT_OFF);
 
                     while (1) {
                         if (msgDelay == 0) {
@@ -4791,7 +4216,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     VIDEO::drawChar(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), nextChar);
                                 }
                             } else {
-                                VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W, OSD_FONT_H, zxColor(0, 0) );
+                                VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W, OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF) );
                             }
 
                             osdCol++;
@@ -4803,7 +4228,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                     osdCol--;
                                     msgDelay = 192;
                                 } else {
-                                    VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W,OSD_FONT_H, zxColor(0, 0) );
+                                    VIDEO::fillRect(pos_x + (osdCol * OSD_FONT_W), pos_y + (osdRow * OSD_FONT_H), OSD_FONT_W,OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF) );
                                     osdCol = 0;
                                     msgChar++;
                                     osdRow++;
@@ -4812,7 +4237,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                         } else {
                             msgDelay--;
                             if (msgDelay==0) {
-                                VIDEO::fillRect(osdInsideX(), osdInsideY() + 50 + 2, OSD_W - OSD_FONT_W - 2, ( osdRow + 1 ) * OSD_FONT_H, zxColor(0, 0)); // Clean page
+                                VIDEO::fillRect(osdInsideX(), osdInsideY() + 50 + 2, OSD_W - OSD_FONT_W - 2, ( osdRow + 1 ) * OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF)); // Clean page
 
                                 osdCol = 0;
                                 osdRow  = 0;
@@ -4872,7 +4297,7 @@ void OSD::HWInfo() {
     drawOSD(true);
     osdAt(2, 0);
 
-    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
 
     // Get chip information
     esp_chip_info_t chip_info;
@@ -5434,18 +4859,18 @@ void OSD::progressDialog(const string& title, const string& msg, int percent, in
         VIDEO::setFont(SystemFont);
 
         // Menu border
-        VIDEO::rect(x, y, w, h, zxColor(0, 0));
+        VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
-        VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(0,0));
-        VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(7,1));
+        VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF));
+        VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(WHITE, BRIGHT_ON));
 
         // Title
-        VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
         VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
         for (int i=0; i < tw; i++) VIDEO::print((const char)title[i]);
 
         // Msg
-        VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
         VIDEO::setCursor(scrAlignCenterX(mw * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
         for (int i=0; i < mw; i++) VIDEO::print((const char)msg[i]);
 
@@ -5455,7 +4880,7 @@ void OSD::progressDialog(const string& title, const string& msg, int percent, in
         uint8_t rb_colors[] = {2, 6, 4, 5};
         for (uint8_t c = 0; c < 4; c++) {
             for (uint8_t i = 0; i < 5; i++) {
-                VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+                VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
             }
             rb_paint_x += 5;
         }
@@ -5464,7 +4889,7 @@ void OSD::progressDialog(const string& title, const string& msg, int percent, in
             // Progress bar frame
             progress_x = scrAlignCenterX(72);
             progress_y = y + (OSD_FONT_H * 4);
-            VIDEO::rect(progress_x, progress_y, 72, OSD_FONT_H + 2, zxColor(0, 0));
+            VIDEO::rect(progress_x, progress_y, 72, OSD_FONT_H + 2, zxColor(BLACK, BRIGHT_OFF));
             progress_x++;
             progress_y++;
         }
@@ -5472,15 +4897,15 @@ void OSD::progressDialog(const string& title, const string& msg, int percent, in
     } else if (action == 1 ) { // UPDATE
 
         // Msg
-        VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
         VIDEO::setCursor(scrAlignCenterX(msg.length() * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
         VIDEO::print(msg.c_str());
 
         if ( !noprogressbar ) {
             // Progress bar
             int barsize = (70 * percent) / 100;
-            VIDEO::fillRect(progress_x, progress_y, barsize, OSD_FONT_H, zxColor(5,1));
-            VIDEO::fillRect(progress_x + barsize, progress_y, 70 - barsize, OSD_FONT_H, zxColor(7,1));
+            VIDEO::fillRect(progress_x, progress_y, barsize, OSD_FONT_H, zxColor(CYAN, BRIGHT_ON));
+            VIDEO::fillRect(progress_x + barsize, progress_y, 70 - barsize, OSD_FONT_H, zxColor(WHITE, BRIGHT_ON));
         }
 
     } else if (action == 2) { // CLOSE
@@ -5515,34 +4940,34 @@ uint8_t OSD::msgDialog(const string& title, const string& msg) {
     VIDEO::setFont(SystemFont);
 
     // Menu border
-    VIDEO::rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
-    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(0,0));
-    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(7,1));
+    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(WHITE, BRIGHT_ON));
 
     // Title
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
     VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
     for (int i=0; i < tw; i++) VIDEO::print((const char)title[i]);
 
     // Msg
-    VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(scrAlignCenterX(mw * OSD_FONT_W), y + 1 + (OSD_FONT_H * 2));
     for (int i=0; i < mw; i++) VIDEO::print((const char)msg[i]);
 
     // Yes
-    VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) - (w >> 2), y + 1 + (OSD_FONT_H * 4));
     // VIDEO::print(Config::lang ? "  S\xA1  " : " Yes  ");
     VIDEO::print(OSD_MSGDIALOG_YES[Config::lang]);
 
     // // Ruler
-    // VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+    // VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
     // VIDEO::setCursor(x + 1, y + 1 + (OSD_FONT_H * 3));
     // VIDEO::print("123456789012345678901234567");
 
     // No
-    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) + (w >> 2), y + 1 + (OSD_FONT_H * 4));
     VIDEO::print(OSD_MSGDIALOG_NO[Config::lang]);
     // VIDEO::print("  No  ");
@@ -5553,7 +4978,7 @@ uint8_t OSD::msgDialog(const string& title, const string& msg) {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; i++) {
-            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
         }
         rb_paint_x += 5;
     }
@@ -5573,12 +4998,12 @@ uint8_t OSD::msgDialog(const string& title, const string& msg) {
 
                 if (Menukey.vk == fabgl::VK_LEFT || Menukey.vk == fabgl::VK_JOY1LEFT || Menukey.vk == fabgl::VK_JOY2LEFT) {
                     // Yes
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) - (w >> 2), y + 1 + (OSD_FONT_H * 4));
                     //VIDEO::print(Config::lang ? "  S\xA1  " : " Yes  ");
                     VIDEO::print(OSD_MSGDIALOG_YES[Config::lang]);
                     // No
-                    VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) + (w >> 2), y + 1 + (OSD_FONT_H * 4));
                     VIDEO::print(OSD_MSGDIALOG_NO[Config::lang]);
                     // VIDEO::print("  No  ");
@@ -5586,12 +5011,12 @@ uint8_t OSD::msgDialog(const string& title, const string& msg) {
                     res = DLG_YES;
                 } else if (Menukey.vk == fabgl::VK_RIGHT || Menukey.vk == fabgl::VK_JOY1RIGHT || Menukey.vk == fabgl::VK_JOY2RIGHT) {
                     // Yes
-                    VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) - (w >> 2), y + 1 + (OSD_FONT_H * 4));
                     VIDEO::print(OSD_MSGDIALOG_YES[Config::lang]);
                     //VIDEO::print(Config::lang ? "  S\xA1  " : " Yes  ");
                     // No
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(scrAlignCenterX(6 * OSD_FONT_W) + (w >> 2), y + 1 + (OSD_FONT_H * 4));
                     VIDEO::print(OSD_MSGDIALOG_NO[Config::lang]);
                     // VIDEO::print("  No  ");
@@ -5863,18 +5288,18 @@ string vkToText(int key) {
 }
 
 unsigned int joyControl[12][3]={
-    {6*OSD_FONT_W-OSD_FONT_W/2,((55-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Left
-    {15*OSD_FONT_W-OSD_FONT_W/2,((55-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Right
-    {11*OSD_FONT_W-OSD_FONT_W/2,((30-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Up
-    {11*OSD_FONT_W-OSD_FONT_W/2,((78-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Down
-    {((49-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((109-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Start
-    {((136-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((109-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Mode
-    {((145-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // A
-    {((205-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // B
-    {((265-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // C
-    {((145-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // X
-    {((205-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)}, // Y
-    {((265-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(0,0)} // Z
+    {6*OSD_FONT_W-OSD_FONT_W/2,((55-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Left
+    {15*OSD_FONT_W-OSD_FONT_W/2,((55-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Right
+    {11*OSD_FONT_W-OSD_FONT_W/2,((30-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Up
+    {11*OSD_FONT_W-OSD_FONT_W/2,((78-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Down
+    {((49-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((109-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Start
+    {((136-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((109-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Mode
+    {((145-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // A
+    {((205-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // B
+    {((265-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((69-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // C
+    {((145-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // X
+    {((205-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)}, // Y
+    {((265-4)/6)*OSD_FONT_W+OSD_FONT_W/2,((37-4)/8)*OSD_FONT_H+OSD_FONT_H/2,zxColor(BLACK, BRIGHT_OFF)} // Z
 };
 
 void DrawjoyControls(unsigned short x, unsigned short y) {
@@ -5902,47 +5327,47 @@ void DrawjoyControls(unsigned short x, unsigned short y) {
     }
 
     // START text
-    VIDEO::setTextColor(joyControl[4][2], zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[4][2], zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[4][0], y + joyControl[4][1]);
     VIDEO::print("START");
 
     // MODE text
-    VIDEO::setTextColor(joyControl[5][2], zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[5][2], zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[5][0], y + joyControl[5][1]);
     VIDEO::print("MODE");
 
     // Text A
-    VIDEO::setTextColor( joyControl[6][2],zxColor(7, 1));
+    VIDEO::setTextColor( joyControl[6][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[6][0], y + joyControl[6][1]);
     VIDEO::circle(x + joyControl[6][0] + 3, y + joyControl[6][1] + 3, 6,  joyControl[6][2]);
     VIDEO::print("A");
 
     // Text B
-    VIDEO::setTextColor(joyControl[7][2],zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[7][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[7][0], y + joyControl[7][1]);
     VIDEO::circle(x + joyControl[7][0] + 3, y + joyControl[7][1] + 3, 6,  joyControl[7][2]);
     VIDEO::print("B");
 
     // Text C
-    VIDEO::setTextColor(joyControl[8][2],zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[8][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[8][0], y + joyControl[8][1]);
     VIDEO::circle(x + joyControl[8][0] + 3, y + joyControl[8][1] + 3, 6, joyControl[8][2]);
     VIDEO::print("C");
 
     // Text X
-    VIDEO::setTextColor(joyControl[9][2],zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[9][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[9][0], y + joyControl[9][1]);
     VIDEO::circle(x + joyControl[9][0] + 3, y + joyControl[9][1] + 3, 6, joyControl[9][2]);
     VIDEO::print("X");
 
     // Text Y
-    VIDEO::setTextColor(joyControl[10][2],zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[10][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[10][0], y + joyControl[10][1]);
     VIDEO::circle(x + joyControl[10][0] + 3, y + joyControl[10][1] + 3, 6, joyControl[10][2]);
     VIDEO::print("Y");
 
     // Text Z
-    VIDEO::setTextColor(joyControl[11][2],zxColor(7, 1));
+    VIDEO::setTextColor(joyControl[11][2],zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyControl[11][0], y + joyControl[11][1]);
     VIDEO::circle(x + joyControl[11][0] + 3, y + joyControl[11][1] + 3, 6, joyControl[11][2]);
     VIDEO::print("Z");
@@ -6004,13 +5429,13 @@ void OSD::joyDialog(uint8_t joynum) {
     VIDEO::setFont(SystemFont);
 
     // Menu border
-    VIDEO::rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
-    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(0,0));
-    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(7,1));
+    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(WHITE, BRIGHT_ON));
 
     // Title
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
     VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
     VIDEO::print((joynum == 1 ? "Joystick 1" : "Joystick 2"));
 
@@ -6020,7 +5445,7 @@ void OSD::joyDialog(uint8_t joynum) {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; i++) {
-            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
         }
         rb_paint_x += 5;
     }
@@ -6031,24 +5456,24 @@ void OSD::joyDialog(uint8_t joynum) {
 
     // Draw Joy DropDowns
     for (int n=0; n<12; n++) {
-        VIDEO::rect(x + joyDropdown[n][0] - 2, y + joyDropdown[n][1] - 2, ((58-4)/6)*OSD_FONT_W+4, ((12-4)/8)*OSD_FONT_H+4, zxColor(0, 0));
+        VIDEO::rect(x + joyDropdown[n][0] - 2, y + joyDropdown[n][1] - 2, ((58-4)/6)*OSD_FONT_W+4, ((12-4)/8)*OSD_FONT_H+4, zxColor(BLACK, BRIGHT_OFF));
         if (n == curDropDown)
-            VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+            VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
         else
-            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+            VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
         VIDEO::setCursor(x + joyDropdown[n][0], y + joyDropdown[n][1]);
         VIDEO::print(vkToText(joyDropdown[n][6]).c_str());
     }
 
     // Draw dialog buttons
-    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
     VIDEO::setCursor(x + joyDropdown[12][0], y + joyDropdown[12][1]);
     VIDEO::print("   Ok    ");
     VIDEO::setCursor(x + joyDropdown[13][0], y + joyDropdown[13][1]);
     VIDEO::print(" JoyTest ");
 
     // // Ruler
-    // VIDEO::setTextColor(zxColor(0, 0), zxColor(7, 1));
+    // VIDEO::setTextColor(zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_ON));
     // VIDEO::setCursor(x + 1, y + 1 + (OSD_FONT_H * 3));
     // VIDEO::print("123456789012345678901234567");
 
@@ -6080,7 +5505,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                 if (joyDialogMode == 0 && joyDropdown[curDropDown][2] >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6089,7 +5514,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                     curDropDown = joyDropdown[curDropDown][2];
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6105,7 +5530,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                 if (joyDialogMode == 0 && joyDropdown[curDropDown][3] >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6114,7 +5539,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                     curDropDown = joyDropdown[curDropDown][3];
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6130,7 +5555,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                 if (joyDialogMode == 0 && joyDropdown[curDropDown][4] >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6139,7 +5564,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                     curDropDown = joyDropdown[curDropDown][4];
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6155,7 +5580,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                 if (joyDialogMode == 0 && joyDropdown[curDropDown][5] >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6164,7 +5589,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                     curDropDown = joyDropdown[curDropDown][5];
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                     if (curDropDown < 12)
                         VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
@@ -6269,7 +5694,7 @@ void OSD::joyDialog(uint8_t joynum) {
 
                                     }
 
-                                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                                     VIDEO::setCursor(x + joyDropdown[curDropDown][0], y + joyDropdown[curDropDown][1]);
                                     VIDEO::print(vkToText(joyDropdown[curDropDown][6]).c_str());
 
@@ -6340,7 +5765,7 @@ void OSD::joyDialog(uint8_t joynum) {
                         joyTestExitCount1 = 0;
                         joyTestExitCount2 = 0;
 
-                        VIDEO::setTextColor(zxColor(4, 1), zxColor(5, 1));
+                        VIDEO::setTextColor(zxColor(GREEN, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                         VIDEO::setCursor(x + joyDropdown[13][0], y + joyDropdown[13][1]);
                         VIDEO::print(" JoyTest ");
 
@@ -6360,12 +5785,12 @@ void OSD::joyDialog(uint8_t joynum) {
                         // Disable joyTest
                         joyDialogMode = 0;
 
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                         VIDEO::setCursor(x + joyDropdown[13][0], y + joyDropdown[13][1]);
                         VIDEO::print(" JoyTest ");
 
                         for (int n = 0; n < 12; n++)
-                            joyControl[n][2] = zxColor(0,0);
+                            joyControl[n][2] = zxColor(BLACK, BRIGHT_OFF);
 
                         DrawjoyControls(x,y);
 
@@ -6411,9 +5836,9 @@ void OSD::joyDialog(uint8_t joynum) {
 
             for (int n = (joynum == 1 ? fabgl::VK_JOY1LEFT : fabgl::VK_JOY2LEFT); n <= (joynum == 1 ? fabgl::VK_JOY1Z : fabgl::VK_JOY2Z); n++) {
                 if (ESPeccy::PS2Controller.keyboard()->isVKDown((fabgl::VirtualKey) n))
-                    joyControl[n - (joynum == 1 ? 248 : 260)][2] = zxColor(4,1);
+                    joyControl[n - (joynum == 1 ? 248 : 260)][2] = zxColor(GREEN, BRIGHT_ON);
                 else
-                    joyControl[n - (joynum == 1 ? 248 : 260)][2] = zxColor(0,0);
+                    joyControl[n - (joynum == 1 ? 248 : 260)][2] = zxColor(BLACK, BRIGHT_OFF);
             }
 
             if (ESPeccy::PS2Controller.keyboard()->isVKDown(fabgl::VK_JOY1A)) {
@@ -6498,13 +5923,13 @@ void OSD::pokeDialog() {
     VIDEO::setFont(SystemFont);
 
     // Menu border
-    VIDEO::rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
-    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(0,0));
-    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(7,1));
+    VIDEO::fillRect(x + 1, y + 1, w - 2, OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF));
+    VIDEO::fillRect(x + 1, y + 1 + OSD_FONT_H, w - 2, h - OSD_FONT_H - 2, zxColor(WHITE, BRIGHT_ON));
 
     // Title
-    VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
     VIDEO::setCursor(x + OSD_FONT_W + 1, y + 1);
 
     // string inputpok[NLANGS] = {"Input Poke","A" "\xA4" "adir Poke","Adicionar Poke"};
@@ -6518,7 +5943,7 @@ void OSD::pokeDialog() {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; i++) {
-            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
         }
         rb_paint_x += 5;
     }
@@ -6527,16 +5952,16 @@ void OSD::pokeDialog() {
     for (int n = 0; n < 5; n++) {
 
         if (dlg_Objects[n].Label[Config::lang] != "" && dlg_Objects[n].objType != DLG_OBJ_BUTTON) {
-            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+            VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
             VIDEO::setCursor(x + ( dlg_Objects[n].posx - 63/6.0 ) * OSD_FONT_W, y + dlg_Objects[n].posy * OSD_FONT_H);
             VIDEO::print(dlg_Objects[n].Label[Config::lang].c_str());
-            VIDEO::rect(x + dlg_Objects[n].posx * OSD_FONT_W - 2, y + dlg_Objects[n].posy * OSD_FONT_H - 2, (46/6.0)*OSD_FONT_W, (12/8.0)*OSD_FONT_H, zxColor(0, 0));
+            VIDEO::rect(x + dlg_Objects[n].posx * OSD_FONT_W - 2, y + dlg_Objects[n].posy * OSD_FONT_H - 2, (46/6.0)*OSD_FONT_W, (12/8.0)*OSD_FONT_H, zxColor(BLACK, BRIGHT_OFF));
         }
 
         if (n == curObject)
-            VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+            VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
         else
-            VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+            VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
 
         VIDEO::setCursor(x + dlg_Objects[n].posx * OSD_FONT_W, y + dlg_Objects[n].posy * OSD_FONT_H);
         if (dlg_Objects[n].objType == DLG_OBJ_BUTTON) {
@@ -6579,7 +6004,7 @@ void OSD::pokeDialog() {
 
                 if (dlg_Objects[curObject].objLeft >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                     if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                         VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6589,7 +6014,7 @@ void OSD::pokeDialog() {
 
                     curObject = dlg_Objects[curObject].objLeft;
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                     if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                         VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6606,7 +6031,7 @@ void OSD::pokeDialog() {
 
                 if (dlg_Objects[curObject].objRight >= 0) {
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                     VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                     if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                         VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6616,7 +6041,7 @@ void OSD::pokeDialog() {
 
                     curObject = dlg_Objects[curObject].objRight;
 
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                     VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                     if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                         VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6675,7 +6100,7 @@ void OSD::pokeDialog() {
 
                     if (validated) {
 
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                         VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                         if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                             VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6686,7 +6111,7 @@ void OSD::pokeDialog() {
 
                         curObject = dlg_Objects[curObject].objTop;
 
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                         VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                         if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                             VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6747,7 +6172,7 @@ void OSD::pokeDialog() {
 
                     if (validated) {
 
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                         VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                         if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                             VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6758,7 +6183,7 @@ void OSD::pokeDialog() {
 
                         curObject = dlg_Objects[curObject].objDown;
 
-                        VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                         VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                         if (dlg_Objects[curObject].objType == DLG_OBJ_BUTTON) {
                             VIDEO::print(dlg_Objects[curObject].Label[Config::lang].c_str());
@@ -6798,13 +6223,13 @@ void OSD::pokeDialog() {
                             if (BankCombo[opt -1] != dlgValues[curObject]) {
                                 dlgValues[curObject] = BankCombo[opt - 1];
 
-                                VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                                VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                                 VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                                 VIDEO::print(dlgValues[curObject].c_str());
 
                                 if (dlgValues[curObject]==BankCombo[0]) {
                                     dlgValues[1] = "16384";
-                                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                                     VIDEO::setCursor(x + dlg_Objects[1].posx * OSD_FONT_W, y + dlg_Objects[1].posy * OSD_FONT_H);
                                     VIDEO::print("16384");
                                 } else {
@@ -6812,7 +6237,7 @@ void OSD::pokeDialog() {
                                     trim(val);
                                     if(stoi(val) > 16383) {
                                         dlgValues[1] = "0";
-                                        VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                                        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                                         VIDEO::setCursor(x + dlg_Objects[1].posx * OSD_FONT_W, y + dlg_Objects[1].posy * OSD_FONT_H);
                                         VIDEO::print("0    ");
                                     }
@@ -6863,19 +6288,19 @@ void OSD::pokeDialog() {
 
             if ((++CursorFlash & 0xF) == 0) {
 
-                VIDEO::setTextColor(zxColor(0, 1), zxColor(5, 1));
+                VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
                 VIDEO::setCursor(x + dlg_Objects[curObject].posx * OSD_FONT_W, y + dlg_Objects[curObject].posy * OSD_FONT_H);
                 VIDEO::print(dlgValues[curObject].c_str());
 
                 if (CursorFlash > 63) {
-                    VIDEO::setTextColor(zxColor(7, 1), zxColor(0, 1));
+                    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_ON));
                     if (CursorFlash == 128) CursorFlash = 0;
                 } else {
-                    VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                    VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                 }
                 VIDEO::print("K");
 
-                VIDEO::setTextColor(zxColor(0, 1), zxColor(7, 1));
+                VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(WHITE, BRIGHT_ON));
                 VIDEO::print(" ");
 
             }

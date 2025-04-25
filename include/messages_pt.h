@@ -202,10 +202,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Tela\t>\n"\
     "Mouse\t>\n"\
     "Som\t>\n"\
-    "Outros\t>\n"\
     "Idioma\t>\n"\
     "Interface do Usu\xA0rio\t>\n"\
-    "EAR config\t>\n"
+    "Outros\t>\n"
 
 #define MENU_UPDATE_PT \
     "Atualizar\n"\
@@ -251,7 +250,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Carregamento r\xA0pido\t>\n"\
     "Timings ROM R.G.\t>\n"\
     "Monitor LOAD\t>\n"\
-    "Fita real\t>\n"
+    "Fita real\t>\n"\
+    "EAR config\t>\n"
 
 #define MENU_YESNO_PT "Sim\t[Y]\n"\
     "N\x84o\t[N]\n"

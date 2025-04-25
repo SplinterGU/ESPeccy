@@ -46,56 +46,54 @@ using namespace std;
 // Defines
 
 // Line type
-#define IS_TITLE 0
-#define IS_FOCUSED 1
-#define IS_NORMAL 2
-#define IS_INFO 3
-#define IS_SELECTED 4
-#define IS_SELECTED_FOCUSED 5
+#define IS_TITLE                0
+#define IS_FOCUSED              1
+#define IS_NORMAL               2
+#define IS_INFO                 3
+#define IS_SELECTED             4
+#define IS_SELECTED_FOCUSED     5
 
-#ifdef USE_FONT_6x8
-#define OSD_FONT_W 6
-#define OSD_FONT_H 8
-#else
-#define OSD_FONT_W 5
-#define OSD_FONT_H 8
-#endif
+#define OSD_FONT_W          5
+#define OSD_FONT_H          8
 
-#define OSD_COLS    46
+#define OSD_COLS            46
 
-#define LEVEL_INFO 0
-#define LEVEL_OK 1
-#define LEVEL_WARN 2
+#define LEVEL_INFO  0
+#define LEVEL_OK    1
+#define LEVEL_WARN  2
 #define LEVEL_ERROR 3
 
-#define DLG_CANCEL 0
-#define DLG_YES 1
-#define DLG_NO 2
+#define DLG_CANCEL  0
+#define DLG_YES     1
+#define DLG_NO      2
+
+// States
 
 #define SLOTNAME_LEN 23
-
-// File dialog
-
-#define MAXSEARCHLEN 8
 
 // Input filter behavior
 
 #define FILTER_FORBIDDEN    0
 #define FILTER_ALLOWED      1
 
-#ifdef USE_FONT_6x8
-    #define SCROLL_SEP_CHAR '\x07'
-#else
-    #define SCROLL_SEP_CHAR '\xFA'
-#endif
+// Scrollbar
+
+#define SCROLL_SEP_CHAR '\xFA'
+
+#define MAXSEARCHLEN 8 // Max visible search len in status bar
+
+// Screen preview
 
 #define RENDER_PREVIEW_OK               0
 #define RENDER_PREVIEW_ERROR            1
 #define RENDER_PREVIEW_OK_MORE          2
 #define RENDER_PREVIEW_REQUEST_NO_FOUND 3
 
+// Input
 
 #define INPUT_CANCELED      1
+
+// Menu states (no tiene relacion con los estados de emulacion, sino con el estado de la ventana de menu)
 
 typedef struct MenuState
 {
@@ -153,8 +151,6 @@ public:
     static void saveSCR(const std::string& absolutePath, const uint32_t *bitmap);
 
     // Error
-    static void errorPanel(string errormsg);
-    static void errorHalt(string errormsg);
     static void osdCenteredMsg(string msg, uint8_t warn_level);
     static void osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause);
 
@@ -213,12 +209,11 @@ public:
     static void LoadCheatFile(const string& snapfile);
     static void showCheatDialog();
 
-    // Función para preservar el estado actual en una estructura pasada por referencia.
+    // Estados de menu
     static void menuSaveState(MenuState& state);
-
-    // Función para restaurar el estado desde una estructura proporcionada.
     static void menuRestoreState(const MenuState& state);
 
+    // Statusbar scroll
     static void ResetRowScrollContext(RowScrollContext &context);
     static string RotateLine(const std::string &line, RowScrollContext *context, int maxLength, int startThreshold, int scrollInterval);
 
@@ -283,6 +278,9 @@ public:
     static RowScrollContext statusBarScrollCTX;
 
     static string lastPreviewFile;
+
+    static uint8_t menuBGColor;
+    static uint8_t menuFGColor;
 
 };
 

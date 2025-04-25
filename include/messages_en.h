@@ -202,10 +202,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Display\t>\n"\
     "Mouse\t>\n"\
     "Sound\t>\n"\
-    "Other\t>\n"\
     "Language\t>\n"\
     "User Interface\t>\n"\
-    "EAR config\t>\n"
+    "Other\t>\n"
 
 #define MENU_UPDATE_EN \
     "Update\n"\
@@ -251,7 +250,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Flash tape load\t>\n"\
     "R.G. ROM timings\t>\n"\
     "LOAD monitor\t>\n"\
-    "Real tape\t>\n"
+    "Real tape\t>\n"\
+    "EAR config\t>\n"
 
 #define MENU_YESNO_EN "Yes\t[Y]\n"\
     "No\t[N]\n"

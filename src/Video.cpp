@@ -51,8 +51,8 @@ Graphics<unsigned char>* VIDEO::gfx = nullptr;
 VGA6Bit VIDEO::vga;
 
 uint16_t VIDEO::spectrum_colors[NUM_SPECTRUM_COLORS] = {
-    BLACK,     BLUE,     RED,     MAGENTA,     GREEN,     CYAN,     YELLOW,     WHITE,
-    BRI_BLACK, BRI_BLUE, BRI_RED, BRI_MAGENTA, BRI_GREEN, BRI_CYAN, BRI_YELLOW, BRI_WHITE
+    BLACK222,     BLUE222,     RED222,     MAGENTA222,     GREEN222,     CYAN222,     YELLOW222,     WHITE222,
+    BRI_BLACK222, BRI_BLUE222, BRI_RED222, BRI_MAGENTA222, BRI_GREEN222, BRI_CYAN222, BRI_YELLOW222, BRI_WHITE222
 };
 
 uint8_t VIDEO::borderColor = 0;
@@ -242,7 +242,7 @@ bool VIDEO::brdnextframe = true;
 
 void precalcborder32() {
     for (int i = 0; i < 8; i++) {
-        uint8_t border = zxColor(i,0);
+        uint8_t border = zxColor(i, BRIGHT_OFF);
         VIDEO::border32[i] = border | (border << 8) | (border << 16) | (border << 24);
     }
 }

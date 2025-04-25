@@ -81,23 +81,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define TS_BORDER_352x272_PENTAGON 9003  // START OF BORDER PENTAGON
 
 // Colors for 6 bit mode
-//                  //  BBGGRR
-#define BLACK       0b00000000 // 0
-#define BLUE        0b00100000 // 20
-#define RED         0b00000010 // 2
-#define MAGENTA     0b00100010 // 34
-#define GREEN       0b00001000 // 8
-#define CYAN        0b00101000 // 40
-#define YELLOW      0b00001010 // 10
-#define WHITE       0b00101010 // 42
-#define BRI_BLACK   0b00000000 // 0
-#define BRI_BLUE    0b00110000 // 48
-#define BRI_RED     0b00000011 // 3
-#define BRI_MAGENTA 0b00110011 // 51
-#define BRI_GREEN   0b00001100 // 12
-#define BRI_CYAN    0b00111100 // 60
-#define BRI_YELLOW  0b00001111 // 15
-#define BRI_WHITE   0b00111111 // 63
+//                      BBGGRR
+#define BLACK222        0b00000000 // 0
+#define BLUE222         0b00100000 // 20
+#define RED222          0b00000010 // 2
+#define MAGENTA222      0b00100010 // 34
+#define GREEN222        0b00001000 // 8
+#define CYAN222         0b00101000 // 40
+#define YELLOW222       0b00001010 // 10
+#define WHITE222        0b00101010 // 42
+#define BRI_BLACK222    0b00000000 // 0
+#define BRI_BLUE222     0b00110000 // 48
+#define BRI_RED222      0b00000011 // 3
+#define BRI_MAGENTA222  0b00110011 // 51
+#define BRI_GREEN222    0b00001100 // 12
+#define BRI_CYAN222     0b00111100 // 60
+#define BRI_YELLOW222   0b00001111 // 15
+#define BRI_WHITE222    0b00111111 // 63
 
 #define NUM_SPECTRUM_COLORS 16
 
@@ -106,6 +106,27 @@ const int grePins[] = {GRE_PINS_6B};
 const int bluPins[] = {BLU_PINS_6B};
 
 #define zxColor(color,bright) VIDEO::spectrum_colors[bright ? color + 8 : color]
+
+// ZX Colors (index)
+#define BLACK       0
+#define BLUE        1
+#define RED         2
+#define MAGENTA     3
+#define GREEN       4
+#define CYAN        5
+#define YELLOW      6
+#define WHITE       7
+#define BRI_BLACK   8
+#define BRI_BLUE    9
+#define BRI_RED     10
+#define BRI_MAGENTA 11
+#define BRI_GREEN   12
+#define BRI_CYAN    13
+#define BRI_YELLOW  14
+#define BRI_WHITE   15
+
+#define BRIGHT_OFF  0
+#define BRIGHT_ON   1
 
 #define USE_FULLCOLOR_BACKGROUND_BACKUP 0
 

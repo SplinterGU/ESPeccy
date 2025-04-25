@@ -162,7 +162,7 @@ public:
     static uint8_t  DSK_fdMode;
     static string   DSK_fileSearch;
 
-    static uint8_t  scanlines;
+    static bool     scanlines;
     static uint8_t  render;
 
     static bool     TABasfire1;

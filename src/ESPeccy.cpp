@@ -198,11 +198,11 @@ int ESPeccy::ESPtestvar2 = 0;
 
 void ShowStartMsg() {
 
-    VIDEO::clear(zxColor(7,0));
+    VIDEO::clear(zxColor(WHITE, BRIGHT_OFF));
 
     OSD::drawOSD(false);
 
-    VIDEO::fillRect(OSD::osdInsideX(), OSD::osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(0, 0));
+    VIDEO::fillRect(OSD::osdInsideX(), OSD::osdInsideY(), OSD_COLS * OSD_FONT_W, 50, zxColor(BLACK, BRIGHT_OFF));
 
     // Decode Logo in EBF8 format
     int logo_w = (ESPeccy_logo[5] << 8) + ESPeccy_logo[4]; // Get Width
@@ -213,7 +213,7 @@ void ShowStartMsg() {
     OSD::drawCompressedBMP(pos_x, pos_y, ESPeccy_logo);
 
     OSD::osdAt(7, 1);
-    VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
 
     char nextChar;
     const char *text = StartMsg[Config::lang];
@@ -242,7 +242,7 @@ void ShowStartMsg() {
     for (int i=START_MSG_DURATION; i >= 0 && !quit; i--) {
         OSD::osdAt(20, 1);
         sprintf(msg,STARTMSG_CLOSE[Config::lang],i);
-        VIDEO::setTextColor(zxColor(7, 0), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
         VIDEO::print(msg);
 
         for (int j = 0; j < 200; j++) {
@@ -263,7 +263,7 @@ void ShowStartMsg() {
         }
     }
 
-    VIDEO::clear(zxColor(7,0));
+    VIDEO::clear(zxColor(WHITE, BRIGHT_OFF));
 
     // Disable StartMsg
     Config::StartMsg = false;
