@@ -290,9 +290,9 @@ IRAM_ATTR void CPU::FlushOnHalt() {
 
 // Fetch opcode from RAM (+2A/3 version)
 IRAM_ATTR uint8_t Z80Ops::fetchOpcode_2A3() {
-
-    uint8_t pg = Z80::getRegPC() >> 14;
-    uint8_t data = MemESP::ramCurrent[pg][Z80::getRegPC() & 0x3fff];
+    const uint16_t pc = Z80::getRegPC();
+    const uint8_t pg = pc >> 14;
+    const uint8_t data = MemESP::ramCurrent[pg][pc & 0x3fff];
     if (MemESP::ramContended[pg]) {
         MemESP::lastContendedMemReadWrite = data;
         VIDEO::Draw_Opcode(true);
@@ -305,15 +305,16 @@ IRAM_ATTR uint8_t Z80Ops::fetchOpcode_2A3() {
 
 // Fetch opcode from RAM (NON +2A/3 version)
 IRAM_ATTR uint8_t Z80Ops::fetchOpcode_std() {
-    uint8_t pg = Z80::getRegPC() >> 14;
+    const uint16_t pc = Z80::getRegPC();
+    const uint8_t pg = pc >> 14;
     VIDEO::Draw_Opcode(MemESP::ramContended[pg]);
-    return MemESP::ramCurrent[pg][Z80::getRegPC() & 0x3fff];
+    return MemESP::ramCurrent[pg][pc & 0x3fff];
 }
 
 // Read byte from RAM (+2A/+3 version)
 IRAM_ATTR uint8_t Z80Ops::peek8_2A3(uint16_t address) {
-    uint8_t page = address >> 14;
-    uint8_t data = MemESP::ramCurrent[page][address & 0x3fff];
+    const uint8_t page = address >> 14;
+    const uint8_t data = MemESP::ramCurrent[page][address & 0x3fff];
     if (MemESP::ramContended[page]) {
         MemESP::lastContendedMemReadWrite = data;
         VIDEO::Draw(3,true);
@@ -325,15 +326,14 @@ IRAM_ATTR uint8_t Z80Ops::peek8_2A3(uint16_t address) {
 
 // Read byte from RAM (non +2A/+3 version)
 IRAM_ATTR uint8_t Z80Ops::peek8_std(uint16_t address) {
-    uint8_t page = address >> 14;
+    const uint8_t page = address >> 14;
     VIDEO::Draw(3,MemESP::ramContended[page]);
     return MemESP::ramCurrent[page][address & 0x3fff];
 }
 
 // Write byte to RAM (+2A/+3 version)
 IRAM_ATTR void Z80Ops::poke8_2A3(uint16_t address, uint8_t value) {
-
-    uint8_t page = address >> 14;
+    const uint8_t page = address >> 14;
 
     if (page == MemESP::pagingmode2A3) {
         VIDEO::Draw(3, false);
@@ -353,8 +353,7 @@ IRAM_ATTR void Z80Ops::poke8_2A3(uint16_t address, uint8_t value) {
 
 // Write byte to RAM (non +2A/+3 version)
 IRAM_ATTR void Z80Ops::poke8_std(uint16_t address, uint8_t value) {
-
-    uint8_t page = address >> 14;
+    const uint8_t page = address >> 14;
 
     if (page == 0) {
         VIDEO::Draw(3, false);
@@ -368,11 +367,10 @@ IRAM_ATTR void Z80Ops::poke8_std(uint16_t address, uint8_t value) {
 
 // Read word from RAM (+2A/+3 version)
 IRAM_ATTR uint16_t Z80Ops::peek16_2A3(uint16_t address) {
+    const uint8_t page = address >> 14;
 
-    uint8_t page = address >> 14;
     if (page == ((address + 1) >> 14)) {    // Check if address is between two different pages
-
-        uint8_t msb = MemESP::ramCurrent[page][(address & 0x3fff) + 1];
+        const uint8_t msb = MemESP::ramCurrent[page][(address & 0x3fff) + 1];
 
         if (MemESP::ramContended[page]) {
             MemESP::lastContendedMemReadWrite = msb;
@@ -384,10 +382,9 @@ IRAM_ATTR uint16_t Z80Ops::peek16_2A3(uint16_t address) {
         return (msb << 8) | MemESP::ramCurrent[page][address & 0x3fff];
 
     } else {
-
         // Order matters, first read lsb, then read msb, don't "optimize"
-        uint8_t lsb = Z80Ops::peek8(address);
-        uint8_t msb = Z80Ops::peek8(address + 1);
+        const uint8_t lsb = Z80Ops::peek8(address);
+        const uint8_t msb = Z80Ops::peek8(address + 1);
         return (msb << 8) | lsb;
 
     }
@@ -396,8 +393,8 @@ IRAM_ATTR uint16_t Z80Ops::peek16_2A3(uint16_t address) {
 
 // Read word from RAM (non +2A/+3 version)
 IRAM_ATTR uint16_t Z80Ops::peek16_std(uint16_t address) {
+    const uint8_t page = address >> 14;
 
-    uint8_t page = address >> 14;
     if (page == ((address + 1) >> 14)) {    // Check if address is between two different pages
 
         if (MemESP::ramContended[page]) {
@@ -409,10 +406,9 @@ IRAM_ATTR uint16_t Z80Ops::peek16_std(uint16_t address) {
         return ((MemESP::ramCurrent[page][(address & 0x3fff) + 1] << 8) | MemESP::ramCurrent[page][address & 0x3fff]);
 
     } else {
-
         // Order matters, first read lsb, then read msb, don't "optimize"
-        uint8_t lsb = Z80Ops::peek8(address);
-        uint8_t msb = Z80Ops::peek8(address + 1);
+        const uint8_t lsb = Z80Ops::peek8(address);
+        const uint8_t msb = Z80Ops::peek8(address + 1);
         return (msb << 8) | lsb;
 
     }
@@ -421,9 +417,8 @@ IRAM_ATTR uint16_t Z80Ops::peek16_std(uint16_t address) {
 
 // Write word to RAM (+2A/+3 version)
 IRAM_ATTR void Z80Ops::poke16_2A3(uint16_t address, RegisterPair word) {
-
-    uint8_t page = address >> 14;
-    uint16_t page_addr = address & 0x3fff;
+    const uint8_t page = address >> 14;
+    const uint16_t page_addr = address & 0x3fff;
 
     if (page_addr < 0x3fff) {    // Check if address is between two different pages
 
@@ -454,9 +449,8 @@ IRAM_ATTR void Z80Ops::poke16_2A3(uint16_t address, RegisterPair word) {
 
 // Write word to RAM (non +2A/+3 version)
 IRAM_ATTR void Z80Ops::poke16_std(uint16_t address, RegisterPair word) {
-
-    uint8_t page = address >> 14;
-    uint16_t page_addr = address & 0x3fff;
+    const uint8_t page = address >> 14;
+    const uint16_t page_addr = address & 0x3fff;
 
     if (page_addr < 0x3fff) {    // Check if address is between two different pages
 

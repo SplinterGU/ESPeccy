@@ -62,7 +62,7 @@ private:
 
     static void ioContentionLate(bool contend);
     static uint8_t port254;
-    static uint8_t speaker_values[8];
+    static const uint8_t speaker_values[8];
 
 };
 

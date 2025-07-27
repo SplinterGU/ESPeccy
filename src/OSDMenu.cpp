@@ -62,6 +62,9 @@ using namespace std;
 
 extern Font SystemFont;
 
+uint8_t OSD::menuBGColor;
+uint8_t OSD::menuFGColor;
+
 RowScrollContext OSD::rowScrollCTX;
 RowScrollContext OSD::statusBarScrollCTX;
 
@@ -187,21 +190,13 @@ int OSD::prepare_checkbox_menu(string &menu, string curopt) {
 // Get real row number for a virtual one
 unsigned short OSD::menuRealRowFor(uint8_t virtual_row_num) { return begin_row + virtual_row_num - 1; }
 
-// // Get real row number for a virtual one
-// bool OSD::menuIsSub(uint8_t virtual_row_num) {
-//     string line = rowGet(menu, menuRealRowFor(virtual_row_num));
-//     int n = line.find(ASCII_TAB);
-//     if (n == line.npos) return false;
-//     return (line.substr(n+1).find(">") != line.npos);
-// }
-
 // Menu relative AT
 void OSD::menuAt(short int row, short int col) {
     if (col < 0)
         col = cols - 2 - col;
     if (row < 0)
         row = virtual_rows - 2 - row;
-    VIDEO::vga.setCursor(x + 1 + (col * OSD_FONT_W), y + 1 + (row * OSD_FONT_H));
+    VIDEO::setCursor(x + 1 + (col * OSD_FONT_W), y + 1 + (row * OSD_FONT_H));
 }
 
 void OSD::menuPrintRow(uint8_t virtual_row_num, uint8_t line_type) {
@@ -209,28 +204,28 @@ void OSD::menuPrintRow(uint8_t virtual_row_num, uint8_t line_type) {
 }
 
 void OSD::statusbarDraw(const string& statusbar) {
-    VIDEO::vga.setCursor(x + 1, y + 1 + (virtual_rows * OSD_FONT_H));
-    VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(5, 0));
+    VIDEO::setCursor(x + 1, y + 1 + (virtual_rows * OSD_FONT_H));
+    VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(CYAN, BRIGHT_OFF));
     string text = " " + RotateLine(statusbar, &statusBarScrollCTX, cols - 2, 125, 25) + " ";
-    VIDEO::vga.print(text.c_str());
+    VIDEO::print(text.c_str());
 }
 
 // Draw the complete menu
 void OSD::WindowDraw() {
 
     // Set font
-    VIDEO::vga.setFont(SystemFont);
+    VIDEO::setFont(SystemFont);
 
     if (menu_level == 0) SaveRectpos = 0;
 
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
     // Title Background
     for (uint8_t i = 0; i < OSD_FONT_H; ++i) {
-        VIDEO::vga.line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(0, 0));
+        VIDEO::line(x, y + i + 1, x + w - 1, y + i + 1, zxColor(BLACK, BRIGHT_OFF));
     }
 
     // Title
@@ -242,7 +237,7 @@ void OSD::WindowDraw() {
     uint8_t rb_colors[] = {2, 6, 4, 5};
     for (uint8_t c = 0; c < 4; c++) {
         for (uint8_t i = 0; i < 5; ++i) {
-            VIDEO::vga.line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], 1));
+            VIDEO::line(rb_paint_x + i, rb_y, rb_paint_x + 8 + i, rb_y - 8, zxColor(rb_colors[c], BRIGHT_ON));
         }
         rb_paint_x += 5;
     }
@@ -310,7 +305,7 @@ int OSD::menuProcessSnapshot(fabgl::VirtualKeyItem Menukey) {
         click();
         uint8_t flags = 0;
 
-        string new_name = input(1, focus, "", SLOTNAME_LEN, min(SLOTNAME_LEN, cols - 4), zxColor(0,0), zxColor(7,0), rowGet(menu, idx), "", &flags);
+        string new_name = input(1, focus, "", SLOTNAME_LEN, min(SLOTNAME_LEN, cols - 4), zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), rowGet(menu, idx), "", &flags);
         if ( !( flags & INPUT_CANCELED ) ) { // if not canceled
             renameSlot(idx, new_name);
         }
@@ -350,6 +345,7 @@ int OSD::menuProcessSnapshot(fabgl::VirtualKeyItem Menukey) {
                 menuRedraw();
             }
         }
+        lastPreviewFile = "";
         return 0;
     } else if (Menukey.vk == fabgl::VK_RETURN || ((Menukey.vk == fabgl::VK_RIGHT) && (Config::osd_LRNav == 1)) || Menukey.vk == fabgl::VK_JOY1B || Menukey.vk == fabgl::VK_JOY1C || Menukey.vk == fabgl::VK_JOY2B || Menukey.vk == fabgl::VK_JOY2C) {
         int idx = menuRealRowFor( focus );
@@ -382,7 +378,10 @@ int OSD::menuProcessSnapshotSave(fabgl::VirtualKeyItem Menukey) {
 }
 
 // Run a new menu
-short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuRun(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+
+    menuBGColor = zxColor(WHITE, BRIGHT_ON);
+    menuFGColor = zxColor(BLACK, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -469,7 +468,7 @@ short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb
     int rmax = scrW == 320 ? 52 : 55;
     if ( x + cols * OSD_FONT_W > rmax * OSD_FONT_W ) x = ( rmax - cols ) * OSD_FONT_W;
 
-    if ( y + h > VIDEO::vga.yres - OSD_FONT_H * 2 ) y = VIDEO::vga.yres - h - OSD_FONT_H * 2;
+    if ( y + h > VIDEO::yres() - OSD_FONT_H * 2 ) y = VIDEO::yres() - h - OSD_FONT_H * 2;
 
     WindowDraw(); // Draw menu outline
 
@@ -598,7 +597,10 @@ short OSD::menuRun(const string new_menu, const string& statusbar, int (*proc_cb
 }
 
 // Run a new menu
-unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols) {
+unsigned short OSD::simpleMenuRun(const string& new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols) {
+
+    menuBGColor = zxColor(WHITE, BRIGHT_ON);
+    menuFGColor = zxColor(BLACK, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -619,14 +621,14 @@ unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy,
     h = (virtual_rows * OSD_FONT_H) + 2;
 
     // Set font
-    VIDEO::vga.setFont(SystemFont);
+    VIDEO::setFont(SystemFont);
 
     if (menu_saverect && menu_level == 0) SaveRectpos = 0;
 
     OSD::saveBackbufferData();
 
     // Menu border
-    VIDEO::vga.rect(x, y, w, h, zxColor(0, 0));
+    VIDEO::rect(x, y, w, h, zxColor(BLACK, BRIGHT_OFF));
 
     // Title
     PrintRow(0, IS_TITLE);
@@ -737,9 +739,12 @@ unsigned short OSD::simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy,
 }
 
 // Run a new menu slot with preview (dirty)
-short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuSlotsWithPreview(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
 
     if (menu_level != 0) return 0; // only menu_level 0
+
+    menuBGColor = zxColor(BLUE, BRIGHT_ON);
+    menuFGColor = zxColor(CYAN, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -781,7 +786,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
 
     // Scrollbar Background (don't worry about update or scroll)
     for (uint8_t i = h - OSD_FONT_H - 1; i < h - 2; ++i) {
-        VIDEO::vga.line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(5, 0));
+        VIDEO::line(x + 1, y + i + 1, x + w - 2, y + i + 1, zxColor(CYAN, BRIGHT_OFF));
     }
 
     if (!use_current_menu_state) {
@@ -797,7 +802,7 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
     if (statusbar != "") statusbarDraw(statusbar);
 
     int idle = 0;
-    string lastFile = "";
+    lastPreviewFile = "";
 
     while (1) {
 
@@ -915,15 +920,15 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
 
                 string _fname = FileUtils::MountPoint + DISK_PSNA_DIR + "/" + persistfname;
 
-                if (lastFile != _fname ) {
+                if (lastPreviewFile != _fname ) {
                     int retPreview;
-                    lastFile = _fname;
+                    lastPreviewFile = _fname;
                     if (_fname[0] != ' ') {
                         rtrim(_fname);
                         retPreview = OSD::renderScreen(x + w - 128 - 1, y + 1 + OSD_FONT_H, _fname.c_str(), 0);
 
                         // fix issue render overlap (antialiasing issue)
-                        VIDEO::vga.line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(5, 0));
+                        VIDEO::line(x + w - 1 - 128, y + h - 1 - OSD_FONT_H, x + w - 2, y + h - 1 - OSD_FONT_H, zxColor(CYAN, BRIGHT_OFF));
 
                     } else {
                         retPreview = RENDER_PREVIEW_ERROR;
@@ -932,28 +937,20 @@ short OSD::menuSlotsWithPreview(const string new_menu, const string& statusbar, 
                     if (retPreview == RENDER_PREVIEW_ERROR) {
                         // Clean Preview Area
                         for (uint8_t i = 0; i < 192 / 2; ++i) {
-                            VIDEO::vga.line(x + w - 128 - 1,
-                                            y + i + OSD_FONT_H + 1,
-                                            x + w - 2,
-                                            y + i + OSD_FONT_H + 1,
-                                            zxColor(7, 0));
+                            VIDEO::line(x + w - 128 - 1,
+                                        y + i + OSD_FONT_H + 1,
+                                        x + w - 2,
+                                        y + i + OSD_FONT_H + 1,
+                                        zxColor(BLUE, BRIGHT_OFF));
                         }
 
-                        VIDEO::vga.line(x + w - 1 - 128, y + OSD_FONT_H + 1              ,
-                                        x + w - 2      , y + OSD_FONT_H + 1 + 192 / 2 - 1,
-                                        zxColor(2, 0));
-                        VIDEO::vga.line(x + w - 1 - 128, y + OSD_FONT_H + 1 + 192 / 2 - 1,
-                                        x + w - 2      , y + OSD_FONT_H + 1              ,
-                                        zxColor(2, 0));
+                        VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1              ,
+                                    x + w - 2      , y + OSD_FONT_H + 1 + 192 / 2 - 1,
+                                    zxColor(RED, BRIGHT_OFF));
+                        VIDEO::line(x + w - 1 - 128, y + OSD_FONT_H + 1 + 192 / 2 - 1,
+                                    x + w - 2      , y + OSD_FONT_H + 1              ,
+                                    zxColor(RED, BRIGHT_OFF));
 
-                        #if 0
-                        string no_preview_txt = Config::lang == 0 ? "NO PREVIEW AVAILABLE" :
-                                                Config::lang == 1 ? "SIN VISTA PREVIA" :
-                                                                    "TELA N\x8EO DISPON\x8BVEL";
-                        menuAt(2+((h/OSD_FONT_H)-2)/2, ( w / OSD_FONT_W ) + 1 + cols/2 - no_preview_txt.length()/2);
-                        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 0));
-                        VIDEO::vga.print(no_preview_txt.c_str());
-                        #endif
                     }
                 }
             }
@@ -1009,11 +1006,11 @@ void OSD::menuScrollBar(unsigned short br) {
         // Top handle
         menuAt(1, -1);
         if (br > 1) {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("+");
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
+            VIDEO::print("+");
         } else {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("-");
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
+            VIDEO::print("-");
         }
 
         // Complete bar
@@ -1021,7 +1018,7 @@ void OSD::menuScrollBar(unsigned short br) {
         unsigned short holder_y = y + (OSD_FONT_H * 2);
         unsigned short holder_h = OSD_FONT_H * (virtual_rows - 3);
         unsigned short holder_w = OSD_FONT_W;
-        VIDEO::vga.fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(7, 0));
+        VIDEO::fillRect(holder_x, holder_y, holder_w, holder_h + 1, zxColor(WHITE, BRIGHT_OFF));
         holder_y++;
 
         // Scroll bar
@@ -1036,16 +1033,16 @@ void OSD::menuScrollBar(unsigned short br) {
             bar_y--;
         }
 
-        VIDEO::vga.fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(0, 0));
+        VIDEO::fillRect(holder_x + 1, holder_y + bar_y, holder_w - 1, bar_h, zxColor(BLACK, BRIGHT_OFF));
 
         // Bottom handle
         menuAt(-1, -1);
         if ((br + virtual_rows - 1) < real_rows) {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("+");
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
+            VIDEO::print("+");
         } else {
-            VIDEO::vga.setTextColor(zxColor(7, 0), zxColor(0, 0));
-            VIDEO::vga.print("-");
+            VIDEO::setTextColor(zxColor(WHITE, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
+            VIDEO::print("-");
         }
     }
 }
@@ -1059,23 +1056,24 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
 
     switch (line_type) {
     case IS_TITLE:
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(0, 0));
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
         margin = 2;
         break;
     case IS_FOCUSED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(5, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(CYAN, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(6, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(YELLOW, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     case IS_SELECTED_FOCUSED:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(4, 1));
+        VIDEO::setTextColor(zxColor(BLACK, BRIGHT_ON), zxColor(GREEN, BRIGHT_ON));
         margin = (real_rows > virtual_rows ? 3 : 2);
         break;
     default:
-        VIDEO::vga.setTextColor(zxColor(0, 1), zxColor(7, 1));
+        //VIDEO::setTextColor(zxColor(CYAN, BRIGHT_ON), zxColor(BLUE, BRIGHT_ON));
+        VIDEO::setTextColor(menuFGColor, menuBGColor);
         margin = (real_rows > virtual_rows ? 3 : 2);
     }
 
@@ -1099,24 +1097,24 @@ void OSD::PrintRow(uint8_t virtual_row_num, uint8_t line_type, bool is_menu) {
 
     menuAt(virtual_row_num, 0);
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
     if ((!is_menu || virtual_row_num == 0) && line.substr(0,7) == "ESPeccy") {
-        VIDEO::vga.setTextColor(zxColor(2,0), zxColor(0, 0));
-        VIDEO::vga.print("ESP");
-        VIDEO::vga.setTextColor(zxColor(7, 1), zxColor(0, 0));
-        VIDEO::vga.print(("eccy " + Config::arch).c_str());
+        VIDEO::setTextColor(zxColor(RED, BRIGHT_OFF), zxColor(BLACK, BRIGHT_OFF));
+        VIDEO::print("ESP");
+        VIDEO::setTextColor(zxColor(WHITE, BRIGHT_ON), zxColor(BLACK, BRIGHT_OFF));
+        VIDEO::print(("eccy " + Config::arch).c_str());
         for (uint8_t i = line.length(); i < (cols - margin); ++i)
-            VIDEO::vga.print(" ");
+            VIDEO::print(" ");
     } else {
         if (line.length() < cols - margin) {
-            VIDEO::vga.print((line + string(cols - margin - line.length(), ' ')).c_str());
+            VIDEO::print((line + string(cols - margin - line.length(), ' ')).c_str());
         } else {
-            VIDEO::vga.print(line.substr(0, cols - margin).c_str());
+            VIDEO::print(line.substr(0, cols - margin).c_str());
         }
     }
 
-    VIDEO::vga.print(" ");
+    VIDEO::print(" ");
 
 }
 
@@ -1188,6 +1186,9 @@ void OSD::tapemenuRedraw(string title, bool force) {
 int OSD::menuTape(string title) {
 
     if ( !Tape::tape ) return -1;
+
+    menuBGColor = zxColor(BLUE, BRIGHT_ON);
+    menuFGColor = zxColor(CYAN, BRIGHT_ON);
 
     fabgl::VirtualKeyItem Menukey;
 
@@ -1357,7 +1358,7 @@ int OSD::menuTape(string title) {
                         case TapeBlock::Character_array_header:
                         case TapeBlock::Code_header: {
                             uint8_t flags;
-                            string new_name = input(21, focus, "", 10, 10, zxColor(0,0), zxColor(7,0), Tape::getBlockName(blocknum), "", &flags);
+                            string new_name = input(21, focus, "", 10, 10, zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), Tape::getBlockName(blocknum), "", &flags);
                             if ( new_name != "" && !(flags & INPUT_CANCELED) ) {
                                 Tape::renameBlock( begin_row - 2 + focus, new_name );
                             }
@@ -1452,7 +1453,7 @@ size_t OSD::colsCountCheat(void *data) {
     return 40;
 }
 
-void OSD::menuRedrawCheat(const string title, bool force) {
+void OSD::menuRedrawCheat(const string& title, bool force) {
     if ( force || focus != last_focus || begin_row != last_begin_row ) {
         // Read bunch of rows
         menu = title + "\n";
@@ -1545,7 +1546,7 @@ size_t OSD::colsCountPoke(void *data) {
     return 13;
 }
 
-void OSD::menuRedrawPoke(const string title, bool force) {
+void OSD::menuRedrawPoke(const string& title, bool force) {
     if ( force || focus != last_focus || begin_row != last_begin_row ) {
         // Read bunch of rows
         menu = title + "\n";
@@ -1585,7 +1586,7 @@ int OSD::menuProcessPokeInput(fabgl::VirtualKeyItem Menukey) {
 
         Poke poke = CheatMngr::getInputPoke(currentCheat, idx - 1);
 //        string value = to_string(poke.value);
-        string new_value = input(cols - 5, focus, "", 3, 3, zxColor(0,0), zxColor(7,0), "", "0123456789", &flags, FILTER_ALLOWED );
+        string new_value = input(cols - 5, focus, "", 3, 3, zxColor(BLACK, BRIGHT_OFF), zxColor(WHITE, BRIGHT_OFF), "", "0123456789", &flags, FILTER_ALLOWED );
         if ( !( flags & INPUT_CANCELED ) && new_value != "" ) { // if not canceled
             int nv = stoi(new_value);
             if ( nv < 256 ) poke = CheatMngr::setPokeValue(currentCheat, idx - 1, (uint8_t) nv);
@@ -1602,7 +1603,7 @@ int OSD::menuProcessPokeInput(fabgl::VirtualKeyItem Menukey) {
 
 
 // Run a new menu
-short OSD::menuGenericRun(const string title, const string& statusbar, void *user_data, size_t (*rowCount)(void *), size_t (*colsCount)(void *), void (*menuRedraw)(const string, bool), int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
+short OSD::menuGenericRun(const string& title, const string& statusbar, void *user_data, size_t (*rowCount)(void *), size_t (*colsCount)(void *), void (*menuRedraw)(const string&, bool), int (*proc_cb)(fabgl::VirtualKeyItem Menukey) ) {
 
     fabgl::VirtualKeyItem Menukey;
 

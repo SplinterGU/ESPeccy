@@ -430,9 +430,9 @@ bool KeybJoystick::blockingGetVirtualKey(VirtualKeyItem * item)
   uint8_t * scode = item->scancode;
 
   *scode = getNextScancode();
-  // printf("Scode: %x\n",*scode);    
+  // printf("Scode: %x\n",*scode);
   if (*scode == 0xE0) {
-    // printf("  E0 Scode: %x\n",*scode);    
+    // printf("  E0 Scode: %x\n",*scode);
     // two bytes scancode
     *(++scode) = getNextScancode(100, true);
     if (*scode == 0xF0) {
@@ -455,14 +455,14 @@ bool KeybJoystick::blockingGetVirtualKey(VirtualKeyItem * item)
         item->vk = VK_PAUSE;
     }
   } else if (*scode == 0xE2) {
-    // printf("  E2 Scode: %x\n",*scode);    
+    // printf("  E2 Scode: %x\n",*scode);
     // two bytes joy scancode
     *(++scode) = getNextScancode(100, true);
-    // printf("  E2 Scode: %x\n",*scode);    
+    // printf("  E2 Scode: %x\n",*scode);
     if (*scode == 0xF0) {
       // two bytes scancode key up
       *(++scode) = getNextScancode(100, true);
-      // printf("  E2 Scode: %x\n",*scode);    
+      // printf("  E2 Scode: %x\n",*scode);
       item->vk = scancodeTojoyVK(*scode);
       item->down = false;
     } else {

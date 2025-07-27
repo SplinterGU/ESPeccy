@@ -135,7 +135,7 @@ bool Keyboard::reset(bool sendCmdReset)
   if (sendCmdReset) {
 
     // 350ms keyboard poweron delay (look at NXP M68HC08 designer reference manual)
-    vTaskDelay(350 / portTICK_PERIOD_MS);
+    //vTaskDelay(350 / portTICK_PERIOD_MS);
 
     // tries up to three times to reset keyboard
     for (int i = 0; i < 3; ++i) {
@@ -145,7 +145,7 @@ bool Keyboard::reset(bool sendCmdReset)
       vTaskDelay(350 / portTICK_PERIOD_MS);
     }
     // give the time to the device to be fully initialized
-    vTaskDelay(200 / portTICK_PERIOD_MS);
+    //vTaskDelay(200 / portTICK_PERIOD_MS);
 
     if (m_keyboardAvailable)
       send_cmdSetScancodeSet(2);

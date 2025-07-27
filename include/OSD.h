@@ -46,56 +46,54 @@ using namespace std;
 // Defines
 
 // Line type
-#define IS_TITLE 0
-#define IS_FOCUSED 1
-#define IS_NORMAL 2
-#define IS_INFO 3
-#define IS_SELECTED 4
-#define IS_SELECTED_FOCUSED 5
+#define IS_TITLE                0
+#define IS_FOCUSED              1
+#define IS_NORMAL               2
+#define IS_INFO                 3
+#define IS_SELECTED             4
+#define IS_SELECTED_FOCUSED     5
 
-#ifdef USE_FONT_6x8
-#define OSD_FONT_W 6
-#define OSD_FONT_H 8
-#else
-#define OSD_FONT_W 5
-#define OSD_FONT_H 8
-#endif
+#define OSD_FONT_W          5
+#define OSD_FONT_H          8
 
-#define OSD_COLS    46
+#define OSD_COLS            46
 
-#define LEVEL_INFO 0
-#define LEVEL_OK 1
-#define LEVEL_WARN 2
+#define LEVEL_INFO  0
+#define LEVEL_OK    1
+#define LEVEL_WARN  2
 #define LEVEL_ERROR 3
 
-#define DLG_CANCEL 0
-#define DLG_YES 1
-#define DLG_NO 2
+#define DLG_CANCEL  0
+#define DLG_YES     1
+#define DLG_NO      2
+
+// States
 
 #define SLOTNAME_LEN 23
-
-// File dialog
-
-#define MAXSEARCHLEN 8
 
 // Input filter behavior
 
 #define FILTER_FORBIDDEN    0
 #define FILTER_ALLOWED      1
 
-#ifdef USE_FONT_6x8
-    #define SCROLL_SEP_CHAR '\x07'
-#else
-    #define SCROLL_SEP_CHAR '\xFA'
-#endif
+// Scrollbar
+
+#define SCROLL_SEP_CHAR '\xFA'
+
+#define MAXSEARCHLEN 8 // Max visible search len in status bar
+
+// Screen preview
 
 #define RENDER_PREVIEW_OK               0
 #define RENDER_PREVIEW_ERROR            1
 #define RENDER_PREVIEW_OK_MORE          2
 #define RENDER_PREVIEW_REQUEST_NO_FOUND 3
 
+// Input
 
 #define INPUT_CANCELED      1
+
+// Menu states (no tiene relacion con los estados de emulacion, sino con el estado de la ventana de menu)
 
 typedef struct MenuState
 {
@@ -153,8 +151,6 @@ public:
     static void saveSCR(const std::string& absolutePath, const uint32_t *bitmap);
 
     // Error
-    static void errorPanel(string errormsg);
-    static void errorHalt(string errormsg);
     static void osdCenteredMsg(string msg, uint8_t warn_level);
     static void osdCenteredMsg(string msg, uint8_t warn_level, uint16_t millispause);
 
@@ -170,18 +166,17 @@ public:
     static void FileEject();
 
     static unsigned short menuRealRowFor(uint8_t virtual_row_num);
-    // static bool menuIsSub(uint8_t virtual_row_num);
     static void menuPrintRow(uint8_t virtual_row_num, uint8_t line_type);
     static void menuRedraw();
     static void WindowDraw();
-    static short menuRun(const string new_menu, const string& statusbar = "", int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
-    static short menuSlotsWithPreview(const string new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
-    static unsigned short simpleMenuRun(string new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols);
+    static short menuRun(const string& new_menu, const string& statusbar = "", int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static short menuSlotsWithPreview(const string& new_menu, const string& statusbar, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static unsigned short simpleMenuRun(const string& new_menu, uint16_t posx, uint16_t posy, uint8_t max_rows, uint8_t max_cols);
     static string getStatusBar(uint8_t ftype, bool thumb_funcs_enabled);
-    static string fileDialog(string &fdir, string title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows);
+    static string fileDialog(string &fdir, const string& title, uint8_t ftype, uint8_t mfcols, uint8_t mfrows);
     static int menuTape(string title);
     static void menuScroll(bool up);
-    static void fd_Redraw(string title, string fdir, uint8_t ftype);
+    static void fd_Redraw(const string& title, const string& fdir, uint8_t ftype);
     static void fd_PrintRow(uint8_t virtual_row_num, uint8_t line_type);
     static void fd_StatusbarDraw(const string& statusbar, bool fdMode);
     static void tapemenuStatusbarRedraw();
@@ -194,7 +189,7 @@ public:
 
     static void drawCompressedBMP(int x, int y, const uint8_t * bmp);
 
-    static short menuGenericRun(const string title, const string& statusbar = "", void *user_data = nullptr, size_t (*rowCount)(void *) = nullptr, size_t (*colsCount)(void *) = nullptr, void (*menuRedraw)(const string, bool) = nullptr, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
+    static short menuGenericRun(const string& title, const string& statusbar = "", void *user_data = nullptr, size_t (*rowCount)(void *) = nullptr, size_t (*colsCount)(void *) = nullptr, void (*menuRedraw)(const string&, bool) = nullptr, int (*proc_cb)(fabgl::VirtualKeyItem Menukey) = nullptr);
 
     // menu callbacks
     static int menuProcessSnapshot(fabgl::VirtualKeyItem Menukey);
@@ -202,24 +197,23 @@ public:
 
     static size_t rowCountCheat(void *data);
     static size_t colsCountCheat(void *data);
-    static void menuRedrawCheat(const string title, bool force = false);
+    static void menuRedrawCheat(const string& title, bool force = false);
     static int menuProcessCheat(fabgl::VirtualKeyItem Menukey);
 
     static size_t rowCountPoke(void *data);
     static size_t colsCountPoke(void *data);
-    static void menuRedrawPoke(const string title, bool force = false);
+    static void menuRedrawPoke(const string& title, bool force = false);
     static int menuProcessPokeInput(fabgl::VirtualKeyItem Menukey);
 
     static bool browseCheatFiles();
-    static void LoadCheatFile(string snapfile);
+    static void LoadCheatFile(const string& snapfile);
     static void showCheatDialog();
 
-    // Función para preservar el estado actual en una estructura pasada por referencia.
+    // Estados de menu
     static void menuSaveState(MenuState& state);
-
-    // Función para restaurar el estado desde una estructura proporcionada.
     static void menuRestoreState(const MenuState& state);
 
+    // Statusbar scroll
     static void ResetRowScrollContext(RowScrollContext &context);
     static string RotateLine(const std::string &line, RowScrollContext *context, int maxLength, int startThreshold, int scrollInterval);
 
@@ -231,9 +225,9 @@ public:
     static unsigned int elements;
     static unsigned int ndirs;
 
-    static uint8_t msgDialog(string title, string msg);
+    static uint8_t msgDialog(const string& title, const string& msg);
 
-    static void progressDialog(string title, string msg, int percent, int action, bool noprogressbar = false);
+    static void progressDialog(const string& title, const string& msg, int percent, int action, bool noprogressbar = false);
     string inputBox(int x, int y, string text);
     static void joyDialog(uint8_t joynum);
     static void pokeDialog();
@@ -254,22 +248,22 @@ public:
     static char stats_lin1[25]; // "CPU: 00000 / IDL: 00000 ";
     static char stats_lin2[25]; // "FPS:000.00 / FND:000.00 ";
 
-    static uint8_t cols;                     // Maximum columns
-    static uint8_t mf_rows;                  // File menu maximum rows
-    static unsigned short real_rows;      // Real row count
-    static uint8_t virtual_rows;             // Virtual maximum rows on screen
-    static uint16_t w;                        // Width in pixels
-    static uint16_t h;                        // Height in pixels
-    static uint16_t x;                        // X vertical position
-    static uint16_t y;                        // Y horizontal position
-    static uint16_t prev_y[5];                // Y prev. position
+    static uint8_t cols;                    // Maximum columns
+    static uint8_t rows;                    // File menu maximum rows
+    static unsigned short real_rows;        // Real row count
+    static uint8_t virtual_rows;            // Virtual maximum rows on screen
+    static uint16_t w;                      // Width in pixels
+    static uint16_t h;                      // Height in pixels
+    static uint16_t x;                      // X vertical position
+    static uint16_t y;                      // Y horizontal position
+    static uint16_t prev_y[5];              // Y prev. position
     static unsigned short menu_prevopt;
-    static string menu;                   // Menu string
+    static string menu;                     // Menu string
 
-    static unsigned short begin_row;      // First real displayed row
-    static uint8_t focus;                    // Focused virtual row
-    static uint8_t last_focus;               // To check for changes
-    static unsigned short last_begin_row; // To check for changes
+    static unsigned short begin_row;        // First real displayed row
+    static uint8_t focus;                   // Focused virtual row
+    static uint8_t last_focus;              // To check for changes
+    static unsigned short last_begin_row;   // To check for changes
 
     static bool use_current_menu_state;
 
@@ -282,6 +276,11 @@ public:
     static RowScrollContext rowScrollCTX;
     static RowScrollContext fdRowScrollCTX;
     static RowScrollContext statusBarScrollCTX;
+
+    static string lastPreviewFile;
+
+    static uint8_t menuBGColor;
+    static uint8_t menuFGColor;
 
 };
 

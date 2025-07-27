@@ -68,8 +68,6 @@ typedef union {
     uint16_t word;
 } RegisterPair;
 
-#include "z80operations.h"
-
 #define REG_B   regBC.byte8.hi
 #define REG_C   regBC.byte8.lo
 #define REG_BC  regBC.word
@@ -133,7 +131,7 @@ private:
     // 0xDD o 0xFD como si no.
     static uint8_t prefixOpcode;
     // Subsistema de notificaciones
-    static bool execDone;
+    // static bool execDone;
     // Posiciones de los flags
     const static uint8_t CARRY_MASK = 0x01;
     const static uint8_t ADDSUB_MASK = 0x02;
@@ -202,6 +200,7 @@ private:
     static bool halted;
     // pinReset == true, se ha producido un reset a través de la patilla
     static bool pinReset;
+
     /*
      * Registro interno que usa la CPU de la siguiente forma
      *
@@ -238,10 +237,10 @@ private:
      * decreto. Si lo ponen a 1 por el mismo método basta con hacer un OR con
      * la máscara correspondiente.
      */
-    static uint8_t sz53n_addTable[256];
-    static uint8_t sz53pn_addTable[256];
-    static uint8_t sz53n_subTable[256];
-    static uint8_t sz53pn_subTable[256];
+    static const uint8_t sz53n_addTable[256];
+    static const uint8_t sz53pn_addTable[256];
+    static const uint8_t sz53n_subTable[256];
+    static const uint8_t sz53pn_subTable[256];
 
     // Un true en una dirección indica que se debe notificar que se va a
     // ejecutar la instrucción que está en esa direción.
@@ -257,164 +256,164 @@ public:
 
     // Acceso a registros de 8 bits
     // Access to 8-bit registers
-    static uint8_t getRegA(void) { return regA; }
-    static void setRegA(uint8_t value) { regA = value; }
+    static inline uint8_t getRegA(void) { return regA; }
+    static inline void setRegA(uint8_t value) { regA = value; }
 
-    static uint8_t getRegB(void) { return REG_B; }
-    static void setRegB(uint8_t value) { REG_B = value; }
+    static inline uint8_t getRegB(void) { return REG_B; }
+    static inline void setRegB(uint8_t value) { REG_B = value; }
 
-    static uint8_t getRegC(void) { return REG_C; }
-    static void setRegC(uint8_t value) { REG_C = value; }
+    static inline uint8_t getRegC(void) { return REG_C; }
+    static inline void setRegC(uint8_t value) { REG_C = value; }
 
-    static uint8_t getRegD(void) { return REG_D; }
-    static void setRegD(uint8_t value) { REG_D = value; }
+    static inline uint8_t getRegD(void) { return REG_D; }
+    static inline void setRegD(uint8_t value) { REG_D = value; }
 
-    static uint8_t getRegE(void) { return REG_E; }
-    static void setRegE(uint8_t value) { REG_E = value; }
+    static inline uint8_t getRegE(void) { return REG_E; }
+    static inline void setRegE(uint8_t value) { REG_E = value; }
 
-    static uint8_t getRegH(void) { return REG_H; }
-    static void setRegH(uint8_t value) { REG_H = value; }
+    static inline uint8_t getRegH(void) { return REG_H; }
+    static inline void setRegH(uint8_t value) { REG_H = value; }
 
-    static uint8_t getRegL(void) { return REG_L; }
-    static void setRegL(uint8_t value) { REG_L = value; }
+    static inline uint8_t getRegL(void) { return REG_L; }
+    static inline void setRegL(uint8_t value) { REG_L = value; }
 
     // Acceso a registros alternativos de 8 bits
     // Access to alternate 8-bit registers
-    static uint8_t getRegAx(void) { return REG_Ax; }
-    static void setRegAx(uint8_t value) { REG_Ax = value; }
+    static inline uint8_t getRegAx(void) { return REG_Ax; }
+    static inline void setRegAx(uint8_t value) { REG_Ax = value; }
 
-    static uint8_t getRegFx(void) { return REG_Fx; }
-    static void setRegFx(uint8_t value) { REG_Fx = value; }
+    static inline uint8_t getRegFx(void) { return REG_Fx; }
+    static inline void setRegFx(uint8_t value) { REG_Fx = value; }
 
-    static uint8_t getRegBx(void) { return REG_Bx; }
-    static void setRegBx(uint8_t value) { REG_Bx = value; }
+    static inline uint8_t getRegBx(void) { return REG_Bx; }
+    static inline void setRegBx(uint8_t value) { REG_Bx = value; }
 
-    static uint8_t getRegCx(void) { return REG_Cx; }
-    static void setRegCx(uint8_t value) { REG_Cx = value; }
+    static inline uint8_t getRegCx(void) { return REG_Cx; }
+    static inline void setRegCx(uint8_t value) { REG_Cx = value; }
 
-    static uint8_t getRegDx(void) { return REG_Dx; }
-    static void setRegDx(uint8_t value) { REG_Dx = value; }
+    static inline uint8_t getRegDx(void) { return REG_Dx; }
+    static inline void setRegDx(uint8_t value) { REG_Dx = value; }
 
-    static uint8_t getRegEx(void) { return REG_Ex; }
-    static void setRegEx(uint8_t value) { REG_Ex = value; }
+    static inline uint8_t getRegEx(void) { return REG_Ex; }
+    static inline void setRegEx(uint8_t value) { REG_Ex = value; }
 
-    static uint8_t getRegHx(void) { return REG_Hx; }
-    static void setRegHx(uint8_t value) { REG_Hx = value; }
+    static inline uint8_t getRegHx(void) { return REG_Hx; }
+    static inline void setRegHx(uint8_t value) { REG_Hx = value; }
 
-    static uint8_t getRegLx(void) { return REG_Lx; }
-    static void setRegLx(uint8_t value) { REG_Lx = value; }
+    static inline uint8_t getRegLx(void) { return REG_Lx; }
+    static inline void setRegLx(uint8_t value) { REG_Lx = value; }
 
     // Acceso a registros de 16 bits
     // Access to registers pairs
-    static uint16_t getRegAF(void) { return (regA << 8) | (carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags); }
-    static void setRegAF(uint16_t word) { regA = word >> 8; sz5h3pnFlags = word & 0xfe; carryFlag = (word & CARRY_MASK) != 0; }
+    static inline uint16_t getRegAF(void) { return (regA << 8) | (carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags); }
+    static inline void setRegAF(uint16_t word) { regA = word >> 8; sz5h3pnFlags = word & 0xfe; carryFlag = (word & CARRY_MASK) != 0; }
 
-    static uint16_t getRegAFx(void) { return REG_AFx; }
-    static void setRegAFx(uint16_t word) { REG_AFx = word; }
+    static inline uint16_t getRegAFx(void) { return REG_AFx; }
+    static inline void setRegAFx(uint16_t word) { REG_AFx = word; }
 
-    static uint16_t getRegBC(void) { return REG_BC; }
-    static void setRegBC(uint16_t word) { REG_BC = word; }
+    static inline uint16_t getRegBC(void) { return REG_BC; }
+    static inline void setRegBC(uint16_t word) { REG_BC = word; }
 
-    static uint16_t getRegBCx(void) { return REG_BCx; }
-    static void setRegBCx(uint16_t word) { REG_BCx = word; }
+    static inline uint16_t getRegBCx(void) { return REG_BCx; }
+    static inline void setRegBCx(uint16_t word) { REG_BCx = word; }
 
-    static uint16_t getRegDE(void) { return REG_DE; }
-    static void setRegDE(uint16_t word) { REG_DE = word; }
+    static inline uint16_t getRegDE(void) { return REG_DE; }
+    static inline void setRegDE(uint16_t word) { REG_DE = word; }
 
-    static uint16_t getRegDEx(void) { return REG_DEx; }
-    static void setRegDEx(uint16_t word) { REG_DEx = word; }
+    static inline uint16_t getRegDEx(void) { return REG_DEx; }
+    static inline void setRegDEx(uint16_t word) { REG_DEx = word; }
 
-    static uint16_t getRegHL(void) { return REG_HL; }
-    static void setRegHL(uint16_t word) { REG_HL = word; }
+    static inline uint16_t getRegHL(void) { return REG_HL; }
+    static inline void setRegHL(uint16_t word) { REG_HL = word; }
 
-    static uint16_t getRegHLx(void) { return REG_HLx; }
-    static void setRegHLx(uint16_t word) { REG_HLx = word; }
+    static inline uint16_t getRegHLx(void) { return REG_HLx; }
+    static inline void setRegHLx(uint16_t word) { REG_HLx = word; }
 
     // Acceso a registros de propósito específico
     // Access to special purpose registers
-    static uint16_t getRegPC(void) { return REG_PC; }
-    static void setRegPC(uint16_t address) { REG_PC = address; }
+    static inline uint16_t getRegPC(void) { return REG_PC; }
+    static inline void setRegPC(uint16_t address) { REG_PC = address; }
 
-    static uint16_t getRegSP(void) { return REG_SP; }
-    static void setRegSP(uint16_t word) { REG_SP = word; }
+    static inline uint16_t getRegSP(void) { return REG_SP; }
+    static inline void setRegSP(uint16_t word) { REG_SP = word; }
 
-    static uint16_t getRegIX(void) { return REG_IX; }
-    static void setRegIX(uint16_t word) { REG_IX = word; }
+    static inline uint16_t getRegIX(void) { return REG_IX; }
+    static inline void setRegIX(uint16_t word) { REG_IX = word; }
 
-    static uint16_t getRegIY(void) { return REG_IY; }
-    static void setRegIY(uint16_t word) { REG_IY = word; }
+    static inline uint16_t getRegIY(void) { return REG_IY; }
+    static inline void setRegIY(uint16_t word) { REG_IY = word; }
 
-    static uint8_t getRegI(void) { return regI; }
-    static void setRegI(uint8_t value) { regI = value; }
+    static inline uint8_t getRegI(void) { return regI; }
+    static inline void setRegI(uint8_t value) { regI = value; }
 
-    static uint8_t getRegR(void) { return regRbit7 ? regR | SIGN_MASK : regR & 0x7f; }
-    static void setRegR(uint8_t value) { regR = value & 0x7f; regRbit7 = (value > 0x7f); }
+    static inline uint8_t getRegR(void) { return regRbit7 ? regR | SIGN_MASK : regR & 0x7f; }
+    static inline void setRegR(uint8_t value) { regR = value & 0x7f; regRbit7 = (value > 0x7f); }
 
     // Acceso al registro oculto MEMPTR
     // Hidden register MEMPTR (known as WZ at Zilog doc?)
-    static uint16_t getMemPtr(void) { return REG_WZ; }
-    static void setMemPtr(uint16_t word) { REG_WZ = word; }
+    static inline uint16_t getMemPtr(void) { return REG_WZ; }
+    static inline void setMemPtr(uint16_t word) { REG_WZ = word; }
 
     // Acceso a los flags uno a uno
     // Access to single flags from F register
-    static bool isCarryFlag(void) { return carryFlag; }
-    static void setCarryFlag(bool state) { carryFlag = state; }
+    static inline bool isCarryFlag(void) { return carryFlag; }
+    static inline void setCarryFlag(bool state) { carryFlag = state; }
 
-    static bool isAddSubFlag(void) { return (sz5h3pnFlags & ADDSUB_MASK) != 0; }
-    static void setAddSubFlag(bool state);
+    static inline bool isAddSubFlag(void) { return (sz5h3pnFlags & ADDSUB_MASK) != 0; }
+    static inline void setAddSubFlag(bool state);
 
-    static bool isParOverFlag(void) { return (sz5h3pnFlags & PARITY_MASK) != 0; }
-    static void setParOverFlag(bool state);
-
-    /* Undocumented flag */
-    static bool isBit3Flag(void) { return (sz5h3pnFlags & BIT3_MASK) != 0; }
-    static void setBit3Fag(bool state);
-
-    static bool isHalfCarryFlag(void) { return (sz5h3pnFlags & HALFCARRY_MASK) != 0; }
-    static void setHalfCarryFlag(bool state);
+    static inline bool isParOverFlag(void) { return (sz5h3pnFlags & PARITY_MASK) != 0; }
+    static inline void setParOverFlag(bool state);
 
     /* Undocumented flag */
-    static bool isBit5Flag(void) { return (sz5h3pnFlags & BIT5_MASK) != 0; }
-    static void setBit5Flag(bool state);
+    static inline bool isBit3Flag(void) { return (sz5h3pnFlags & BIT3_MASK) != 0; }
+    static inline void setBit3Fag(bool state);
 
-    static bool isZeroFlag(void) { return (sz5h3pnFlags & ZERO_MASK) != 0; }
-    static void setZeroFlag(bool state);
+    static inline bool isHalfCarryFlag(void) { return (sz5h3pnFlags & HALFCARRY_MASK) != 0; }
+    static inline void setHalfCarryFlag(bool state);
 
-    static bool isSignFlag(void) { return sz5h3pnFlags >= SIGN_MASK; }
-    static void setSignFlag(bool state);
+    /* Undocumented flag */
+    static inline bool isBit5Flag(void) { return (sz5h3pnFlags & BIT5_MASK) != 0; }
+    static inline void setBit5Flag(bool state);
+
+    static inline bool isZeroFlag(void) { return (sz5h3pnFlags & ZERO_MASK) != 0; }
+    static inline void setZeroFlag(bool state);
+
+    static inline bool isSignFlag(void) { return sz5h3pnFlags >= SIGN_MASK; }
+    static inline void setSignFlag(bool state);
 
     // Acceso a los flags F
     // Access to F register
-    static uint8_t getFlags(void) { return carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags; }
-    static void setFlags(uint8_t regF) { sz5h3pnFlags = regF & 0xfe; carryFlag = (regF & CARRY_MASK) != 0; }
+    static inline uint8_t getFlags(void) { return carryFlag ? sz5h3pnFlags | CARRY_MASK : sz5h3pnFlags; }
+    static inline void setFlags(uint8_t regF) { sz5h3pnFlags = regF & 0xfe; carryFlag = (regF & CARRY_MASK) != 0; }
 
     // Acceso a los flip-flops de interrupción
     // Interrupt flip-flops
-    static bool isIFF1(void) { return ffIFF1; }
-    static void setIFF1(bool state) { ffIFF1 = state; }
+    static inline bool isIFF1(void) { return ffIFF1; }
+    static inline void setIFF1(bool state) { ffIFF1 = state; }
 
-    static bool isIFF2(void) { return ffIFF2; }
-    static void setIFF2(bool state) { ffIFF2 = state; }
+    static inline bool isIFF2(void) { return ffIFF2; }
+    static inline void setIFF2(bool state) { ffIFF2 = state; }
 
-    static bool isNMI(void) { return activeNMI; }
-    static void setNMI(bool nmi) { activeNMI = nmi; }
+    static inline bool isNMI(void) { return activeNMI; }
+    static inline void setNMI(bool nmi) { activeNMI = nmi; }
 
     // /NMI is negative level triggered.
-    static void triggerNMI(void) { activeNMI = true; }
+    static inline void triggerNMI(void) { activeNMI = true; }
 
     //Acceso al modo de interrupción
     // Maskable interrupt mode
-    static IntMode getIM(void) { return modeINT; }
-    static void setIM(IntMode mode) { modeINT = mode; }
+    static inline IntMode getIM(void) { return modeINT; }
+    static inline void setIM(IntMode mode) { modeINT = mode; }
 
-    static bool isHalted(void) { return halted; }
-    static void setHalted(bool state) { halted = state; }
+    static inline bool isHalted(void) { return halted; }
+    static inline void setHalted(bool state) { halted = state; }
 
     // Reset requested by /RESET signal (not power-on)
-    static void setPinReset(void) { pinReset = true; }
+    static inline void setPinReset(void) { pinReset = true; }
 
-    static bool isPendingEI(void) { return pendingEI; }
-    static void setPendingEI(bool state) { pendingEI = state; }
+    static inline bool isPendingEI(void) { return pendingEI; }
+    static inline void setPendingEI(bool state) { pendingEI = state; }
 
     // Reset
     static void reset(void);
@@ -566,10 +565,6 @@ private:
     // decode CBXX opcodes
     // static void decodeCB(void);
 
-    //Subconjunto de instrucciones 0xDD / 0xFD
-    // Decode DD/FD opcodes
-    static void decodeDDFD(RegisterPair& regIXY);
-
     // Subconjunto de instrucciones 0xDD / 0xFD 0xCB
     // Decode DD / FD CB opcodes
     static void decodeDDFDCB(uint16_t address);
@@ -580,6 +575,101 @@ private:
 
     static void (*dcOpcode[256])();
     static void (*dcCB[256])();
+    static void (*dcDDFD[256])(RegisterPair& regIXY);
+
+    //Subconjunto de instrucciones 0xDD / 0xFD
+    // Decode DD/FD opcodes
+
+    static void dcDDFD09(RegisterPair& regIXY);
+    static void dcDDFD19(RegisterPair& regIXY);
+    static void dcDDFD21(RegisterPair& regIXY);
+    static void dcDDFD22(RegisterPair& regIXY);
+    static void dcDDFD23(RegisterPair& regIXY);
+    static void dcDDFD24(RegisterPair& regIXY);
+    static void dcDDFD25(RegisterPair& regIXY);
+    static void dcDDFD26(RegisterPair& regIXY);
+    static void dcDDFD29(RegisterPair& regIXY);
+    static void dcDDFD2A(RegisterPair& regIXY);
+    static void dcDDFD2B(RegisterPair& regIXY);
+    static void dcDDFD2C(RegisterPair& regIXY);
+    static void dcDDFD2D(RegisterPair& regIXY);
+    static void dcDDFD2E(RegisterPair& regIXY);
+    static void dcDDFD34(RegisterPair& regIXY);
+    static void dcDDFD35(RegisterPair& regIXY);
+    static void dcDDFD36(RegisterPair& regIXY);
+    static void dcDDFD39(RegisterPair& regIXY);
+    static void dcDDFD44(RegisterPair& regIXY);
+    static void dcDDFD45(RegisterPair& regIXY);
+    static void dcDDFD46(RegisterPair& regIXY);
+    static void dcDDFD4C(RegisterPair& regIXY);
+    static void dcDDFD4D(RegisterPair& regIXY);
+    static void dcDDFD4E(RegisterPair& regIXY);
+    static void dcDDFD54(RegisterPair& regIXY);
+    static void dcDDFD55(RegisterPair& regIXY);
+    static void dcDDFD56(RegisterPair& regIXY);
+    static void dcDDFD5C(RegisterPair& regIXY);
+    static void dcDDFD5D(RegisterPair& regIXY);
+    static void dcDDFD5E(RegisterPair& regIXY);
+    static void dcDDFD60(RegisterPair& regIXY);
+    static void dcDDFD61(RegisterPair& regIXY);
+    static void dcDDFD62(RegisterPair& regIXY);
+    static void dcDDFD63(RegisterPair& regIXY);
+    static void dcDDFD64(RegisterPair& regIXY);
+    static void dcDDFD65(RegisterPair& regIXY);
+    static void dcDDFD66(RegisterPair& regIXY);
+    static void dcDDFD67(RegisterPair& regIXY);
+    static void dcDDFD68(RegisterPair& regIXY);
+    static void dcDDFD69(RegisterPair& regIXY);
+    static void dcDDFD6A(RegisterPair& regIXY);
+    static void dcDDFD6B(RegisterPair& regIXY);
+    static void dcDDFD6C(RegisterPair& regIXY);
+    static void dcDDFD6D(RegisterPair& regIXY);
+    static void dcDDFD6E(RegisterPair& regIXY);
+    static void dcDDFD6F(RegisterPair& regIXY);
+    static void dcDDFD70(RegisterPair& regIXY);
+    static void dcDDFD71(RegisterPair& regIXY);
+    static void dcDDFD72(RegisterPair& regIXY);
+    static void dcDDFD73(RegisterPair& regIXY);
+    static void dcDDFD74(RegisterPair& regIXY);
+    static void dcDDFD75(RegisterPair& regIXY);
+    static void dcDDFD77(RegisterPair& regIXY);
+    static void dcDDFD7C(RegisterPair& regIXY);
+    static void dcDDFD7D(RegisterPair& regIXY);
+    static void dcDDFD7E(RegisterPair& regIXY);
+    static void dcDDFD84(RegisterPair& regIXY);
+    static void dcDDFD85(RegisterPair& regIXY);
+    static void dcDDFD86(RegisterPair& regIXY);
+    static void dcDDFD8C(RegisterPair& regIXY);
+    static void dcDDFD8D(RegisterPair& regIXY);
+    static void dcDDFD8E(RegisterPair& regIXY);
+    static void dcDDFD94(RegisterPair& regIXY);
+    static void dcDDFD95(RegisterPair& regIXY);
+    static void dcDDFD96(RegisterPair& regIXY);
+    static void dcDDFD9C(RegisterPair& regIXY);
+    static void dcDDFD9D(RegisterPair& regIXY);
+    static void dcDDFD9E(RegisterPair& regIXY);
+    static void dcDDFDA4(RegisterPair& regIXY);
+    static void dcDDFDA5(RegisterPair& regIXY);
+    static void dcDDFDA6(RegisterPair& regIXY);
+    static void dcDDFDAC(RegisterPair& regIXY);
+    static void dcDDFDAD(RegisterPair& regIXY);
+    static void dcDDFDAE(RegisterPair& regIXY);
+    static void dcDDFDB4(RegisterPair& regIXY);
+    static void dcDDFDB5(RegisterPair& regIXY);
+    static void dcDDFDB6(RegisterPair& regIXY);
+    static void dcDDFDBC(RegisterPair& regIXY);
+    static void dcDDFDBD(RegisterPair& regIXY);
+    static void dcDDFDBE(RegisterPair& regIXY);
+    static void dcDDFDCB(RegisterPair& regIXY);
+    static void dcDDFDDD(RegisterPair& regIXY);
+    static void dcDDFDE1(RegisterPair& regIXY);
+    static void dcDDFDE3(RegisterPair& regIXY);
+    static void dcDDFDE5(RegisterPair& regIXY);
+    static void dcDDFDE9(RegisterPair& regIXY);
+    static void dcDDFDED(RegisterPair& regIXY);
+    static void dcDDFDF9(RegisterPair& regIXY);
+    static void dcDDFDFD(RegisterPair& regIXY);
+    static void dcDDFDdefault(RegisterPair& regIXY);
 
     static void decodeOpcode00(void);
     static void decodeOpcode01(void);
@@ -591,12 +681,12 @@ private:
     static void decodeOpcode07(void);
     static void decodeOpcode08(void);
     static void decodeOpcode09(void);
-    static void decodeOpcode0a(void);
-    static void decodeOpcode0b(void);
-    static void decodeOpcode0c(void);
-    static void decodeOpcode0d(void);
-    static void decodeOpcode0e(void);
-    static void decodeOpcode0f(void);
+    static void decodeOpcode0A(void);
+    static void decodeOpcode0B(void);
+    static void decodeOpcode0C(void);
+    static void decodeOpcode0D(void);
+    static void decodeOpcode0E(void);
+    static void decodeOpcode0F(void);
 
     static void decodeOpcode10(void);
     static void decodeOpcode11(void);
@@ -608,12 +698,12 @@ private:
     static void decodeOpcode17(void);
     static void decodeOpcode18(void);
     static void decodeOpcode19(void);
-    static void decodeOpcode1a(void);
-    static void decodeOpcode1b(void);
-    static void decodeOpcode1c(void);
-    static void decodeOpcode1d(void);
-    static void decodeOpcode1e(void);
-    static void decodeOpcode1f(void);
+    static void decodeOpcode1A(void);
+    static void decodeOpcode1B(void);
+    static void decodeOpcode1C(void);
+    static void decodeOpcode1D(void);
+    static void decodeOpcode1E(void);
+    static void decodeOpcode1F(void);
 
     static void decodeOpcode20(void);
     static void decodeOpcode21(void);
@@ -625,12 +715,12 @@ private:
     static void decodeOpcode27(void);
     static void decodeOpcode28(void);
     static void decodeOpcode29(void);
-    static void decodeOpcode2a(void);
-    static void decodeOpcode2b(void);
-    static void decodeOpcode2c(void);
-    static void decodeOpcode2d(void);
-    static void decodeOpcode2e(void);
-    static void decodeOpcode2f(void);
+    static void decodeOpcode2A(void);
+    static void decodeOpcode2B(void);
+    static void decodeOpcode2C(void);
+    static void decodeOpcode2D(void);
+    static void decodeOpcode2E(void);
+    static void decodeOpcode2F(void);
 
     static void decodeOpcode30(void);
     static void decodeOpcode31(void);
@@ -642,12 +732,12 @@ private:
     static void decodeOpcode37(void);
     static void decodeOpcode38(void);
     static void decodeOpcode39(void);
-    static void decodeOpcode3a(void);
-    static void decodeOpcode3b(void);
-    static void decodeOpcode3c(void);
-    static void decodeOpcode3d(void);
-    static void decodeOpcode3e(void);
-    static void decodeOpcode3f(void);
+    static void decodeOpcode3A(void);
+    static void decodeOpcode3B(void);
+    static void decodeOpcode3C(void);
+    static void decodeOpcode3D(void);
+    static void decodeOpcode3E(void);
+    static void decodeOpcode3F(void);
 
     static void decodeOpcode40(void);
     static void decodeOpcode41(void);
@@ -659,12 +749,12 @@ private:
     static void decodeOpcode47(void);
     static void decodeOpcode48(void);
     static void decodeOpcode49(void);
-    static void decodeOpcode4a(void);
-    static void decodeOpcode4b(void);
-    static void decodeOpcode4c(void);
-    static void decodeOpcode4d(void);
-    static void decodeOpcode4e(void);
-    static void decodeOpcode4f(void);
+    static void decodeOpcode4A(void);
+    static void decodeOpcode4B(void);
+    static void decodeOpcode4C(void);
+    static void decodeOpcode4D(void);
+    static void decodeOpcode4E(void);
+    static void decodeOpcode4F(void);
 
     static void decodeOpcode50(void);
     static void decodeOpcode51(void);
@@ -676,12 +766,12 @@ private:
     static void decodeOpcode57(void);
     static void decodeOpcode58(void);
     static void decodeOpcode59(void);
-    static void decodeOpcode5a(void);
-    static void decodeOpcode5b(void);
-    static void decodeOpcode5c(void);
-    static void decodeOpcode5d(void);
-    static void decodeOpcode5e(void);
-    static void decodeOpcode5f(void);
+    static void decodeOpcode5A(void);
+    static void decodeOpcode5B(void);
+    static void decodeOpcode5C(void);
+    static void decodeOpcode5D(void);
+    static void decodeOpcode5E(void);
+    static void decodeOpcode5F(void);
 
     static void decodeOpcode60(void);
     static void decodeOpcode61(void);
@@ -693,12 +783,12 @@ private:
     static void decodeOpcode67(void);
     static void decodeOpcode68(void);
     static void decodeOpcode69(void);
-    static void decodeOpcode6a(void);
-    static void decodeOpcode6b(void);
-    static void decodeOpcode6c(void);
-    static void decodeOpcode6d(void);
-    static void decodeOpcode6e(void);
-    static void decodeOpcode6f(void);
+    static void decodeOpcode6A(void);
+    static void decodeOpcode6B(void);
+    static void decodeOpcode6C(void);
+    static void decodeOpcode6D(void);
+    static void decodeOpcode6E(void);
+    static void decodeOpcode6F(void);
 
     static void decodeOpcode70(void);
     static void decodeOpcode71(void);
@@ -710,12 +800,12 @@ private:
     static void decodeOpcode77(void);
     static void decodeOpcode78(void);
     static void decodeOpcode79(void);
-    static void decodeOpcode7a(void);
-    static void decodeOpcode7b(void);
-    static void decodeOpcode7c(void);
-    static void decodeOpcode7d(void);
-    static void decodeOpcode7e(void);
-    static void decodeOpcode7f(void);
+    static void decodeOpcode7A(void);
+    static void decodeOpcode7B(void);
+    static void decodeOpcode7C(void);
+    static void decodeOpcode7D(void);
+    static void decodeOpcode7E(void);
+    static void decodeOpcode7F(void);
 
     static void decodeOpcode80(void);
     static void decodeOpcode81(void);
@@ -727,12 +817,12 @@ private:
     static void decodeOpcode87(void);
     static void decodeOpcode88(void);
     static void decodeOpcode89(void);
-    static void decodeOpcode8a(void);
-    static void decodeOpcode8b(void);
-    static void decodeOpcode8c(void);
-    static void decodeOpcode8d(void);
-    static void decodeOpcode8e(void);
-    static void decodeOpcode8f(void);
+    static void decodeOpcode8A(void);
+    static void decodeOpcode8B(void);
+    static void decodeOpcode8C(void);
+    static void decodeOpcode8D(void);
+    static void decodeOpcode8E(void);
+    static void decodeOpcode8F(void);
 
     static void decodeOpcode90(void);
     static void decodeOpcode91(void);
@@ -744,115 +834,114 @@ private:
     static void decodeOpcode97(void);
     static void decodeOpcode98(void);
     static void decodeOpcode99(void);
-    static void decodeOpcode9a(void);
-    static void decodeOpcode9b(void);
-    static void decodeOpcode9c(void);
-    static void decodeOpcode9d(void);
-    static void decodeOpcode9e(void);
-    static void decodeOpcode9f(void);
+    static void decodeOpcode9A(void);
+    static void decodeOpcode9B(void);
+    static void decodeOpcode9C(void);
+    static void decodeOpcode9D(void);
+    static void decodeOpcode9E(void);
+    static void decodeOpcode9F(void);
 
-    static void decodeOpcodea0(void);
-    static void decodeOpcodea1(void);
-    static void decodeOpcodea2(void);
-    static void decodeOpcodea3(void);
-    static void decodeOpcodea4(void);
-    static void decodeOpcodea5(void);
-    static void decodeOpcodea6(void);
-    static void decodeOpcodea7(void);
-    static void decodeOpcodea8(void);
-    static void decodeOpcodea9(void);
-    static void decodeOpcodeaa(void);
-    static void decodeOpcodeab(void);
-    static void decodeOpcodeac(void);
-    static void decodeOpcodead(void);
-    static void decodeOpcodeae(void);
-    static void decodeOpcodeaf(void);
+    static void decodeOpcodeA0(void);
+    static void decodeOpcodeA1(void);
+    static void decodeOpcodeA2(void);
+    static void decodeOpcodeA3(void);
+    static void decodeOpcodeA4(void);
+    static void decodeOpcodeA5(void);
+    static void decodeOpcodeA6(void);
+    static void decodeOpcodeA7(void);
+    static void decodeOpcodeA8(void);
+    static void decodeOpcodeA9(void);
+    static void decodeOpcodeAA(void);
+    static void decodeOpcodeAB(void);
+    static void decodeOpcodeAC(void);
+    static void decodeOpcodeAD(void);
+    static void decodeOpcodeAE(void);
+    static void decodeOpcodeAF(void);
 
-    static void decodeOpcodeb0(void);
-    static void decodeOpcodeb1(void);
-    static void decodeOpcodeb2(void);
-    static void decodeOpcodeb3(void);
-    static void decodeOpcodeb4(void);
-    static void decodeOpcodeb5(void);
-    static void decodeOpcodeb6(void);
-    static void decodeOpcodeb7(void);
-    static void decodeOpcodeb8(void);
-    static void decodeOpcodeb9(void);
-    static void decodeOpcodeba(void);
-    static void decodeOpcodebb(void);
-    static void decodeOpcodebc(void);
-    static void decodeOpcodebd(void);
-    static void decodeOpcodebe(void);
+    static void decodeOpcodeB0(void);
+    static void decodeOpcodeB1(void);
+    static void decodeOpcodeB2(void);
+    static void decodeOpcodeB3(void);
+    static void decodeOpcodeB4(void);
+    static void decodeOpcodeB5(void);
+    static void decodeOpcodeB6(void);
+    static void decodeOpcodeB7(void);
+    static void decodeOpcodeB8(void);
+    static void decodeOpcodeB9(void);
+    static void decodeOpcodeBA(void);
+    static void decodeOpcodeBB(void);
+    static void decodeOpcodeBC(void);
+    static void decodeOpcodeBD(void);
+    static void decodeOpcodeBE(void);
+    static void decodeOpcodeBF(void); // Used for LOAD TRAP
 
-    static void decodeOpcodebf(void); // Used for LOAD TRAP
+    static void decodeOpcodeC0(void);
+    static void decodeOpcodeC1(void);
+    static void decodeOpcodeC2(void);
+    static void decodeOpcodeC3(void);
+    static void decodeOpcodeC4(void);
+    static void decodeOpcodeC5(void);
+    static void decodeOpcodeC6(void);
+    static void decodeOpcodeC7(void);
+    static void decodeOpcodeC8(void);
+    static void decodeOpcodeC9(void);
+    static void decodeOpcodeCA(void);
+    static void decodeOpcodeCB(void);
+    static void decodeOpcodeCC(void);
+    static void decodeOpcodeCD(void);
+    static void decodeOpcodeCE(void);
+    static void decodeOpcodeCF(void);
 
-    static void decodeOpcodec0(void);
-    static void decodeOpcodec1(void);
-    static void decodeOpcodec2(void);
-    static void decodeOpcodec3(void);
-    static void decodeOpcodec4(void);
-    static void decodeOpcodec5(void);
-    static void decodeOpcodec6(void);
-    static void decodeOpcodec7(void);
-    static void decodeOpcodec8(void);
-    static void decodeOpcodec9(void);
-    static void decodeOpcodeca(void);
-    static void decodeOpcodecb(void);
-    static void decodeOpcodecc(void);
-    static void decodeOpcodecd(void);
-    static void decodeOpcodece(void);
-    static void decodeOpcodecf(void);
+    static void decodeOpcodeD0(void);
+    static void decodeOpcodeD1(void);
+    static void decodeOpcodeD2(void);
+    static void decodeOpcodeD3(void);
+    static void decodeOpcodeD4(void);
+    static void decodeOpcodeD5(void);
+    static void decodeOpcodeD6(void);
+    static void decodeOpcodeD7(void);
+    static void decodeOpcodeD8(void);
+    static void decodeOpcodeD9(void);
+    static void decodeOpcodeDA(void);
+    static void decodeOpcodeDB(void);
+    static void decodeOpcodeDC(void);
+    static void decodeOpcodeDD(void);
+    static void decodeOpcodeDE(void);
+    static void decodeOpcodeDF(void);
 
-    static void decodeOpcoded0(void);
-    static void decodeOpcoded1(void);
-    static void decodeOpcoded2(void);
-    static void decodeOpcoded3(void);
-    static void decodeOpcoded4(void);
-    static void decodeOpcoded5(void);
-    static void decodeOpcoded6(void);
-    static void decodeOpcoded7(void);
-    static void decodeOpcoded8(void);
-    static void decodeOpcoded9(void);
-    static void decodeOpcodeda(void);
-    static void decodeOpcodedb(void);
-    static void decodeOpcodedc(void);
-    static void decodeOpcodedd(void);
-    static void decodeOpcodede(void);
-    static void decodeOpcodedf(void);
+    static void decodeOpcodeE0(void);
+    static void decodeOpcodeE1(void);
+    static void decodeOpcodeE2(void);
+    static void decodeOpcodeE3(void);
+    static void decodeOpcodeE4(void);
+    static void decodeOpcodeE5(void);
+    static void decodeOpcodeE6(void);
+    static void decodeOpcodeE7(void);
+    static void decodeOpcodeE8(void);
+    static void decodeOpcodeE9(void);
+    static void decodeOpcodeEA(void);
+    static void decodeOpcodeEB(void);
+    static void decodeOpcodeEC(void);
+    static void decodeOpcodeED(void);
+    static void decodeOpcodeEE(void);
+    static void decodeOpcodeEF(void);
 
-    static void decodeOpcodee0(void);
-    static void decodeOpcodee1(void);
-    static void decodeOpcodee2(void);
-    static void decodeOpcodee3(void);
-    static void decodeOpcodee4(void);
-    static void decodeOpcodee5(void);
-    static void decodeOpcodee6(void);
-    static void decodeOpcodee7(void);
-    static void decodeOpcodee8(void);
-    static void decodeOpcodee9(void);
-    static void decodeOpcodeea(void);
-    static void decodeOpcodeeb(void);
-    static void decodeOpcodeec(void);
-    static void decodeOpcodeed(void);
-    static void decodeOpcodeee(void);
-    static void decodeOpcodeef(void);
-
-    static void decodeOpcodef0(void);
-    static void decodeOpcodef1(void);
-    static void decodeOpcodef2(void);
-    static void decodeOpcodef3(void);
-    static void decodeOpcodef4(void);
-    static void decodeOpcodef5(void);
-    static void decodeOpcodef6(void);
-    static void decodeOpcodef7(void);
-    static void decodeOpcodef8(void);
-    static void decodeOpcodef9(void);
-    static void decodeOpcodefa(void);
-    static void decodeOpcodefb(void);
-    static void decodeOpcodefc(void);
-    static void decodeOpcodefd(void);
-    static void decodeOpcodefe(void);
-    static void decodeOpcodeff(void);
+    static void decodeOpcodeF0(void);
+    static void decodeOpcodeF1(void);
+    static void decodeOpcodeF2(void);
+    static void decodeOpcodeF3(void);
+    static void decodeOpcodeF4(void);
+    static void decodeOpcodeF5(void);
+    static void decodeOpcodeF6(void);
+    static void decodeOpcodeF7(void);
+    static void decodeOpcodeF8(void);
+    static void decodeOpcodeF9(void);
+    static void decodeOpcodeFA(void);
+    static void decodeOpcodeFB(void);
+    static void decodeOpcodeFC(void);
+    static void decodeOpcodeFD(void);
+    static void decodeOpcodeFE(void);
+    static void decodeOpcodeFF(void);
 
     static void dcCB00(void);
     static void dcCB01(void);
@@ -1129,5 +1218,7 @@ private:
     static void check_trdos();
     // static void check_trdos_unpage();
 };
+
+#include "z80operations.h"
 
 #endif // Z80CPP_H

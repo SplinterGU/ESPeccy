@@ -33,12 +33,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "ESP32Lib/Graphics/Font.h"
 
-// use only ONE of these fontfaces
-#define FONTFACE 1 // iso8859_1
-
 ///////////////////////////////////////////////////////////////////////////////
 
-#if FONTFACE == 1 // iso8859_1
+// iso8859_1
 
 const unsigned char Font5x8Pixels[] = {
 /* code=0, hex=0x00, ascii="." */
@@ -2750,8 +2747,6 @@ const unsigned char Font5x8Pixels_CP860[] = {
       0,   0, 255, 255,   0,
       0,   0,   0,   0,   0
 };
-#endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 

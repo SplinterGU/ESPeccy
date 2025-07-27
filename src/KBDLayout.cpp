@@ -487,7 +487,6 @@ static bool parseEntry(const std::vector<std::string> &tokens, MappingEntry &ent
     return true;
 }
 
-
 // Función que parsea una línea del archivo.
 static void parseLine(fabgl::KeyboardLayout *customLayout, const std::string &line) {
     // Buscar el '='

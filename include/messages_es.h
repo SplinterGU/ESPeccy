@@ -202,10 +202,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Pantalla\t>\n"\
     "Rat\xA2n\t>\n"\
     "Sonido\t>\n"\
-    "Otros\t>\n"\
     "Idioma\t>\n"\
     "Interfaz de Usuario\t>\n"\
-    "EAR config\t>\n"
+    "Otros\t>\n"
 
 #define MENU_UPDATE_ES \
     "Actualizar\n"\
@@ -251,7 +250,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Carga r\xA0pida cinta\t>\n"\
     "Timings ROM R.G.\t>\n"\
     "Monitor LOAD\t>\n"\
-    "Cinta real\t>\n"
+    "Cinta real\t>\n"\
+    "EAR config\t>\n"
 
 #define MENU_YESNO_ES "S\xA1\t[Y]\n"\
     "No\t[N]\n"

@@ -43,7 +43,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 using namespace std;
 
 uint8_t* MemESP::rom[5] = { NULL, NULL, NULL, NULL, NULL };
-
 uint8_t* MemESP::ram[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
 #ifdef TIME_MACHINE_ENABLED
@@ -97,17 +96,20 @@ bool MemESP::Init() {
 
     } else {
 
-        MemESP::ram[0] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-        MemESP::ram[2] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+        // 48K pages in SRAM
+        MemESP::ram[0] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
+        MemESP::ram[2] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
 
+        // Video pages in SRAM
         MemESP::ram[5] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
         MemESP::ram[7] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
 
         if (!is48k) {
-            MemESP::ram[1] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-            MemESP::ram[3] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-            MemESP::ram[4] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-            MemESP::ram[6] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+            // 128K pages
+            MemESP::ram[1] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
+            MemESP::ram[3] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
+            MemESP::ram[4] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
+            MemESP::ram[6] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
         }
 
     }
@@ -147,16 +149,16 @@ void MemESP::Reset() {
     MemESP::lastContendedMemReadWrite = 0xff;
 
     if (Config::psramsize == 0) {
-        if ( MemESP::pagingLock ) { // *48k
+        if ( MemESP::pagingLock ) { // 48k
             heap_caps_free( MemESP::ram[1] ); MemESP::ram[1] = NULL;
             heap_caps_free( MemESP::ram[3] ); MemESP::ram[3] = NULL;
             heap_caps_free( MemESP::ram[4] ); MemESP::ram[4] = NULL;
             heap_caps_free( MemESP::ram[6] ); MemESP::ram[6] = NULL;
         } else {
-            if ( !MemESP::ram[1] ) { MemESP::ram[1] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); if ( !MemESP::ram[1] ) printf("ERROR! Unable to allocate ram1\n"); }
-            if ( !MemESP::ram[3] ) { MemESP::ram[3] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); if ( !MemESP::ram[3] ) printf("ERROR! Unable to allocate ram3\n"); }
-            if ( !MemESP::ram[4] ) { MemESP::ram[4] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); if ( !MemESP::ram[4] ) printf("ERROR! Unable to allocate ram4\n"); }
-            if ( !MemESP::ram[6] ) { MemESP::ram[6] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT); if ( !MemESP::ram[6] ) printf("ERROR! Unable to allocate ram6\n"); }
+            if ( !MemESP::ram[1] ) { MemESP::ram[1] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT); if ( !MemESP::ram[1] ) printf("ERROR! Unable to allocate ram1\n"); }
+            if ( !MemESP::ram[3] ) { MemESP::ram[3] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT); if ( !MemESP::ram[3] ) printf("ERROR! Unable to allocate ram3\n"); }
+            if ( !MemESP::ram[4] ) { MemESP::ram[4] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT); if ( !MemESP::ram[4] ) printf("ERROR! Unable to allocate ram4\n"); }
+            if ( !MemESP::ram[6] ) { MemESP::ram[6] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT); if ( !MemESP::ram[6] ) printf("ERROR! Unable to allocate ram6\n"); }
         }
     }
 
