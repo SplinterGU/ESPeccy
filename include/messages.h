@@ -595,7 +595,7 @@ static const char *AboutMsg[NLANGS][5] = {
 
 static const char *StartMsg[NLANGS] = {
 	// English
-    "Hi! Thanks for choosing \nA0ESP\nF0eccy!\r"
+    "\nF0Hi! Thanks for choosing \nA0ESP\nF0eccy!\r"
 	"(https://github.com/SplinterGU/ESPeccy)\r"
     "\r"
     "\nA0ESP\nF0eccy is open source software licensed\r"
@@ -603,7 +603,7 @@ static const char *StartMsg[NLANGS] = {
     "and share it for free.\r"
 	,
 	// Spanish
-	"\xAD" "Hola! \xADGracias por elegir \nA0ESP\nF0eccy!\r"
+	"\nF0\xAD" "Hola! \xADGracias por elegir \nA0ESP\nF0eccy!\r"
 	"(https://github.com/SplinterGU/ESPeccy)\r"
 	"\r"
 	"\nA0ESP\nF0eccy es software de c\xA2" "digo abierto bajo\r"
@@ -611,7 +611,7 @@ static const char *StartMsg[NLANGS] = {
 	"y compartirlo gratis.\r"
 	,
 	// Portugues
-	"Oi! Obrigado por escolher \nA0ESP\nF0eccy!\r"
+	"\nF0Oi! Obrigado por escolher \nA0ESP\nF0eccy!\r"
 	"(https://github.com/SplinterGU/ESPeccy)\r"
 	"\r"
 	"\nA0ESP\nF0eccy \x82 um software de c" "\xA2" "digo aberto sob\r"

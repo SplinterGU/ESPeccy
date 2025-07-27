@@ -59,7 +59,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // and adjusted for BEEPER_MAX_VOLUME = 97
 
 #if 0
-    uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
+    const uint8_t Ports::speaker_values[8]={ 0, 19, 34, 53, 97, 101, 130, 134 };
 #else
     #define SPK_VAL         0xA0 // 0xB0
     #define MIC_VAL         0x50 // 0x40
@@ -185,7 +185,7 @@ uint8_t tkIOcon(uint16_t a) {
 
     if (t >= 228) {
         t -= 228;
-        l++;
+        ++l;
         if (l >= (Config::ALUTK == 1 ? 312 : 262)) l = 0;
     }
 
@@ -219,10 +219,10 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
     // ULA PORT
     if ((address & 0x0001) == 0) {
 
-        in254_count++;
+        ++in254_count;
 
         if (Config::arch[0] == 'T' && Config::ALUTK > 0) {
-            VIDEO::Draw( 3 + tkIOcon(address), false);
+            VIDEO::Draw(3 + tkIOcon(address), false);
         } else {
             VIDEO::Draw(3, Z80Ops::is48 || Z80Ops::is128);   // I/O Contention (Late)
         }
@@ -253,7 +253,7 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
     } else {
 
         if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-            VIDEO::Draw( 3 + tkIOcon(address), false);
+            VIDEO::Draw(3 + tkIOcon(address), false);
         else
             ioContentionLate((Z80Ops::is48 || Z80Ops::is128) && MemESP::ramContended[rambank]);
 
@@ -510,7 +510,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             }
 
             if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-                VIDEO::Draw( 3 + tkIOcon(address), false);
+                VIDEO::Draw(3 + tkIOcon(address), false);
             else
                 VIDEO::Draw(3, true);   // I/O Contention (Late)
 
@@ -528,7 +528,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             }
 
             if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-                VIDEO::Draw( 3 + tkIOcon(address), false);
+                VIDEO::Draw(3 + tkIOcon(address), false);
             else
                 VIDEO::Draw(3, Z80Ops::is48 || Z80Ops::is128);   // I/O Contention (Late)
 
@@ -537,7 +537,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
         }
 
         if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-            VIDEO::Draw( 3 + tkIOcon(address), false);
+            VIDEO::Draw(3 + tkIOcon(address), false);
         else
             VIDEO::Draw(3, Z80Ops::is48 || Z80Ops::is128);   // I/O Contention (Late)
 
@@ -567,7 +567,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
             }
 
             if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-                VIDEO::Draw( 3 + tkIOcon(address), false);
+                VIDEO::Draw(3 + tkIOcon(address), false);
             else
                 ioContentionLate(MemESP::ramContended[rambank]);
 
@@ -674,7 +674,7 @@ IRAM_ATTR void Ports::output(uint16_t address, uint8_t data) {
         lateIOContention:
 
         if (Config::arch[0] == 'T' && Config::ALUTK > 0)
-            VIDEO::Draw( 3 + tkIOcon(address), false);
+            VIDEO::Draw(3 + tkIOcon(address), false);
         else
             ioContentionLate((Z80Ops::is48 || Z80Ops::is128) && MemESP::ramContended[rambank]);
 

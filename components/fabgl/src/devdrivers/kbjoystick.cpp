@@ -81,8 +81,6 @@ void KeybJoystick::begin(bool generateVirtualKeys, bool createVKQueue, int PS2Po
   m_capsLockLED    = false;
   m_scrollLockLED  = false;
 
-  m_uiApp = nullptr;
-
   reset();
 
   enableVirtualKeys(generateVirtualKeys, createVKQueue);
@@ -432,9 +430,9 @@ bool KeybJoystick::blockingGetVirtualKey(VirtualKeyItem * item)
   uint8_t * scode = item->scancode;
 
   *scode = getNextScancode();
-  // printf("Scode: %x\n",*scode);    
+  // printf("Scode: %x\n",*scode);
   if (*scode == 0xE0) {
-    // printf("  E0 Scode: %x\n",*scode);    
+    // printf("  E0 Scode: %x\n",*scode);
     // two bytes scancode
     *(++scode) = getNextScancode(100, true);
     if (*scode == 0xF0) {
@@ -457,14 +455,14 @@ bool KeybJoystick::blockingGetVirtualKey(VirtualKeyItem * item)
         item->vk = VK_PAUSE;
     }
   } else if (*scode == 0xE2) {
-    // printf("  E2 Scode: %x\n",*scode);    
+    // printf("  E2 Scode: %x\n",*scode);
     // two bytes joy scancode
     *(++scode) = getNextScancode(100, true);
-    // printf("  E2 Scode: %x\n",*scode);    
+    // printf("  E2 Scode: %x\n",*scode);
     if (*scode == 0xF0) {
       // two bytes scancode key up
       *(++scode) = getNextScancode(100, true);
-      // printf("  E2 Scode: %x\n",*scode);    
+      // printf("  E2 Scode: %x\n",*scode);
       item->vk = scancodeTojoyVK(*scode);
       item->down = false;
     } else {
@@ -573,7 +571,7 @@ void KeybJoystick::injectVirtualKey(VirtualKeyItem const & item, bool insert)
 
   // has VK queue? Insert VK into it.
   if (m_virtualKeyQueue) {
-    auto ticksToWait = (m_uiApp ? 0 : portMAX_DELAY);  // 0, and not portMAX_DELAY to avoid uiApp locks
+    auto ticksToWait = portMAX_DELAY;  // 0, and not portMAX_DELAY to avoid uiApp locks
     if (insert)
       xQueueSendToFront(m_virtualKeyQueue, &item, ticksToWait);
     else
@@ -606,19 +604,6 @@ void KeybJoystick::postVirtualKeyItem(VirtualKeyItem const & item)
 {
   // add into m_virtualKeyQueue and update m_VKMap
   injectVirtualKey(item, false);
-
-  // need to send events to uiApp?
-  if (m_uiApp) {
-    uiEvent evt = uiEvent(nullptr, item.down ? UIEVT_KEYDOWN : UIEVT_KEYUP);
-    evt.params.key.VK    = item.vk;
-    evt.params.key.ASCII = item.ASCII;
-    evt.params.key.LALT  = item.LALT;
-    evt.params.key.RALT  = item.RALT;
-    evt.params.key.CTRL  = item.CTRL;
-    evt.params.key.SHIFT = item.SHIFT;
-    evt.params.key.GUI   = item.GUI;
-    m_uiApp->postEvent(&evt);
-  }
 }
 
 
