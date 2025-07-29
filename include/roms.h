@@ -77,5 +77,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     extern const unsigned char gb_rom_0_s128_zx81[];
     extern const unsigned char gb_rom_4_trdos_503[];
     // extern const unsigned char gb_rom_4_trdos_504t[];
+    extern const unsigned char gb_rom_4_trdos_505d[];
 
 #endif

@@ -240,13 +240,13 @@ static const char *MENU_STORAGE[NLANGS] = { MENU_STORAGE_EN, MENU_STORAGE_ES, ME
 
 static const char *MENU_YESNO[NLANGS] = { MENU_YESNO_EN, MENU_YESNO_ES, MENU_YESNO_PT };
 
-static const char *MENU_DISKCTRL[NLANGS] = { "Betadisk\n" , "Betadisk\n", "Betadisk\n" };
+static const char *MENU_DISKCTRL[NLANGS] = { MENU_DISKCTRL_EN, MENU_DISKCTRL_ES, MENU_DISKCTRL_PT };
 
-static const char *MENU_AUTOLOAD[NLANGS] = { "Auto load\n" , "Carga autom\xA0tica\n", "Carga autom\xA0tica\n" };
+static const char *MENU_AUTOLOAD[NLANGS] = { "Auto load\n", "Carga autom\xA0tica\n", "Carga autom\xA0tica\n" };
 
-static const char *MENU_FLASHLOAD[NLANGS] = { "Flash load\n" , "Carga r\xA0pida\n", "Carga r\xA0pida\n" };
+static const char *MENU_FLASHLOAD[NLANGS] = { "Flash load\n", "Carga r\xA0pida\n", "Carga r\xA0pida\n" };
 
-static const char *MENU_RGTIMINGS[NLANGS] = { "R.G. Timings\n" , "Timings R.G.\n", "Timings R.G.\n" };
+static const char *MENU_RGTIMINGS[NLANGS] = { "R.G. Timings\n", "Timings R.G.\n", "Timings R.G.\n" };
 
 static const char *MENU_OTHER[NLANGS] = { MENU_OTHER_EN, MENU_OTHER_ES, MENU_OTHER_PT };
 
@@ -270,12 +270,12 @@ static const char *MENU_REALTAPE_OPTIONS_LILY = "EAR config\n"\
     "PS/2 MOUSE (GPIO 26)\t[26]\n"\
     "PS/2 MOUSE (GPIO 27)\t[27]\n";
 
-static const char *MENU_AY48[NLANGS] = { "AY on 48K \n" , "AY en 48K \n" , "AY em 48K \n" };
+static const char *MENU_AY48[NLANGS] = { "AY on 48K \n", "AY en 48K \n", "AY em 48K \n" };
 
 static const char *SECOND_PS2_DEVICE[NLANGS][4] = {
-    { "2nd PS/2 device: ", "None" , "Kbd / DB9 adapter" , "Mouse"},
-    { "Segundo disp. PS/2: ", "Nada" , "Teclado / Adapt. DB9" , "Rat\xA2n"},
-    { "Segundo disp. PS/2: ", "Nada" , "Teclado / Adapt. DB9" , "Mouse"}
+    { "2nd PS/2 device: ", "None", "Kbd / DB9 adapter", "Mouse"},
+    { "Segundo disp. PS/2: ", "Nada", "Teclado / Adapt. DB9", "Rat\xA2n"},
+    { "Segundo disp. PS/2: ", "Nada", "Teclado / Adapt. DB9", "Mouse"}
 };
 
 #define MENU_COVOXS "Covox Mono\t[M]\n"\
@@ -390,13 +390,13 @@ static const char *MENU_JOYPS2[NLANGS] = { MENU_JOYPS2_EN, MENU_JOYPS2_ES, MENU_
 
 static const char *MENU_PS2JOYTYPE[NLANGS] = { "Joy type\n" MENU_DEFJOYS, "Tipo joystick\n" MENU_DEFJOYS, "Tipo joystick\n" MENU_DEFJOYS };
 
-static const char *MENU_CURSORJOY[NLANGS] = { "Cursor as Joy\n" , "Joy en Cursor\n" , "Joy no Cursor\n" };
+static const char *MENU_CURSORJOY[NLANGS] = { "Cursor as Joy\n", "Joy en Cursor\n", "Joy no Cursor\n" };
 
-static const char *MENU_TABASFIRE[NLANGS] = { "TAB as fire 1\n" , "TAB disparo 1\n" , "TAB fire 1\n" };
+static const char *MENU_TABASFIRE[NLANGS] = { "TAB as fire 1\n", "TAB disparo 1\n", "TAB fire 1\n" };
 
 static const char *DLG_TITLE_INPUTPOK[NLANGS] = { DLG_TITLE_INPUTPOK_EN, DLG_TITLE_INPUTPOK_ES, DLG_TITLE_INPUTPOK_PT };
 
-static const char *POKE_BANK_MENU[NLANGS] = { " Bank  \n" , " Banco \n" , " Banco \n" };
+static const char *POKE_BANK_MENU[NLANGS] = { " Bank  \n", " Banco \n", " Banco \n" };
 
 static const char *MENU_MOUSE[NLANGS] = { MENU_MOUSE_EN, MENU_MOUSE_ES, MENU_MOUSE_PT};
 

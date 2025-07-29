@@ -253,6 +253,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Real tape\t>\n"\
     "EAR config\t>\n"
 
+#define MENU_DISKCTRL_EN "Betadisk\n" \
+    "Disabled\t[0]\n" \
+    "TR-DOS 5.03\t[1]\n" \
+    "TR-DOS 5.05D\t[2]\n"
+
 #define MENU_YESNO_EN "Yes\t[Y]\n"\
     "No\t[N]\n"
 

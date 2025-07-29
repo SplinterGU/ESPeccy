@@ -145,7 +145,7 @@ bool Config::StartMsg = true;
 uint8_t Config::port254default = 0xbf; // For TK90X v1 ROM -> 0xbf: Spanish, 0x3f: Portuguese
 
 uint8_t Config::ALUTK = 1; // TK ALU -> 0 -> Ferranti, 1 -> Microdigital 50hz, 2 -> Microdigital 60hz
-uint8_t Config::DiskCtrl = 1; // 0 -> None, 1 -> Betadisk
+uint8_t Config::DiskCtrl = 1; // 0 -> None, 1 -> Betadisk (TR-DOS 5.3), 2 -> Betadisk (TR-DOS 5.05d)
 
 bool Config::TimeMachine = false;
 
@@ -674,7 +674,11 @@ void Config::requestMachine(string newArch, string newRomSet) {
 
     }
 
-    MemESP::rom[4] = (uint8_t *) gb_rom_4_trdos_503;
+    if (Config::DiskCtrl == 2) {
+        MemESP::rom[4] = (uint8_t *) gb_rom_4_trdos_505d;
+    } else {
+        MemESP::rom[4] = (uint8_t *) gb_rom_4_trdos_503;
+    }
 
 }
 

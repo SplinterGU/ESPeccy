@@ -3461,7 +3461,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                         }
                         else if (opt2 == 2) {
                             // Reset to TR-DOS
-                            if (Config::DiskCtrl == 0 && !Z80Ops::isPentagon) {
+                            if (!Config::DiskCtrl && !Z80Ops::isPentagon) {
                                 OSD::osdCenteredMsg(TRDOS_RESET_ERR[Config::lang], LEVEL_ERROR, 1500 );
                                 return;
                             }
@@ -3538,7 +3538,13 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                         menu_curopt = 1;
                                         menu_saverect = true;
                                         if (opt2 == 1) {
-                                            handleBoolConfigOption(MENU_DISKCTRL[Config::lang], Config::DiskCtrl, "DiskCtrl");
+                                            //handleBoolConfigOption(MENU_DISKCTRL[Config::lang], Config::DiskCtrl, "DiskCtrl");
+                                            handleUintConfigOption(
+                                                MENU_DISKCTRL[Config::lang],
+                                                Config::DiskCtrl,
+                                                "DiskCtrl",
+                                                vector<string>{"0", "1", "2"}
+                                            );
                                         }
                                         else if (opt2 == 2) {
                                             handleBoolConfigOption(MENU_AUTOLOAD[Config::lang], Config::TapeAutoload, "TapeAutoload");

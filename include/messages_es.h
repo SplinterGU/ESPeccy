@@ -253,6 +253,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Cinta real\t>\n"\
     "EAR config\t>\n"
 
+#define MENU_DISKCTRL_ES "Betadisk\n" \
+    "Desactivado\t[0]\n" \
+    "TR-DOS 5.03\t[1]\n" \
+    "TR-DOS 5.05D\t[2]\n"
+
 #define MENU_YESNO_ES "S\xA1\t[Y]\n"\
     "No\t[N]\n"
 

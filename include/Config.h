@@ -173,7 +173,7 @@ public:
 
     static uint8_t  ALUTK; // TK ALU -> 0 -> Ferranti, 1 -> Microdigital 50hz, 2 -> Microdigital 60hz
 
-    static uint8_t  DiskCtrl; // 0 -> None, 1 -> Betadisk
+    static uint8_t  DiskCtrl; // 0 -> None, 1 -> Betadisk (TR-DOS 5.3), 2 -> Betadisk (TR-DOS 5.05d)
 
     static bool     TimeMachine;
 

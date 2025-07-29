@@ -998,7 +998,7 @@ void ESPeccy::reset()
     VIDEO::Reset();
 
     // Reinit disk controller
-    if (Config::DiskCtrl == 1 || Z80Ops::isPentagon) {
+    if (Config::DiskCtrl || Z80Ops::isPentagon) {
         // Betadisk.ShutDown();
         // Betadisk.Init();
         Betadisk.EnterIdle();

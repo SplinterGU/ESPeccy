@@ -1018,7 +1018,7 @@ void Z80::bitTest(uint8_t mask, uint8_t reg) {
 }
 
 inline void Z80::check_trdos() {
-    if (!Z80Ops::is2a3 && (Config::DiskCtrl == 1 || ESPeccy::trdos || Z80Ops::isPentagon)) {
+    if (!Z80Ops::is2a3 && (Config::DiskCtrl || ESPeccy::trdos || Z80Ops::isPentagon)) {
         if (!ESPeccy::trdos) {
             if (REG_PCh == 0x3D) {
                 // TR-DOS Rom can be accessed from 48K machines and from Spectrum 128/+2 and Pentagon if the currently mapped ROM is bank 1.
