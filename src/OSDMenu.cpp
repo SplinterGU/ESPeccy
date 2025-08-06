@@ -1182,6 +1182,8 @@ void OSD::tapemenuRedraw(string title, bool force) {
     }
 }
 
+#define OSD_TAPE_MAX_ROWS_ON_SCREEN 8
+
 // Tape Browser Menu
 int OSD::menuTape(string title) {
 
@@ -1199,18 +1201,18 @@ int OSD::menuTape(string title) {
     Tape::selectedBlocks.clear();
 
     real_rows = Tape::tapeNumBlocks + 1;
-    virtual_rows = (real_rows > 8 ? 8 : real_rows) + ( ( Tape::tapeFileType == TAPE_FTYPE_TAP && !Tape::tapeIsReadOnly ) ? (Tape::tapeNumBlocks ? 1 : 0) : 0 ); // previous max real_rows 14
+    virtual_rows = (real_rows > OSD_TAPE_MAX_ROWS_ON_SCREEN ? OSD_TAPE_MAX_ROWS_ON_SCREEN : real_rows) + ( ( Tape::tapeFileType == TAPE_FTYPE_TAP && !Tape::tapeIsReadOnly ) ? (Tape::tapeNumBlocks ? 1 : 0) : 0 ); // previous max real_rows 14
     // begin_row = last_begin_row = last_focus = focus = 1;
 
     // ATENCION: NO ALCANZA LA MEMORIA. PARA LOS DIALOGOS DE CONFIRMACION.
     // Se necesita recargar una vez que se borra un bloque, porque el tamaño de la ventana puede cambiar
-    if ( menu_level > 0 && virtual_rows > 8 ) virtual_rows = 8;
+    if ( menu_level > 0 && virtual_rows > OSD_TAPE_MAX_ROWS_ON_SCREEN ) virtual_rows = OSD_TAPE_MAX_ROWS_ON_SCREEN;
 
     if ( !Tape::tapeNumBlocks ) virtual_rows++;
 
-    if (Tape::tapeCurBlock > 17) {
-        begin_row = Tape::tapeCurBlock - 16;
-        focus = 18;
+    if (Tape::tapeCurBlock > OSD_TAPE_MAX_ROWS_ON_SCREEN - 1) {
+        begin_row = Tape::tapeCurBlock - (OSD_TAPE_MAX_ROWS_ON_SCREEN - 2);
+        focus = OSD_TAPE_MAX_ROWS_ON_SCREEN;
     } else{
         begin_row = 1;
         focus = Tape::tapeCurBlock + 1;

@@ -368,14 +368,14 @@ string OSD::fileDialog(string &fdir, const string& title, uint8_t ftype, uint8_t
     bool thumb_enabled = menu_level == 0 && Config::thumbsEnabled && (ftype != DISK_CHTFILE) && !menu_saverect; // se agrega que no se permita saverect ya que se sobrepasa el buffer para guardar el fondo
 
     // Adjust dialog size if needed
-    printf("screen size: %dx%d\n", scrW, scrH);
-    printf("request (X,Y):(%d,%d) (Cols,Rows):(%d,%d)\n", x, y, mfcols, mfrows);
+    //printf("screen size: %dx%d\n", scrW, scrH);
+    //printf("request (X,Y):(%d,%d) (Cols,Rows):(%d,%d)\n", x, y, mfcols, mfrows);
     w = (cols * OSD_FONT_W) + 2;
     int limW = OSD::scrW - (Config::aspect_16_9 ? OSD_FONT_W * 4: OSD_FONT_W * 2);
     while (x + w >= limW) --cols, w = (cols * OSD_FONT_W) + 2;
     h = ((rows + 1) * OSD_FONT_H) + 2 + (thumb_enabled ? 192 / 2 : 0);
     while (y + h >= OSD::scrH - OSD_FONT_H) --rows, h = ((rows + 1) * OSD_FONT_H) + 2 + (thumb_enabled ? 192 / 2 : 0);
-    printf("real (X,Y):(%d,%d) (Cols,Rows):(%d,%d) (w,h):(%d,%d)\n", x, y, cols, rows, w, h);
+    //printf("real (X,Y):(%d,%d) (Cols,Rows):(%d,%d) (w,h):(%d,%d)\n", x, y, cols, rows, w, h);
 
     // Adjust begin_row & focus in case of values doesn't fit in current dialog size
     // printf("Focus: %d, Begin_row: %d, rows: %d\n",(int) FileUtils::fileTypes[ftype].focus,(int) FileUtils::fileTypes[ftype].begin_row,(int) rows);
@@ -455,7 +455,7 @@ reset:
         }
 
         // Open dir file for read
-        printf("Checking existence of index file %s\n",(filedir + FileUtils::fileTypes[ftype].indexFilename).c_str());
+        //printf("Checking existence of index file %s\n",(filedir + FileUtils::fileTypes[ftype].indexFilename).c_str());
         if (dirfile) fclose(dirfile);
         dirfile = fopen((filedir + FileUtils::fileTypes[ftype].indexFilename).c_str(), "r");
         if (!dirfile) {
