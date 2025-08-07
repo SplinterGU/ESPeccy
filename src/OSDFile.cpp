@@ -423,6 +423,7 @@ reset:
     bool thumb_funcs_enabled = false;
 
     while(1) {
+
         fdCursorFlash = 0;
 
         reIndex = false;
@@ -922,10 +923,10 @@ reset:
                                 click();
                             }
                         } else {
-                            fclose(dirfile);
-                            dirfile = NULL;
-
                             if (fdir != "/") { // if non root directory goto previous directory
+                                fclose(dirfile);
+                                dirfile = NULL;
+
                                 fdir.pop_back();
                                 fdir = fdir.substr(0,fdir.find_last_of("/") + 1);
 
@@ -936,11 +937,15 @@ reset:
                                 break;
 
                             } else if ( menu_level > 0 ) { // exit directly if non-menu fileDialog
+                                fclose(dirfile);
+                                dirfile = NULL;
+
                                 OSD::restoreBackbufferData();
 
                                 click();
                                 std::string().swap(menu); // Reset Menu for save free usage
                                 return "";
+
                             }
 
                         }
