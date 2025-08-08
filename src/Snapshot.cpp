@@ -527,7 +527,7 @@ bool FileSNA::save(string sna_file, bool blockMode, bool force_saverom) {
         return false;
     }
 
-    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT,0,0,true);
+    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT[Config::lang],0,0,true);
 
     // write registers: begin with I
     writeByteFile(Z80::getRegI(), file);
@@ -1568,7 +1568,7 @@ bool FileZ80::save(string z80_fn, bool force_saverom) {
         return false;
     }
 
-    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT,0,0,true);
+    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT[Config::lang],0,0,true);
 
     // write registers
 /*
@@ -2034,7 +2034,7 @@ bool FileSP::save(string sp_fn, bool force_saverom) {
         return false;
     }
 
-    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT,0,0,true);
+    OSD::progressDialog(OSD_PSNA_SAVING,OSD_PLEASE_WAIT[Config::lang],0,0,true);
 
     // write signature
     uint8_t sign[2] = { 'S', 'P' };

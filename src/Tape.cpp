@@ -1588,7 +1588,25 @@ string Tape::getBlockName(int block) {
     if (blocktype <= TapeBlock::Code_header) {
         fread( fname, 1, 10, tape );
         string ret = (char *) fname;
+        fname[10] = '\0';
         rtrim(ret);
+        return ret;
+    }
+
+    return "";
+
+}
+
+string Tape::getBlockNameNoTrim(int block) {
+
+    // Read header name
+    char fname[11] = { 0 };
+    fseek( tape, CalcTapBlockPos(block) + 3, SEEK_SET );
+    uint8_t blocktype = readByteFile(tape);
+    if (blocktype <= TapeBlock::Code_header) {
+        fread( fname, 1, 10, tape );
+        fname[10] = '\0';
+        string ret = (char *) fname;
         return ret;
     }
 
@@ -1629,6 +1647,39 @@ void Tape::renameBlock(int block, string new_name) {
             break;
         }
     }
+}
+
+void Tape::findBlockByName(const char* targetName) {
+    // Guardar la posición actual del puntero de archivo
+    long originalPos = ftell(tape);
+    if (originalPos < 0) {
+        // Error al obtener la posición
+        return;
+    }
+
+    int start = tapeCurBlock;
+    int num = tapeNumBlocks;
+
+    string name = getBlockNameNoTrim(start);
+
+    if (name != targetName) {
+        OSD::osdCenteredMsg(OSD_PLEASE_WAIT[Config::lang], LEVEL_INFO, 0);
+        for (int i = 1; i < num; ++i) {
+            int idx = (start + i) % num;
+            name = getBlockNameNoTrim(idx);
+            if (name == targetName) {
+                if (tapeStatus == TAPE_LOADING) Tape::Stop();
+                //printf( "block %d name [%s] (curr: %d [%s])\n", idx, name.c_str(), start, targetName);
+                tapeCurBlock = idx;
+                return;
+            }
+        }
+    } /*else {
+        printf( "current block is the expected block\n");
+    } */
+
+    // Restaurar la posición original también si no encontró nada
+    fseek(tape, originalPos, SEEK_SET);
 }
 
 void Tape::ManageLoading() {

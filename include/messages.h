@@ -84,7 +84,7 @@ static const char *OSD_PAUSE[NLANGS] = { OSD_PAUSE_EN,OSD_PAUSE_ES,OSD_PAUSE_PT 
 #define OSD_BETADISK_LOAD_ERR "ERROR Loading Disk file"
 #define OSD_ROM_LOAD_ERR "ERROR Loading ROM file"
 
-#define OSD_PLEASE_WAIT "Please Wait..."
+static const char *OSD_PLEASE_WAIT[NLANGS] = { "Please Wait...", "Por favor, espere...", "Aguarde, por favor.." };
 
 static const char *RESET_REQUIERED[NLANGS] = { RESET_REQUIERED_EN, RESET_REQUIERED_ES, RESET_REQUIERED_PT };
 

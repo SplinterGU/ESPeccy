@@ -1828,7 +1828,7 @@ IRAM_ATTR void Z80::decodeOpcodeBF()
 { /* CP A */
     cp(regA);
 
-    if (REG_PC == 0x56b && Config::realtape_mode != REALTAPE_FORCE_LOAD) { // LOAD trap
+    if (REG_PC == 0x056b && Config::realtape_mode != REALTAPE_FORCE_LOAD) { // LOAD trap
         //printf("Trap Load FL:%d NAME:%s STAT:%s TYPE:%s\n", Config::flashload, Tape::tapeFileName.c_str(), Tape::tapeStatus == TAPE_STOPPED ? "STOPPED" : Tape::tapeStatus == TAPE_LOADING ? "LOADING" : "STOPPED_FORCED", Tape::tapeFileType == TAPE_FTYPE_TAP ? "TAP" : Tape::tapeFileType == TAPE_FTYPE_TZX ? "TZX" : "EMPTY" );
         if (Config::flashload &&
             Tape::tapeFileType == TAPE_FTYPE_TAP &&
@@ -2176,6 +2176,20 @@ void Z80::decodeOpcodeE4() /* CALL PO,nn */
 
 void Z80::decodeOpcodeE5() /* PUSH HL */
 {
+    if (REG_PC == 0x0762
+        && Config::realtape_mode != REALTAPE_FORCE_LOAD
+        && Tape::tapeFileType == TAPE_FTYPE_TAP
+    ) { // LOAD trap for automatic seek
+        int16_t address = Z80::getRegIX();
+        char blockName[11];
+        for (int i = 0; i < 10; ++i) blockName[i] = MemESP::readbyte(++address);
+        blockName[10] = '\0';
+        //printf( "search block %s\n", blockName);
+        if (blockName[0] && blockName[0] != 0xff) {
+            Tape::findBlockByName(blockName);
+        }
+    }
+
     Z80Ops::addressOnBus(getPairIR().word, 1);
     push(REG_HL);
 }
