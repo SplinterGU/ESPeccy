@@ -103,6 +103,13 @@ using namespace std;
 #define ESP_VOLUME_MAX 0
 #define ESP_VOLUME_MIN -16
 
+enum {
+    HW_LILY = 0,
+    HW_ESPECTRUM,
+    HW_ESPECTRUM_WITH_PSRAM,
+    HW_OLIMEX
+};
+
 class ESPeccy
 {
 public:
@@ -196,7 +203,8 @@ public:
 
     static bool sync_realtape;
 
-    // static uint32_t sessid;
+    static int8_t hwid;
+    static uint32_t psramsize;
 
     static string getHardwareInfo();
     static void showMemInfo(const char* caption = NULL);

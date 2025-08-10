@@ -2333,7 +2333,7 @@ void OSD::do_OSD_MenuUpdateKBDLayout() {
 
             if (res == DLG_YES) {
 
-                if ( Config::psramsize == 0 && !Z80Ops::is48 ) {
+                if ( ESPeccy::psramsize == 0 && !Z80Ops::is48 ) {
 
                     uint8_t res = msgDialog((string) RESET_REQUIERED[Config::lang], OSD_DLG_SURE[Config::lang]);
 
@@ -3588,14 +3588,22 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                         else if (opt2 == 7) {
                                             while (1) {
                                                 string realtape_gpio_menu;
-                                                if (ZXKeyb::Exists) {
-                                                    if (Config::psramsize > 0) {
-                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_PSRAM;
-                                                    } else {
+                                                switch (ESPeccy::hwid) {
+                                                    case HW_LILY:
+                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_LILY;
+                                                        break;
+
+                                                    case HW_ESPECTRUM:
                                                         realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_NO_PSRAM;
-                                                    }
-                                                } else {
-                                                    realtape_gpio_menu = MENU_REALTAPE_OPTIONS_LILY;
+                                                        break;
+
+                                                    case HW_ESPECTRUM_WITH_PSRAM:
+                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_VILLENA_BOARD_PSRAM;
+                                                        break;
+
+                                                    case HW_OLIMEX:
+                                                        realtape_gpio_menu = MENU_REALTAPE_OPTIONS_OLIMEX;
+
                                                 }
 
                                                 std::vector<std::string> values = extractValues(realtape_gpio_menu);

@@ -79,7 +79,8 @@ enum {
 };
 
 enum {
-    BTN_ASSIGN_RESET = 0,
+    BTN_ASSIGN_NONE = 0,
+    BTN_ASSIGN_RESET,
     BTN_ASSIGN_NMI,
     BTN_ASSIGN_CHEATS,
     BTN_ASSIGN_POKE,

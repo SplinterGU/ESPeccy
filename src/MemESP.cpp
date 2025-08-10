@@ -70,7 +70,7 @@ bool MemESP::Init() {
 
     bool is48k = Config::arch == "48K" || Config::arch == "TK90X" || Config::arch == "TK95";
 
-    if (Config::psramsize > 0) {
+    if (ESPeccy::psramsize > 0) {
 
         // 48K pages in SRAM (faster)
         MemESP::ram[0] = (unsigned char *) heap_caps_malloc(0x4000, MALLOC_CAP_8BIT);
@@ -115,7 +115,7 @@ bool MemESP::Init() {
     }
 
     for (int i=0; i < 8; i++) {
-        if (MemESP::ram[i] == NULL && (Config::psramsize > 0 || !is48k || i == 0 || i == 2 || i == 5 || i == 7)) {
+        if (MemESP::ram[i] == NULL && (ESPeccy::psramsize > 0 || !is48k || i == 0 || i == 2 || i == 5 || i == 7)) {
             if (Config::slog_on) printf("ERROR! Unable to allocate ram%d\n",i);
             return false;
         }
@@ -148,7 +148,7 @@ void MemESP::Reset() {
 
     MemESP::lastContendedMemReadWrite = 0xff;
 
-    if (Config::psramsize == 0) {
+    if (ESPeccy::psramsize == 0) {
         if ( MemESP::pagingLock ) { // 48k
             heap_caps_free( MemESP::ram[1] ); MemESP::ram[1] = NULL;
             heap_caps_free( MemESP::ram[3] ); MemESP::ram[3] = NULL;

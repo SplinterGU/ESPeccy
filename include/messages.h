@@ -265,8 +265,14 @@ static const char *MENU_REALTAPE_OPTIONS_VILLENA_BOARD_PSRAM = "EAR config\n"\
     "MOD (GPIO 39)\t[39]\n"*/;
 
 static const char *MENU_REALTAPE_OPTIONS_LILY = "EAR config\n"\
-    "BOARD (GPIO 39)\t[39]\n"\
     "BOARD (GPIO 34)\t[34]\n"\
+    "BOARD (GPIO 39)\t[39]\n"\
+    "PS/2 MOUSE (GPIO 26)\t[26]\n"\
+    "PS/2 MOUSE (GPIO 27)\t[27]\n";
+
+static const char *MENU_REALTAPE_OPTIONS_OLIMEX = "EAR config\n"\
+    "ACCESS BUS 6 (GPIO 34)\t[34]\n"\
+    "ACCESS BUS 8 (GPIO 39)\t[39]\n"\
     "PS/2 MOUSE (GPIO 26)\t[26]\n"\
     "PS/2 MOUSE (GPIO 27)\t[27]\n";
 

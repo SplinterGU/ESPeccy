@@ -145,6 +145,13 @@ RealTapeParams ESP_RT_PARMS;
 bool ESPeccy::sync_realtape = false;
 
 //=======================================================================================
+// HW FUNCTIONS
+//=======================================================================================
+
+int8_t ESPeccy::hwid = -1;
+uint32_t ESPeccy::psramsize = 0;
+
+//=======================================================================================
 // ARDUINO FUNCTIONS
 //=======================================================================================
 
@@ -307,30 +314,39 @@ string ESPeccy::getHardwareInfo() {
     esp_chip_info_t chip_info;
     esp_chip_info(&chip_info);
 
+    int8_t _hwid = HW_LILY;
+
     // Chip models for ESP32
     string textout = " Chip model    : ";
     uint32_t chip_ver = esp_efuse_get_pkg_ver();
     uint32_t pkg_ver = chip_ver & 0x7;
     switch (pkg_ver) {
         case EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ6 :
+            _hwid = HW_OLIMEX;
             textout += (chip_info.revision == 3) ? "ESP32-D0WDQ6-V3" : "ESP32-D0WDQ6";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32D0WDQ5 :
+            _hwid = HW_OLIMEX;
             textout += (chip_info.revision == 3) ? "ESP32-D0WD-V3" : "ESP32-D0WD";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32D2WDQ5 :
+            _hwid = HW_OLIMEX;
             textout += "ESP32-D2WD";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32PICOD2 :
+            _hwid = HW_LILY;
             textout += "ESP32-PICO-D2";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32PICOD4 :
+            _hwid = HW_LILY;
             textout += "ESP32-PICO-D4";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32PICOV302 :
+            _hwid = HW_LILY;
             textout += "ESP32-PICO-V3-02";
             break;
         case EFUSE_RD_CHIP_VER_PKG_ESP32D0WDR2V3 :
+            _hwid = HW_OLIMEX;
             textout += "ESP32-D0WDR2-V3";
             break;
         default:
@@ -344,9 +360,38 @@ string ESPeccy::getHardwareInfo() {
     textout += " Chip revision : " + to_string(chip_info.revision) + "\n";
     textout += " Flash size    : " + to_string(spi_flash_get_chip_size() / (1024 * 1024)) + (chip_info.features & CHIP_FEATURE_EMB_FLASH ? "MB embedded" : "MB external") + "\n";
     multi_heap_info_t info; heap_caps_get_info(&info, MALLOC_CAP_SPIRAM);
-    Config::psramsize = (info.total_free_bytes + info.total_allocated_bytes) >> 10;
-    textout += " PSRAM size    : " + (Config::psramsize == 0 ? "N/A or disabled" : to_string(Config::psramsize) + " MB") + "\n";
+    if (hwid == -1) psramsize = (info.total_free_bytes + info.total_allocated_bytes) >> 10;
+    textout += " PSRAM size    : " + (psramsize == 0 ? "N/A or disabled" : to_string(psramsize) + " MB") + "\n";
     textout += " IDF Version   : " + (string)(esp_get_idf_version()) + "\n";
+
+    if (hwid == -1) {
+        hwid = _hwid;
+        if (ZXKeyb::Exists) {
+            if (psramsize > 0)
+                hwid = HW_ESPECTRUM_WITH_PSRAM;
+            else
+                hwid = HW_ESPECTRUM;
+        }
+    }
+
+    switch (hwid) {
+        case HW_LILY:
+            textout = " Board         : Lilygo TTGO VGA32\n" + textout;
+            break;
+
+        case HW_ESPECTRUM:
+            textout = " Board         : ESPectrum (No PSRAM)\n" + textout;
+            break;
+
+        case HW_ESPECTRUM_WITH_PSRAM:
+            textout = " Board         : ESPectrum (PSRAM)\n" + textout;
+            break;
+
+        case HW_OLIMEX:
+            textout = " Board         : Olimex ESP32-SBC-FabGL\n" + textout;
+            break;
+
+    }
 
     return textout;
 };
@@ -360,59 +405,50 @@ void ESPeccy::bootKeyboard() {
 
     bool biosButton = false;
 
-    for (int i = 0; i < 200; i++) {
+    if (ZXKeyb::Exists) {
+        // Process physical keyboard
+        ZXKeyb::process();
 
-        if (ZXKeyb::Exists) {
-            // Process physical keyboard
-            ZXKeyb::process();
+        // Detect and process physical kbd menu key combinations
+        if (ZXKBD_2) { // 2
+            runBios = 1;
 
-            // Detect and process physical kbd menu key combinations
-            if (ZXKBD_2) { // 2
-                runBios = 1;
-
-            } else
-            if (ZXKBD_3) { // 3
-                runBios = 3;
-            }
-
-        }
-        else
-        if (!gpio_get_level((gpio_num_t)GPIO_NUM_36)) {
-            biosButton = true;
-            break;
+        } else
+        if (ZXKBD_3) { // 3
+            runBios = 3;
         }
 
-	    if (ps2kbd) {
-            auto Kbd = PS2Controller.keyboard();
-            fabgl::VirtualKeyItem NextKey;
+    }
+    else
+    if (hwid == HW_LILY && !gpio_get_level((gpio_num_t)GPIO_NUM_36)) {
+        biosButton = true;
+    }
 
-            while (Kbd->virtualKeyAvailable()) {
+    if (ps2kbd) {
+        auto Kbd = PS2Controller.keyboard();
+        fabgl::VirtualKeyItem NextKey;
 
-                bool r = Kbd->getNextVirtualKey(&NextKey);
+        while (Kbd->virtualKeyAvailable()) {
 
-                if (r && NextKey.down) {
+            bool r = Kbd->getNextVirtualKey(&NextKey);
 
-                    // Check keyboard status
-                    switch (NextKey.vk) {
-                        case fabgl::VK_F2:
-                        case fabgl::VK_2:
-                            runBios = 1;
-                            break;
+            if (r && NextKey.down) {
 
-                        case fabgl::VK_F3:
-                        case fabgl::VK_3:
-                            runBios = 3;
-                            break;
-                    }
+                // Check keyboard status
+                switch (NextKey.vk) {
+                    case fabgl::VK_F2:
+                    case fabgl::VK_2:
+                        runBios = 1;
+                        break;
 
+                    case fabgl::VK_F3:
+                    case fabgl::VK_3:
+                        runBios = 3;
+                        break;
                 }
+
             }
         }
-
-        if (runBios) break;
-
-        delayMicroseconds(1000);
-
     }
 
     if (biosButton) {
@@ -426,7 +462,6 @@ void ESPeccy::bootKeyboard() {
             delayMicroseconds(1000);
         }
     }
-
 
     if (runBios) {
         Config::videomode = runBios - 1;
@@ -446,27 +481,20 @@ void ESPeccy::setup()
 
     booting = true;
 
-    // force get psram size
-    ESPeccy::getHardwareInfo();
-
-    if (Config::slog_on) {
-        printf("------------------------------------\n");
-        printf("| ESPeccy: booting                 |\n");
-        printf("------------------------------------\n");
-        showMemInfo();
-    }
+    printf("------------------------------------\n");
+    printf("| ESPeccy: booting                 |\n");
+    printf("------------------------------------\n");
+    showMemInfo();
 
     //=======================================================================================
     // PHYSICAL KEYBOARD (SINCLAIR 8 + 5 MEMBRANE KEYBOARD)
     //=======================================================================================
-
-    ZXKeyb::setup();
+    ZXKeyb::setup(); // need run this first for detect hwid
 
     //=======================================================================================
-    // PHYSICAL KEYBOARD THROUGH MCP23017
+    // force detect hw info
     //=======================================================================================
-
-    // if (!ZXKeyb::Exists) MCPKeyb::setup();
+    ESPeccy::getHardwareInfo();
 
     //=======================================================================================
     // LOAD CONFIG
@@ -1396,7 +1424,7 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
 
     if (ZXKeyb::Exists) ZXKeyb::ZXKbdRead();
     else
-    if (!booting && !gpio_get_level((gpio_num_t)GPIO_NUM_36)) { // Se deshabilita durante el booteo por cualquier posible futuro conflicto
+    if (!booting && hwid == HW_LILY && !gpio_get_level((gpio_num_t)GPIO_NUM_36)) { // Se deshabilita durante el booteo por cualquier posible futuro conflicto
 
         bool shift_down = false, ctrl_down = false;
 

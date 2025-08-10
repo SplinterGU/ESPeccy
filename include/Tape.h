@@ -182,8 +182,7 @@ public:
     static bool isSelectedBlock(int block);
     static void removeSelectedBlocks();
     static void moveSelectedBlocks(int targetPosition);
-    static string getBlockName(int block);
-    static string getBlockNameNoTrim(int block);
+    static string getBlockName(int block, bool trimmed = true);
     static void renameBlock(int block, string new_name);
 
     static double tapeCompensation;

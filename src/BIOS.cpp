@@ -90,7 +90,7 @@ void BIOS::run() {
 
     const char* menuYesNo[] = {"No", "Yes"};
 
-    const char* menuOthersIO36Button[] = {"RESET", "NMI", "CHEATS", "POKE", "STATS", "MENU"};
+    const char* menuOthersIO36Button[] = {"NONE", "RESET", "NMI", "CHEATS", "POKE", "STATS", "MENU"};
 
     const char* menuUpdate[] = {"Firmware Update"};
     const int menuUpdateCount = sizeof(menuUpdate) / sizeof(menuUpdate[0]);
@@ -530,7 +530,7 @@ void BIOS::run() {
                     renderKeyboardOptions();
                 }
             }
-            else if (!ZXKeyb::Exists && selectedOption == 3) { // Acción para Others
+            else if (ESPeccy::hwid == HW_LILY && selectedOption == 3) { // Acción para Others
                 int selectedOthersOption = 0;
 
                 auto renderOthersOptions = [&]() {
@@ -579,7 +579,7 @@ void BIOS::run() {
                     renderOthersOptions();
                 }
             }
-            else if (selectedOption == (ZXKeyb::Exists ? 3 : 4)) { // Acción para CONFIG
+            else if (selectedOption == (ESPeccy::hwid != HW_LILY ? 3 : 4)) { // Acción para CONFIG
                 int selectedConfigOption = 0;
                 // Renderizar menú de configuración
                 screen_clear();
@@ -652,7 +652,7 @@ void BIOS::run() {
                     renderOptions(menuConfig, NULL, menuConfigCount, selectedConfigOption);
                 }
             }
-            else if (selectedOption == (ZXKeyb::Exists ? 4 : 5)) { // Acción para Update
+            else if (selectedOption == (ESPeccy::hwid != HW_LILY ? 4 : 5)) { // Acción para Update
                 int selectedUpdateOption = 0;
                 // Renderizar menú de actualización
                 screen_clear();
@@ -779,7 +779,7 @@ void BIOS::run() {
                 }
 
             }
-            else if (selectedOption == (ZXKeyb::Exists ? 5 : 6)) { // Acción para EXIT
+            else if (selectedOption == (ESPeccy::hwid != HW_LILY ? 5 : 6)) { // Acción para EXIT
                 int selectedExitOption = 0;
                 // Renderizar menú de salida
                 screen_clear();

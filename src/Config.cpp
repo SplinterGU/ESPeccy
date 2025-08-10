@@ -165,11 +165,9 @@ uint8_t Config::mousescaling = 1; // 1 -> 1:1, 2 -> 1:2
 uint8_t Config::realtape_mode = 0; // 0 = Auto / 1 = Force Load from EAR / 2 = Force Save to MIC
 uint8_t Config::realtape_gpio_num = 0;
 
-uint32_t Config::psramsize = 0;
-
 bool Config::zxunops2 = false;
 
-uint8_t Config::io36button = BTN_ASSIGN_RESET;
+uint8_t Config::io36button = BTN_ASSIGN_NONE;
 
 bool Config::KBDLayoutEnable = false;
 string Config::KBDLayoutFile = "";
