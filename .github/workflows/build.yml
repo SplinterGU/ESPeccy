@@ -20,12 +20,12 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.11'
 
     - name: Install PlatformIO Core
       run: |
         python -m pip install --upgrade pip
-        pip install platformio setuptools
+        pip install platformio "setuptools<81"
 
     - name: Build ESPeccy firmware
       run: platformio run -e ${{ matrix.env }}
