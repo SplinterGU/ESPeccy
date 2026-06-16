@@ -1632,12 +1632,12 @@ void Tape::renameBlock(int block, string new_name) {
     }
 }
 
-void Tape::findBlockByName(const char* targetName) {
+bool Tape::findBlockByName(const char* targetName) {
     // Guardar la posición actual del puntero de archivo
     long originalPos = ftell(tape);
     if (originalPos < 0) {
         // Error al obtener la posición
-        return;
+        return false;
     }
 
     int start = tapeCurBlock;
@@ -1654,15 +1654,18 @@ void Tape::findBlockByName(const char* targetName) {
                 if (tapeStatus == TAPE_LOADING) Tape::Stop();
                 //printf( "block %d name [%s] (curr: %d [%s])\n", idx, name.c_str(), start, targetName);
                 tapeCurBlock = idx;
-                return;
+                return true;
             }
         }
-    } /*else {
-        printf( "current block is the expected block\n");
-    } */
+    } else {
+        fseek(tape, originalPos, SEEK_SET);
+        return true;
+        //printf( "current block is the expected block\n");
+    }
 
     // Restaurar la posición original también si no encontró nada
     fseek(tape, originalPos, SEEK_SET);
+    return false;
 }
 
 void Tape::ManageLoading() {

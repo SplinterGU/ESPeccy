@@ -391,7 +391,7 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
             if (MemESP::pagingLock || (address & 4093) != address) {
                 data = 0xff;
             } else {
-                data = getFloatBusData2A3();
+                data = getFloatBusData();
             }
 
         } else {

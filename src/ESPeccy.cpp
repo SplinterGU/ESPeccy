@@ -2247,12 +2247,6 @@ IRAM_ATTR void ESPeccy::loop() {
 
                 if (VIDEO::framecnt >= 100) {
 
-                    // Save selected volume if not in tape load monitor mode
-                    if (!Config::load_monitor) {
-                        Config::volume = aud_volume;
-                        Config::save("volume");
-                    }
-
                     VIDEO::OSD &= 0xfb;
 
                     if (VIDEO::OSD == 0) {

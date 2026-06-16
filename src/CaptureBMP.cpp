@@ -31,12 +31,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
-#include "stdio.h"
+#include <stdio.h>
 #include "CaptureBMP.h"
 #include "Video.h"
 #include "FileUtils.h"
 #include "messages.h"
-#include "Config.h"
 #include "OSD.h"
 #include "esp_vfs.h"
 
@@ -103,8 +102,6 @@ void CaptureToBmp()
     closedir(dir);
 
     bmpnumber++;
-
-    if (Config::slog_on) printf("BMP number -> %.5d\n",bmpnumber);
 
     sprintf((char *)filename,"ESP%.5d.bmp",bmpnumber);
 

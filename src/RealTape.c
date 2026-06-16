@@ -26,16 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include "driver/timer.h"
 #include "driver/gpio.h"
-#include "driver/rtc_io.h"
-#include <soc/sens_reg.h>
-#include <soc/sens_struct.h>
-#include <driver/adc.h>
-#include "esp_timer.h"
-#include "esp_intr_alloc.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 
 #include "RealTape.h"
 
@@ -68,7 +60,6 @@ static uint32_t *_gpio_in = NULL, _gpio_mask = 0;
 
 void IRAM_ATTR RealTape_isr_handle(void) {
     if (RealTape_enabled) {
-        //__capture_buffer[__sample_index++] = (uint8_t) gpio_get_level((gpio_num_t)*(rt_params->gpio_num));
         __capture_buffer[__sample_index++] = (*_gpio_in & _gpio_mask) != 0;
         if (__sample_index >= __capture_buffer_size) __sample_index = 0;
     }
@@ -144,26 +135,10 @@ void RealTape_init(RealTapeParams *params) {
     if (*(rt_params->gpio_num) < 32) {
         _gpio_in = &GPIO.in;
         _gpio_mask = 1 << *(rt_params->gpio_num);
-     } else {
+    } else {
         _gpio_in = &GPIO.in1;
         _gpio_mask = 1 << (*(rt_params->gpio_num) - 32);
-     }
-
-#if 0
-    gpio_config_t io_conf;
-    //disable interrupt
-    io_conf.intr_type = GPIO_PIN_INTR_DISABLE;
-    //set as output mode
-    io_conf.mode = GPIO_MODE_INPUT;
-    //bit mask of the pins that you want to set,e.g.GPIO18/19
-    io_conf.pin_bit_mask = 1ULL << *(rt_params->gpio_num);
-    //disable pull-down mode
-    io_conf.pull_down_en = 0;
-    //disable pull-up mode
-    io_conf.pull_up_en = 0;
-    //configure GPIO with the given settings
-    gpio_config(&io_conf);
-#endif
+    }
 
     gpio_set_direction((gpio_num_t)*(rt_params->gpio_num), GPIO_MODE_INPUT);
 
@@ -186,8 +161,6 @@ void RealTape_start(void) {
 
         // Se posiciona el índice 1 frame por delante
         __sample_index = __samples_per_frame;
-
-        //printf("RealTape STARTED\n");
     }
 }
 

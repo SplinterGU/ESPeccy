@@ -1208,7 +1208,6 @@ void PS2Controller::begin(PS2Preset preset, KbdMode keyboardMode)
   bool createVKQueue       = (keyboardMode == KbdMode::CreateVirtualKeysQueue);
   switch (preset) {
     case PS2Preset::zxKeyb:
-      //begin(GPIO_NUM_33, GPIO_NUM_32, GPIO_UNUSED, GPIO_UNUSED);
       setKeyboard(new Keyboard);
       keyboard()->begin(false, createVKQueue, 0, false);
       s_keyboardAllocated = true;

@@ -1829,14 +1829,44 @@ IRAM_ATTR void Z80::decodeOpcodeBF()
     cp(regA);
 
     if (REG_PC == 0x056b && Config::realtape_mode != REALTAPE_FORCE_LOAD) { // LOAD trap
-        //printf("Trap Load FL:%d NAME:%s STAT:%s TYPE:%s\n", Config::flashload, Tape::tapeFileName.c_str(), Tape::tapeStatus == TAPE_STOPPED ? "STOPPED" : Tape::tapeStatus == TAPE_LOADING ? "LOADING" : "STOPPED_FORCED", Tape::tapeFileType == TAPE_FTYPE_TAP ? "TAP" : Tape::tapeFileType == TAPE_FTYPE_TZX ? "TZX" : "EMPTY" );
-        if (Config::flashload &&
-            Tape::tapeFileType == TAPE_FTYPE_TAP &&
-            Tape::tapeStatus != TAPE_LOADING) {
-            //printf("Loading tape %s\n",Tape::tapeFileName.c_str());
-            if (Tape::FlashLoad()) {
-                REG_PC = 0x5e2;
-                Tape::Stop(); // Force Stop
+
+        if (Tape::tapeFileType == TAPE_FTYPE_TAP) {
+            // automatic seek ?
+            int16_t block = Z80::getRegIX() - 0x11;
+            //uint8_t blockType = MemESP::readbyte(block);
+            uint8_t ldBytesExit = Z80::getRegAx();
+
+            if (/*blockType <= 3 &&*/ !ldBytesExit && MemESP::readbyte((block+1)) != 0xff) {
+                char blockName[11];
+                for (int i = 0; i < 10; ++i) blockName[i] = MemESP::readbyte((block+i+1)); blockName[10] = '\0';
+                printf("Seeking block [%s]... ", blockName);
+                bool res = Tape::findBlockByName(blockName);
+                if (!res) {
+                    printf("fail!\n");
+                    // Try with alternative name
+                    block = Z80::getRegIX() - 11;
+                    if (/*blockType <= 3 &&*/ !ldBytesExit && MemESP::readbyte((block+1)) != 0xff) {
+                        for (int i = 0; i < 10; ++i) blockName[i] = MemESP::readbyte((block+i+1));
+                        printf("Try seeking block [%s] (alternative)... ", blockName);
+                        res = Tape::findBlockByName(blockName);
+                        if (!res) {
+                            printf("fail!\n");
+                        } else {
+                            printf("found!\n");
+                        }
+                    }
+                } else {
+                    printf("found!\n");
+                }
+            }
+
+            //printf("Trap Load FL:%d NAME:%s STAT:%s TYPE:%s\n", Config::flashload, Tape::tapeFileName.c_str(), Tape::tapeStatus == TAPE_STOPPED ? "STOPPED" : Tape::tapeStatus == TAPE_LOADING ? "LOADING" : "STOPPED_FORCED", Tape::tapeFileType == TAPE_FTYPE_TAP ? "TAP" : Tape::tapeFileType == TAPE_FTYPE_TZX ? "TZX" : "EMPTY" );
+            if (Config::flashload && Tape::tapeStatus != TAPE_LOADING) {
+                //printf("Loading tape %s\n",Tape::tapeFileName.c_str());
+                if (Tape::FlashLoad()) {
+                    REG_PC = 0x5e2;
+                    Tape::Stop(); // Force Stop
+                }
             }
         }
     }
@@ -2176,20 +2206,6 @@ void Z80::decodeOpcodeE4() /* CALL PO,nn */
 
 void Z80::decodeOpcodeE5() /* PUSH HL */
 {
-    if (REG_PC == 0x0762
-        && Config::realtape_mode != REALTAPE_FORCE_LOAD
-        && Tape::tapeFileType == TAPE_FTYPE_TAP
-    ) { // LOAD trap for automatic seek
-        int16_t address = Z80::getRegIX();
-        char blockName[11];
-        for (int i = 0; i < 10; ++i) blockName[i] = MemESP::readbyte(++address);
-        blockName[10] = '\0';
-        //printf( "search block %s\n", blockName);
-        if (blockName[0] && blockName[0] != 0xff) {
-            Tape::findBlockByName(blockName);
-        }
-    }
-
     Z80Ops::addressOnBus(getPairIR().word, 1);
     push(REG_HL);
 }
@@ -2911,7 +2927,7 @@ void Z80::dcDDFD2B(RegisterPair& regIXY) { /* DEC IX */
 
         static bool SaveFileExists;
 
-        if (REG_HL == 0x1F80) {
+        //if (REG_HL == 0x1F80) {
             struct stat stat_buf;
             SaveFileExists = Tape::tape && // Check if exists a tap opened
                              Tape::tapeFileType == TAPE_FTYPE_TAP && // check if file is tap
@@ -2924,7 +2940,7 @@ void Z80::dcDDFD2B(RegisterPair& regIXY) { /* DEC IX */
                 SaveFileExists = false;
             }
 
-        }
+        //}
 
         if (SaveFileExists) {
             regA = (REG_HL == 0x1F80) ? 0x00 : 0xFF;

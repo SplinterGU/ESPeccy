@@ -189,7 +189,7 @@ public:
 
     static void ManageLoading();
 
-    static void findBlockByName(const char* targetName);
+    static bool findBlockByName(const char* targetName);
 
 private:
 

@@ -3005,14 +3005,17 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
             if (KeytoESP == fabgl::VK_F9 || KeytoESP == fabgl::VK_VOLUMEDOWN) {
                 if (ESPeccy::aud_volume>ESP_VOLUME_MIN) {
                     ESPeccy::aud_volume--;
-                    pwm_audio_set_volume(ESPeccy::aud_volume);
+                    if (!Config::load_monitor) pwm_audio_set_volume(ESPeccy::aud_volume);
                 }
             } else {
                 if (ESPeccy::aud_volume<ESP_VOLUME_MAX) {
                     ESPeccy::aud_volume++;
-                    pwm_audio_set_volume(ESPeccy::aud_volume);
+                    if (!Config::load_monitor) pwm_audio_set_volume(ESPeccy::aud_volume);
                 }
             }
+
+            Config::volume = ESPeccy::aud_volume;
+            Config::save("volume");
 
             unsigned short x,y;
 
