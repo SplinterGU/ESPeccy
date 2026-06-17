@@ -248,6 +248,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Betadisk\t>\n"\
     "Auto carregamento de fita\t>\n"\
     "Carregamento r\xA0pido\t>\n"\
+    "Salvamento r\xA0pido\t>\n"\
     "Timings ROM R.G.\t>\n"\
     "Monitor LOAD\t>\n"\
     "Fita real\t>\n"\

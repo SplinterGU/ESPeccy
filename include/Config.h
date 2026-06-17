@@ -203,6 +203,8 @@ public:
     static bool     KBDLayoutEnable;
     static string   KBDLayoutFile;
 
+    static bool     flashsave;
+
 };
 
 #endif // Config.h

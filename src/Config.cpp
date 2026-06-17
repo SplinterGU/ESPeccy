@@ -172,6 +172,8 @@ uint8_t Config::io36button = BTN_ASSIGN_NONE;
 bool Config::KBDLayoutEnable = false;
 string Config::KBDLayoutFile = "";
 
+bool Config::flashsave = false;
+
 enum ConfigType {
     CONFIG_TYPE_STRING,
     CONFIG_TYPE_BOOL,
@@ -293,6 +295,8 @@ ConfigEntry configEntries[] = {
 
     {"KBDLayoutEnable", CONFIG_TYPE_BOOL, &Config::KBDLayoutEnable },
     {"KBDLayoutFile", CONFIG_TYPE_STRING, &Config::KBDLayoutFile }, // For pending operation
+
+    {"flashsave", CONFIG_TYPE_BOOL, &Config::flashsave },
 
 };
 

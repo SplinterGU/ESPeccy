@@ -1231,10 +1231,10 @@ void Tape::Save() {
     dato=(uint8_t)(longitud/256);
     fwrite(&dato,sizeof(uint8_t),1,tape); // file length
 
-    dato = Z80::getRegA(); // flag
+    dato = Z80::getRegAx(); // flag
     fwrite(&dato,sizeof(uint8_t),1,tape);
 
-    xxor^=Z80::getRegA();
+    xxor^=Z80::getRegAx();
 
     salir_s = 0;
     do {

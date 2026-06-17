@@ -3556,6 +3556,9 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                             handleBoolConfigOption(MENU_FLASHLOAD[Config::lang], Config::flashload, "flashload");
                                         }
                                         else if (opt2 == 4) {
+                                            handleBoolConfigOption(MENU_FLASHSAVE[Config::lang], Config::flashsave, "flashsave");
+                                        }
+                                        else if (opt2 == 5) {
                                             handleBoolConfigOption(MENU_RGTIMINGS[Config::lang], Config::tape_timing_rg, "tape_timing_rg",
                                                 []() {
                                                     if (Tape::tape != NULL && Tape::tapeFileType == TAPE_FTYPE_TAP) {
@@ -3563,14 +3566,14 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                                     }
                                                 });
                                         }
-                                        else if (opt2 == 5) {
+                                        else if (opt2 == 6) {
                                             handleBoolConfigOption(MENU_TAPEMONITOR[Config::lang], Config::load_monitor, "load_monitor",
                                                 []() {
                                                     ESPeccy::aud_volume = Config::load_monitor ? ESP_VOLUME_MAX : Config::volume;
                                                     pwm_audio_set_volume(ESPeccy::aud_volume);
                                                 });
                                         }
-                                        else if (opt2 == 6) {
+                                        else if (opt2 == 7) {
                                             while (1) {
                                                 string Mnustr = markSelectedOption(MENU_REALTAPE[Config::lang], to_string(Config::realtape_mode));
                                                 menu_curopt = Config::realtape_mode + 1;
@@ -3588,7 +3591,7 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                                 }
                                             }
                                         }
-                                        else if (opt2 == 7) {
+                                        else if (opt2 == 8) {
                                             while (1) {
                                                 string realtape_gpio_menu;
                                                 switch (ESPeccy::hwid) {

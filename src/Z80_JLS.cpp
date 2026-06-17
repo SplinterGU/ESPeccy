@@ -2943,11 +2943,25 @@ void Z80::dcDDFD2B(RegisterPair& regIXY) { /* DEC IX */
         //}
 
         if (SaveFileExists) {
-            regA = (REG_HL == 0x1F80) ? 0x00 : 0xFF;
+            short af, afx, de, ix;
+            if (!Config::flashsave) {
+                af = Z80::getRegAF();
+                afx = REG_AFx;
+                de = REG_DE;
+                ix = REG_IX;
+            }
+            //regA = (REG_HL == 0x1F80) ? 0x00 : 0xFF;
             ++regIXY.word;
             --REG_DE;
             Tape::Save();
-            REG_PC = 0x555;
+            if (Config::flashsave) {
+                REG_PC = 0x555;
+            } else {
+                Z80::setRegAF(af);
+                REG_AFx = afx;
+                REG_DE = de;
+                REG_IX = ix;
+            }
         }
     }
 }

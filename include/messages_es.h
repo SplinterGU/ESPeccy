@@ -248,6 +248,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Betadisk\t>\n"\
     "Auto carga de cinta\t>\n"\
     "Carga r\xA0pida cinta\t>\n"\
+    "Guardado r\xA0pido cinta\t>\n"\
     "Timings ROM R.G.\t>\n"\
     "Monitor LOAD\t>\n"\
     "Cinta real\t>\n"\

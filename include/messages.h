@@ -246,6 +246,8 @@ static const char *MENU_AUTOLOAD[NLANGS] = { "Auto load\n", "Carga autom\xA0tica
 
 static const char *MENU_FLASHLOAD[NLANGS] = { "Flash load\n", "Carga r\xA0pida\n", "Carga r\xA0pida\n" };
 
+static const char *MENU_FLASHSAVE[NLANGS] = { "Flash save\n", "Guardado r\xA0pido\n", "Salvamento r\xA0pido\n" };
+
 static const char *MENU_RGTIMINGS[NLANGS] = { "R.G. Timings\n", "Timings R.G.\n", "Timings R.G.\n" };
 
 static const char *MENU_OTHER[NLANGS] = { MENU_OTHER_EN, MENU_OTHER_ES, MENU_OTHER_PT };

@@ -248,6 +248,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     "Betadisk\t>\n"\
     "Auto tape load\t>\n"\
     "Flash tape load\t>\n"\
+    "Flash tape save\t>\n"\
     "R.G. ROM timings\t>\n"\
     "LOAD monitor\t>\n"\
     "Real tape\t>\n"\
