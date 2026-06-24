@@ -712,6 +712,14 @@ void Config::setJoyMap(uint8_t joynum, uint8_t joytype) {
             newJoy[6] = fabgl::VK_KEMPSTON_FIRE;
             newJoy[7] = fabgl::VK_KEMPSTON_ALTFIRE;
             break;
+        case JOY_KEMPSTON2:
+            newJoy[0] = fabgl::VK_KEMPSTON2_LEFT;
+            newJoy[1] = fabgl::VK_KEMPSTON2_RIGHT;
+            newJoy[2] = fabgl::VK_KEMPSTON2_UP;
+            newJoy[3] = fabgl::VK_KEMPSTON2_DOWN;
+            newJoy[6] = fabgl::VK_KEMPSTON2_FIRE;
+            newJoy[7] = fabgl::VK_KEMPSTON2_ALTFIRE;
+            break;
         case JOY_SINCLAIR1:
             newJoy[0] = fabgl::VK_6;
             newJoy[1] = fabgl::VK_7;
@@ -750,6 +758,13 @@ void Config::setJoyMap(uint8_t joynum, uint8_t joytype) {
 
             if (joytype != JOY_KEMPSTON) {
                 if (ESPeccy::JoyVKTranslation[n] >= fabgl::VK_KEMPSTON_RIGHT && ESPeccy::JoyVKTranslation[n] <= fabgl::VK_KEMPSTON_ALTFIRE) {
+                    ESPeccy::JoyVKTranslation[n] = fabgl::VK_NONE;
+                    save = true;
+                }
+            }
+
+            if (joytype != JOY_KEMPSTON2) {
+                if (ESPeccy::JoyVKTranslation[n] >= fabgl::VK_KEMPSTON2_RIGHT && ESPeccy::JoyVKTranslation[n] <= fabgl::VK_KEMPSTON2_ALTFIRE) {
                     ESPeccy::JoyVKTranslation[n] = fabgl::VK_NONE;
                     save = true;
                 }

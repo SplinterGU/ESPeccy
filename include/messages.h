@@ -388,9 +388,10 @@ static const char *MENU_JOY[NLANGS] = { MENU_JOY_EN MENU_JOYS, MENU_JOY_ES MENU_
 
 #define MENU_DEFJOYS "Cursor\t[0]\n"\
     "Kempston\t[1]\n"\
-    "Sinclair 1\t[2]\n"\
-    "Sinclair 2\t[3]\n"\
-    "Fuller\t[4]\n"
+    "Kempston 2\t[2]\n"\
+    "Sinclair 1\t[3]\n"\
+    "Sinclair 2\t[4]\n"\
+    "Fuller\t[5]\n"
 
 static const char *MENU_DEFJOY[NLANGS] = { MENU_DEFJOY_TITLE MENU_DEFJOYS MENU_DEFJOY_EN, MENU_DEFJOY_TITLE MENU_DEFJOYS MENU_DEFJOY_ES, MENU_DEFJOY_TITLE MENU_DEFJOYS MENU_DEFJOY_PT };
 

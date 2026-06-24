@@ -1523,6 +1523,13 @@ enum VirtualKey {
   VK_KEMPSTON_FIRE,
   VK_KEMPSTON_ALTFIRE,
 
+  VK_KEMPSTON2_RIGHT,
+  VK_KEMPSTON2_LEFT,
+  VK_KEMPSTON2_DOWN,
+  VK_KEMPSTON2_UP,
+  VK_KEMPSTON2_FIRE,
+  VK_KEMPSTON2_ALTFIRE,
+
   VK_FULLER_RIGHT,
   VK_FULLER_LEFT,
   VK_FULLER_DOWN,
@@ -1534,6 +1541,7 @@ enum VirtualKey {
   VK_VOLUMEMUTE,      /**< MUTE */
 
   VK_ASCII,           /**< Specifies an ASCII code - used when virtual key is embedded in VirtualKeyItem structure and VirtualKeyItem.ASCII is valid */
+
   VK_LAST,            // marks the last virtual key
 
 };
@@ -1661,5 +1669,3 @@ inline bool isGUI(VirtualKey value)
 #ifndef ARDUINO
 using fabgl::Stream;
 #endif
-
-

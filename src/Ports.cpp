@@ -353,6 +353,9 @@ IRAM_ATTR uint8_t Ports::input(uint16_t address) {
         // Kempston Joystick
         if ((Config::joystick1 == JOY_KEMPSTON || Config::joystick2 == JOY_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON) && ((address & 0x00E0) == 0 || address8 == 0xDF)) return port[0x1f];
 
+        // Kempston Joystick 2
+        if ((Config::joystick1 == JOY_KEMPSTON2 || Config::joystick2 == JOY_KEMPSTON2 || Config::joyPS2 == JOYPS2_KEMPSTON2) && address8 == 0x37) return port[0x37];
+
         // Fuller Joystick
         if (!ESPeccy::trdos && (Config::joystick1 == JOY_FULLER || Config::joystick2 == JOY_FULLER || Config::joyPS2 == JOYPS2_FULLER) && address8 == 0x7F) return port[0x7f];
 

@@ -43,6 +43,7 @@ using namespace std;
 enum {
     JOY_CURSOR = 0,
     JOY_KEMPSTON,
+    JOY_KEMPSTON2,
     JOY_SINCLAIR1,
     JOY_SINCLAIR2,
     JOY_FULLER,
@@ -53,6 +54,7 @@ enum {
 enum {
     JOYPS2_CURSOR = 0,
     JOYPS2_KEMPSTON,
+    JOYPS2_KEMPSTON2,
     JOYPS2_SINCLAIR1,
     JOYPS2_SINCLAIR2,
     JOYPS2_FULLER,

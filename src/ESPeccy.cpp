@@ -933,6 +933,7 @@ void ESPeccy::setup()
     for (int i = 0; i < 128; i++) Ports::port[i] = 0xBF;
     Ports::LastOutTo1FFD = 0;
     if (Config::joystick1 == JOY_KEMPSTON || Config::joystick2 == JOY_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON) Ports::port[0x1f] = 0; // Kempston
+    if (Config::joystick1 == JOY_KEMPSTON2 || Config::joystick2 == JOY_KEMPSTON2 || Config::joyPS2 == JOYPS2_KEMPSTON2) Ports::port[0x37] = 0; // Kempston 2
     if (Config::joystick1 == JOY_FULLER || Config::joystick2 == JOY_FULLER || Config::joyPS2 == JOYPS2_FULLER) Ports::port[0x7f] = 0xff; // Fuller
 
     // Read joystick default definition
@@ -1015,6 +1016,7 @@ void ESPeccy::reset()
     for (int i = 0; i < 128; i++) Ports::port[i] = 0xBF;
     Ports::LastOutTo1FFD = 0;
     if (Config::joystick1 == JOY_KEMPSTON || Config::joystick2 == JOY_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON) Ports::port[0x1f] = 0; // Kempston
+    if (Config::joystick1 == JOY_KEMPSTON2 || Config::joystick2 == JOY_KEMPSTON2 || Config::joyPS2 == JOYPS2_KEMPSTON2) Ports::port[0x37] = 0; // Kempston 2
     if (Config::joystick1 == JOY_FULLER || Config::joystick2 == JOY_FULLER || Config::joyPS2 == JOYPS2_FULLER) Ports::port[0x7f] = 0xff; // Fuller
 
     // Read joystick default definition
@@ -1500,9 +1502,10 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
 
             KeytoESP = NextKey.vk;
 
+                printf("KeytoESP: %d\n",KeytoESP);
             if (KeytoESP >= fabgl::VK_JOY1LEFT && KeytoESP <= fabgl::VK_JOY2Z) {
                 // printf("KeytoESP: %d\n",KeytoESP);
-                ESPeccy::PS2Controller.keyboard()->injectVirtualKey(JoyVKTranslation[KeytoESP - 248], NextKey.down, false);
+                ESPeccy::PS2Controller.keyboard()->injectVirtualKey(JoyVKTranslation[KeytoESP - fabgl::VK_JOY1LEFT], NextKey.down, false);
                 continue;
             }
 
@@ -1585,6 +1588,7 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
             }
 
             if (Config::joystick1 == JOY_KEMPSTON || Config::joystick2 == JOY_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON) Ports::port[0x1f] = 0;
+            if (Config::joystick1 == JOY_KEMPSTON2 || Config::joystick2 == JOY_KEMPSTON2 || Config::joyPS2 == JOYPS2_KEMPSTON2) Ports::port[0x37] = 0;
             if (Config::joystick1 == JOY_FULLER || Config::joystick2 == JOY_FULLER || Config::joyPS2 == JOYPS2_FULLER) Ports::port[0x7f] = 0xff;
 
             if (Config::joystick1 == JOY_KEMPSTON || Config::joystick2 == JOY_KEMPSTON) {
@@ -1592,6 +1596,14 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
                 for (int i = fabgl::VK_KEMPSTON_RIGHT; i <= fabgl::VK_KEMPSTON_ALTFIRE; i++)
                     if (Kbd->isVKDown((fabgl::VirtualKey) i))
                         bitWrite(Ports::port[0x1f], i - fabgl::VK_KEMPSTON_RIGHT, 1);
+
+            }
+
+            if (Config::joystick1 == JOY_KEMPSTON2 || Config::joystick2 == JOY_KEMPSTON2) {
+
+                for (int i = fabgl::VK_KEMPSTON2_RIGHT; i <= fabgl::VK_KEMPSTON2_ALTFIRE; i++)
+                    if (Kbd->isVKDown((fabgl::VirtualKey) i))
+                        bitWrite(Ports::port[0x37], i - fabgl::VK_KEMPSTON2_RIGHT, 1);
 
             }
 
@@ -1625,26 +1637,28 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
             if (Config::CursorAsJoy) {
 
                 // Kempston Joystick emulation
-                if (Config::joyPS2 == JOYPS2_KEMPSTON) {
+                if (Config::joyPS2 == JOYPS2_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON2) {
+
+                    uint8_t port = Config::joyPS2 == JOYPS2_KEMPSTON ? 0x1f : 0x37;
 
                     if (Kbd->isVKDown(fabgl::VK_RIGHT)) {
                         j[8] = jShift;
-                        bitWrite(Ports::port[0x1f], 0, j[8]);
+                        bitWrite(Ports::port[port], 0, j[8]);
                     }
 
                     if (Kbd->isVKDown(fabgl::VK_LEFT)) {
                         j[5] = jShift;
-                        bitWrite(Ports::port[0x1f], 1, j[5]);
+                        bitWrite(Ports::port[port], 1, j[5]);
                     }
 
                     if (Kbd->isVKDown(fabgl::VK_DOWN)) {
                         j[6] = jShift;
-                        bitWrite(Ports::port[0x1f], 2, j[6]);
+                        bitWrite(Ports::port[port], 2, j[6]);
                     }
 
                     if (Kbd->isVKDown(fabgl::VK_UP)) {
                         j[7] = jShift;
-                        bitWrite(Ports::port[0x1f], 3, j[7]);
+                        bitWrite(Ports::port[port], 3, j[7]);
                     }
 
                 // Fuller Joystick emulation
@@ -1733,30 +1747,32 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
             }
 
             // Keypad PS/2 Joystick emulation
-            if (Config::joyPS2 == JOYPS2_KEMPSTON) {
+            if (Config::joyPS2 == JOYPS2_KEMPSTON || Config::joyPS2 == JOYPS2_KEMPSTON2) {
+
+                uint8_t port = Config::joyPS2 == JOYPS2_KEMPSTON ? 0x1f : 0x37;
 
                 if (Kbd->isVKDown(fabgl::VK_KP_RIGHT)) {
-                    bitWrite(Ports::port[0x1f], 0, 1);
+                    bitWrite(Ports::port[port], 0, 1);
                 }
 
                 if (Kbd->isVKDown(fabgl::VK_KP_LEFT)) {
-                    bitWrite(Ports::port[0x1f], 1, 1);
+                    bitWrite(Ports::port[port], 1, 1);
                 }
 
                 if (Kbd->isVKDown(fabgl::VK_KP_DOWN) || Kbd->isVKDown(fabgl::VK_KP_CENTER)) {
-                    bitWrite(Ports::port[0x1f], 2, 1);
+                    bitWrite(Ports::port[port], 2, 1);
                 }
 
                 if (Kbd->isVKDown(fabgl::VK_KP_UP)) {
-                    bitWrite(Ports::port[0x1f], 3, 1);
+                    bitWrite(Ports::port[port], 3, 1);
                 }
 
                 if (Kbd->isVKDown(fabgl::VK_RALT) || Kbd->isVKDown(VK_ESPECCY_FIRE1)) {
-                    bitWrite(Ports::port[0x1f], 4, 1);
+                    bitWrite(Ports::port[port], 4, 1);
                 }
 
                 if (Kbd->isVKDown(fabgl::VK_SLASH) || /*Kbd->isVKDown(fabgl::VK_QUESTION) ||*/Kbd->isVKDown(fabgl::VK_RGUI) || Kbd->isVKDown(fabgl::VK_APPLICATION) || Kbd->isVKDown(VK_ESPECCY_FIRE2)) {
-                    bitWrite(Ports::port[0x1f], 5, 1);
+                    bitWrite(Ports::port[port], 5, 1);
                 }
 
             } else if (Config::joyPS2 == JOYPS2_FULLER) {
