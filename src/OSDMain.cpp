@@ -3682,7 +3682,6 @@ void OSD::do_OSD(fabgl::VirtualKey KeytoESP, bool CTRL, bool SHIFT) {
                                         menu_saverect = true;
                                         while (1) {
                                             menu_curopt = (opt2 == 1 ? Config::joystick1 : Config::joystick2) + 1;
-                                            printf("joy#%d type=%d\n", opt2, menu_curopt);
                                             string joy_menu = markSelectedOption(MENU_DEFJOY[Config::lang], to_string(menu_curopt - 1));
                                             joy_menu.replace(joy_menu.find("#",0),1,(string)" " + char(48 + opt2));
                                             uint8_t optjoy = menuRun(joy_menu);

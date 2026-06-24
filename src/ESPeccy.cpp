@@ -1502,7 +1502,6 @@ IRAM_ATTR void ESPeccy::processKeyboard() {
 
             KeytoESP = NextKey.vk;
 
-                printf("KeytoESP: %d\n",KeytoESP);
             if (KeytoESP >= fabgl::VK_JOY1LEFT && KeytoESP <= fabgl::VK_JOY2Z) {
                 // printf("KeytoESP: %d\n",KeytoESP);
                 ESPeccy::PS2Controller.keyboard()->injectVirtualKey(JoyVKTranslation[KeytoESP - fabgl::VK_JOY1LEFT], NextKey.down, false);
